@@ -3,6 +3,18 @@ import sqlite3
 from PIL import Image, ImageDraw
 import math as maths
 
+def drag_start(event):
+	widget = event.widget
+	widget._drag_start_x = event.x
+	widget._drag_start_y = event.y
+	print("Yes?")
+
+def drag_motion(event):
+    widget = event.widget
+    x = widget.winfo_x() - widget._drag_start_x + event.x
+    y = widget.winfo_y() - widget._drag_start_y + event.y
+    widget.place(x=x, y=y)
+	
 class diagramStructure():
 	
 	def __init__(self, f):
@@ -14,7 +26,12 @@ class diagramStructure():
 		self.cur.execute('''
 			CREate table if not exists `units`
 				(iName TEXT NOT NULL UNIQUE,
-				proName TEXT NOT NULL)
+				proName TEXT NOT NULL, 
+				top INTEGER DEFAULT 0,
+				left INTEGER DEFAULT 0,
+				width INTEGER DEFAULT 50,
+				height INTEGER DEFAULT 50
+				)
 		
 		''')
 		
@@ -27,7 +44,7 @@ class diagramStructure():
 		''')
 		
 		self.cur.execute('''
-			CREate table if not exists `wire
+			CREate table if not exists `wire`
 				(devOut TEXT NOT NULL,
 				connOut TEXT NOT NULL,
 				devIn TEXT NULL,
@@ -111,7 +128,7 @@ class device():
 		pass
 
 f = diagramStructure("f.db")
-#f.build()
+f.build()
 d = diagram()
 d.load(f)
 
@@ -193,11 +210,14 @@ def objMk(dr, p, dms = (0,0,1,1)):
 			outline=(0,0,0)
 		)
 	elif (a == 2):
-		dr.create_rectangle(
+		rct = dr.create_rectangle(
 			dms[0]-(dms[2]/2), dms[1] - (dms[3]/2),
 			dms[0]+(dms[2]/2), dms[1] + (dms[3]/2),
 			outline="black"
 		)
+		dr.tag_bind(rct, "<Button-1>", drag_start)
+		dr.tag_bind(rct, "<B1-Motion>", drag_motion)
+
 	return outmap
 
 for i in d.listDevices():
@@ -298,6 +318,67 @@ class wdTk():
 		Tk.Entry(self.aw, textvariable= self.hName).grid()
 		Tk.Button(self.aw, text="Add", command=self.devAddComplete).grid()
 
+
+	def devEditComplete(self):
+		KEYS = []
+		VALUES = []
+		for i in d.listDevices():
+			KEYS.append(i)
+			VALUES.append(i + " (" + i + ")")
+		obj = KEYS[VALUES.index(self.mName.get())]
+		d.locateDevice(obj, (int(self.left.get(), 10),
+			int(self.top.get())), 
+			(int(self.width.get()), 
+			int(self.height.get())))
+		self.core.struct.cur.execute("update units set top = ?, left = ?, width = ?, height = ? WHERE `iName` = ?",
+			(self.top.get(), self.left.get(), self.width.get(), self.height.get(), obj))
+
+		self.aw.destroy()
+
+		redraw()
+	
+	def devEditWin(self):
+		self.aw = Tk.Tk()
+		KEYS = []
+		VALUES = []
+		for i in d.listDevices():
+			KEYS.append(i)
+			VALUES.append(i + " (" + i + ")")
+	
+		self.top = Tk.StringVar(self.aw)
+		self.left = Tk.StringVar(self.aw)
+		self.width = Tk.StringVar(self.aw)
+		self.height = Tk.StringVar(self.aw)
+		self.mName = Tk.StringVar(self.aw)
+		Tk.Label(self.aw, text="Edit Machine").grid()
+		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.mName, values=VALUES).grid()
+		
+		Tk.Label(self.aw, text="Top").grid()
+		Tk.Entry(self.aw, textvariable= self.top).grid()
+		Tk.Label(self.aw, text="Left").grid()
+		Tk.Entry(self.aw, textvariable= self.left).grid()
+		Tk.Label(self.aw, text="Width").grid()
+		Tk.Entry(self.aw, textvariable= self.width).grid()
+		Tk.Label(self.aw, text="Height").grid()
+		Tk.Entry(self.aw, textvariable= self.height).grid()
+		self.mName.trace('w',self.setmName)
+		Tk.Button(self.aw, text="Add", command=self.devEditComplete).grid()
+
+
+	def setmName(self, *nope):
+		KEYS = []
+		VALUES = []
+		for i in d.listDevices():
+			KEYS.append(i)
+			VALUES.append(i + " (" + i + ")")
+		obj = KEYS[VALUES.index(self.mName.get())]
+		left, top, width, height = d.locs[obj]
+		self.top.set(top)
+		self.left.set(left)
+		self.width.set(width)
+		self.height.set(height)
+		#print(d.locs)
+		
 	def devDelWin(self):
 		self.aw = Tk.Tk()
 		KEYS = []
@@ -443,7 +524,7 @@ def redraw():
 		st = d.getDevice(i[0][0]).drwConnPos[i[0][1]]
 		fn =  d.getDevice(i[1][0]).drwConnPos[i[1][1]]
 		#dr.line((st,fn), fill=(0,0,0))
-		wdc.canvas.create_line(st,fn, fill="black")
+		r = wdc.canvas.create_line(st,fn, fill="black")
 		
 t = wdTk()
 
@@ -481,7 +562,7 @@ add.add_command(label="Plug", command=t.connAddWin)
 add.add_command(label="Connection", command=t.wireAddWin)
 
 edit = Tk.Menu()
-edit.add_command(label="Device", state=Tk.DISABLED)
+edit.add_command(label="Device", command=t.devEditWin)
 edit.add_command(label="Plug", state=Tk.DISABLED)
 edit.add_command(label="Connection", state=Tk.DISABLED)
 
