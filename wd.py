@@ -268,7 +268,6 @@ class wdTk():
 		Tk.Entry(self.aw, textvariable= self.hName).grid()
 		Tk.Button(self.aw, text="Add", command=self.devAddComplete).grid()
 
-
 	def devEditComplete(self):
 		KEYS = []
 		VALUES = []
