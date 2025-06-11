@@ -1,5 +1,4 @@
 from copy import copy
-import sqlite3
 from PIL import Image, ImageDraw
 import math as maths
 
@@ -14,44 +13,8 @@ def drag_motion(event):
     x = widget.winfo_x() - widget._drag_start_x + event.x
     y = widget.winfo_y() - widget._drag_start_y + event.y
     widget.place(x=x, y=y)
-	
-class diagramStructure():
-	
-	def __init__(self, f):
-		self.store = sqlite3.connect(f)
-		self.store.row_factory = sqlite3.Row
-		self.cur = self.store.cursor()
-		
-	def build(self):
-		self.cur.execute('''
-			CREate table if not exists `units`
-				(iName TEXT NOT NULL UNIQUE,
-				proName TEXT NOT NULL, 
-				top INTEGER DEFAULT 0,
-				left INTEGER DEFAULT 0,
-				width INTEGER DEFAULT 50,
-				height INTEGER DEFAULT 50
-				)
-		
-		''')
-		
-		self.cur.execute('''
-			CREate table if not exists `conns`
-				(dName TEXT NOT NULL,
-				cName TEXT NOT NULL,
-				proto TEXT NULL,
-				direction TEXT NULL)
-		''')
-		
-		self.cur.execute('''
-			CREate table if not exists `wire`
-				(devOut TEXT NOT NULL,
-				connOut TEXT NOT NULL,
-				devIn TEXT NULL,
-				connIn TEXT NULL)
-		''')
-		self.store.commit()
-		pass
+
+from diagramStructure import  diagramStructure
 
 class diagram():
 	
@@ -99,7 +62,7 @@ class diagram():
 			if (i["left"] is not None):
 				self.locateDevice(i["iName"], (i["left"],i["top"]),(i["width"],i["height"]))
 
-		for i in resource.cur.execute("select * from conns"):
+		for i in resource.cur.execute("select * from conns order by `dName` ASC, direction DESC"):#, cName asc"):
 			#print(dict(i))
 			dv = self.getDevice(i["dName"])
 			if (dv is not None):
@@ -140,21 +103,7 @@ d.load(f)
 #d.getDevice('microphone_1').addConnector("Out", proto="XLR")
 #f.store.commit()
 
-def colourDirection(d, hx=False):
-	if (d is None):
-		c = (0,0,0)
-	elif (d in ["In", "in"]):
-			c=(255,0,0)
-	elif (d in ["Out", "out"]):
-			c=(0,0,255)
-	elif (d in ["Bi", "Both", "bi", "both"]):
-			c=(255,0,255)
-	else:
-			#raise exception("No")
-		c=(196,196,196)
-	if (hx):
-		return "#" + hex(c[0])[2:].zfill(2) + hex(c[1])[2:].zfill(2) + hex(c[2])[2:].zfill(2)
-	return c
+from colours import colourDirection
 	
 im = Image.new("RGB", (800,600), (255,255,255))
 dr = ImageDraw.Draw(im)
@@ -278,7 +227,8 @@ class wdTk():
 		self.aw.destroy()
 		redraw()
 		pass
-		
+	
+	
 	def devDelComplete(self):
 		
 		# Load the objects
@@ -364,7 +314,6 @@ class wdTk():
 		self.mName.trace('w',self.setmName)
 		Tk.Button(self.aw, text="Add", command=self.devEditComplete).grid()
 
-
 	def setmName(self, *nope):
 		KEYS = []
 		VALUES = []
@@ -445,7 +394,25 @@ class wdTk():
 		
 		self.e["values"]=list(ii)
 
-	def setOutC(self, *what):
+	def setM(self, *what, **kwargs):
+		#print(what)
+		print(kwargs)
+		self.b["state"]='readonly'
+		
+		KEYS = []
+		VALUES = []
+		for i in d.listDevices():
+			KEYS.append(i)
+			#print(str(d.getDevice(i)))
+			VALUES.append(i + " (" + i + ")")
+		
+		obj = KEYS[VALUES.index(kwargs['i'])]
+		ii = d.getDevice(obj).connectors.keys()
+		
+		kwargs['o']["values"]=list(ii)
+		
+	def setOutC(self, *kwargs):
+
 		#print(what)
 		self.b["state"]='readonly'
 		
@@ -478,6 +445,47 @@ class wdTk():
 			(objIn, self.incName.get(),
 			objOut, self.outcName.get()))
 		self.aw.destroy()
+	
+	def wireDelWin(self):
+		self.aw = Tk.Tk()
+		KEYS = []
+		VALUES = []
+		for i in d.listDevices():
+			KEYS.append(i)
+			VALUES.append(i + " (" + i + ")")
+		
+		self.cName = Tk.StringVar(self.aw)
+		self.mName = Tk.StringVar(self.aw)
+		Tk.Label(self.aw, text="Machine Name").grid()
+		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.cName, values=VALUES).grid()
+		
+		Tk.Label(self.aw, text="Connection Point").grid()
+		self.b = ttk.Combobox(self.aw, state='disabled', textvariable= self.mName, values=VALUES)
+		self.b.grid()
+		self.cName.trace('w', lambda *a, b = self.b: self.setM(i = self.cName.get(), o = b))
+		self.mName.trace('w', self.setM2)
+		Tk.Button(self.aw, text="Delete", command=self.wireDelComplete).grid()
+
+	def wireDelComplete(self):
+		KEYS = []
+		VALUES = []
+		for i in d.listDevices():
+			KEYS.append(i)
+			VALUES.append(i + " (" + i + ")")
+			
+		obj = KEYS[VALUES.index(self.cName.get())]
+	
+		print(obj, self.mName.get())
+		self.core.struct.cur.execute("delete from wire where DevOut = ? and ConnOut = ?",
+			(obj, self.mName.get()))
+		self.core.struct.cur.execute("delete from wire where DevIn = ? and ConnIn = ?",
+			(obj, self.mName.get()))
+		redraw()
+		self.aw.destroy()
+		pass
+		
+	def setM2(self, *args):
+		pass
 		
 	def wireAddWin(self):
 		self.aw = Tk.Tk()
@@ -512,6 +520,7 @@ def redraw():
 	#print(i)
 		if (i in d.locs):
 			aa = objMk(wdc.canvas, d.getDevice(i), d.locs[i])
+			d.getDevice(i).drwConnPos = aa
 
 	for i in d.conns:
 		pin = d.getDevice(i[0][0]).connectors[i[0][1]]["direction"]
@@ -569,7 +578,7 @@ edit.add_command(label="Connection", state=Tk.DISABLED)
 delete = Tk.Menu()
 delete.add_command(label="Device", command=t.devDelWin)
 delete.add_command(label="Plug", state=Tk.DISABLED)
-delete.add_command(label="Connection", state=Tk.DISABLED)
+delete.add_command(label="Connection", command=t.wireDelWin)
 
 y.add_cascade(label="File", menu=mf)
 y.add_cascade(label="Add", menu=add)
