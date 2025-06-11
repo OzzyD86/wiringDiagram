@@ -14,7 +14,7 @@ def drag_motion(event):
     y = widget.winfo_y() - widget._drag_start_y + event.y
     widget.place(x=x, y=y)
 
-from diagramStructure import  diagramStructure
+from diagramStructure import diagramStructure
 
 class diagram():
 	
@@ -49,6 +49,12 @@ class diagram():
 			
 		_out = self.dev[a[0]]
 		_in = self.dev[b[0]]
+		
+		if (not a[1] in _out.connectors ):
+			return False
+
+		if (not b[1] in _in.connectors):
+			return False
 		
 		_out.connectors[a[1]]["connected"] = b
 		_in.connectors[b[1]]["connected"] = a
@@ -108,7 +114,10 @@ from colours import colourDirection
 im = Image.new("RGB", (800,600), (255,255,255))
 dr = ImageDraw.Draw(im)
 
-def objMk(dr, p, dms = (0,0,1,1)):
+def objMk(dr, p, dms = (0,0,1,1), _type = 0):
+
+	poss = { "left": [], "right": [], "top": [], "bottom" : [] }
+
 	if (type(dr) is ImageDraw.ImageDraw):
 		a = 1
 	elif (type(dr) is Tk.Canvas):
@@ -116,42 +125,53 @@ def objMk(dr, p, dms = (0,0,1,1)):
 	else:
 		#print(type(dr))
 		raise Exception("Unplacable")
-		
-	l = maths.floor(len(p.connectors) / 2)
-	r = maths.ceil(len(p.connectors) / 2)
-	kl = list(p.connectors.keys())
-	#print(kl.pop())
+	
+	if (_type in [0]):
+		if (_type == 0):
+			ct = 0
+			nat = ["left", "right"]
+			for i in p.connectors.keys():
+				poss[nat[ct%2]].append(i)
+				ct+=1
+			print(poss)
+	else:
+		pass
+
 	outmap = {}
-	for i in range(l):
-		k = kl.pop(0)
-		n = (p.connectors[k])
-		
-		lf = dms[0] - (dms[2]/2) - 5
-		tp = dms[1] - (dms[3]/2) + (((i+1) / (l+1)) * dms[3])
-		c = colourDirection(n["direction"], a==2)
-		if (a==1):
-			dr.rectangle((lf, tp-2.5, lf + 5, tp+2.5), outline=c)
-		elif (a==2):
-
-			dr.create_rectangle(lf, tp-2.5, lf + 5, tp+2.5, outline=c)
-
-		outmap[k] = (lf,tp)
-		
-	for i in range(r):
-		k = kl.pop(0)
-		n = (p.connectors[k])
-		c = colourDirection(n["direction"], a==2)
-		#print(c)
-		lf = dms[0] + (dms[2]/2) 
-		tp = dms[1] - (dms[3]/2) + (((i+1) / (r+1)) * dms[3])
 	
-		if (a==1):
-			dr.rectangle((lf, tp-2.5, lf + 5, tp+2.5), outline=c)
-		elif(a==2):
-			dr.create_rectangle(lf, tp-2.5, lf + 5, tp+2.5, outline=c)
+	for fa, fb in poss.items():
+		tt = (0,0)
+		print(fa)
+		ln = len(fb)
+		print(ln)
+		ct = 0
+		if (fa in ["left", "top"]):
+			os = (- (dms[2]/2)-2.5, - (dms[3]/2)-2.5)
+		elif (fa in ["right"]):
+			os = ((dms[2]/2)+2.5, - (dms[3]/2))
+		elif (fa in ["bottom"]):
+			os = (-(dms[2]/2), (dms[3]/2)+2.5)
+		else:
+			os = (0,0)
+			
+		for fc in fb:
+			if (fa in ["left", "right"]):
+				os = (os[0], (-dms[3] /2) + ((ct+1) / (ln+1) * dms[3]))
+			if (fa in ["top", "bottom"]):
+				os = ((-dms[2] /2) + ((ct+1) / (ln+1) * dms[2]), os[1])
+			lf = dms[0] + os[0]
+			tp = dms[1] + os[1]
 
-		outmap[k] = (lf+5,tp)
-	
+			c = colourDirection(p.connectors[fc]["direction"], a==2)
+
+			if (a==1):
+				dr.rectangle((lf-2.5, tp-2.5, lf + 2.5, tp+2.5), outline=c)
+			elif (a==2):
+				dr.create_rectangle(lf-2.5, tp-2.5, lf + 2.5, tp+2.5, outline=c)
+				
+			ct += 1
+			outmap[fc] = (lf,tp)		
+
 	if (a==1):
 		dr.rectangle(
 			(dms[0]-(dms[2]/2), dms[1] - (dms[3]/2),
@@ -164,8 +184,8 @@ def objMk(dr, p, dms = (0,0,1,1)):
 			dms[0]+(dms[2]/2), dms[1] + (dms[3]/2),
 			outline="black"
 		)
-		dr.tag_bind(rct, "<Button-1>", drag_start)
-		dr.tag_bind(rct, "<B1-Motion>", drag_motion)
+		#dr.tag_bind(rct, "<Button-1>", drag_start)
+		#dr.tag_bind(rct, "<B1-Motion>", drag_motion)
 
 	return outmap
 
@@ -190,19 +210,6 @@ class wdCore():
 	def importStruct(self, struct):
 		self.struct = struct
 
-def file_new():
-	# check unsaved data (if any)
-	e = None # Bring up a new file dialog
-	
-	if (e is not None):
-		f = diagramStucture(e)
-		f.build()
-	
-	d = diagram()
-
-def file_save():
-	f.store.commit()
-	
 class wdTk():
 	def __init__(self):
 		self.window = Tk.Tk()
@@ -211,8 +218,17 @@ class wdTk():
 		
 		self.menu = {
 			"root" : Tk.Menu(),
-			"file": Tk.Menu()
+			"file": Tk.Menu(),
+			"add": Tk.Menu()
 		}
+	
+		add = self.menu["add"]
+		add.add_command(label="Device", command=self.devAddWin)
+		add.add_command(label="Plug", command=self.connAddWin)
+		add.add_command(label="Connection", command=self.wireAddWin)
+
+	def file_save(self):
+		f.store.commit() # That needs moving
 	
 	def devAddComplete(self):
 		#print("m:",self.mName.get())
@@ -228,7 +244,6 @@ class wdTk():
 		redraw()
 		pass
 	
-	
 	def devDelComplete(self):
 		
 		# Load the objects
@@ -236,7 +251,6 @@ class wdTk():
 		VALUES = []
 		for i in d.listDevices():
 			KEYS.append(i)
-			#print(str(d.getDevice(i)))
 			VALUES.append(i + " (" + i + ")")
 			
 		# Find the object
@@ -246,13 +260,13 @@ class wdTk():
 		if (self.core.struct is not None):
 			# Delete the object
 			self.core.struct.cur.execute("delete from units where iName = ?", (obj,))
-			#self.core.struct.store.commit()
+			#self.core.struct.store.commit() # Don't do that here
 	
 			# Delete its connectors
 			# Delete any wires relating to it
 		
 		#print("m:",self.mName.get())
-		print("dh:", self.dhName.get())
+		#print("dh:", self.dhName.get())
 		del d.dev[obj]
 		redraw()
 		self.aw.destroy()
@@ -513,6 +527,21 @@ class wdTk():
 		self.e.grid()
 		Tk.Button(self.aw, text="Add", command=self.wireAddComplete).grid()
 
+	def file_new(self):
+		a = tkinter.filedialog.asksaveasfilename()
+		if (len(a) == 0):
+			print("Cancelled?")
+		else:
+			global f,t,d
+			f = diagramStructure(a)
+			f.build()
+			self.dia = d = diagram()
+			d.load(f)
+			self.core.importStruct(f)
+			redraw()
+			print("Yes")
+		#print(type(a), a)
+		
 def redraw():
 	wdc.canvas.delete("all")
 	for i in d.listDevices():
@@ -522,17 +551,32 @@ def redraw():
 			d.getDevice(i).drwConnPos = aa
 
 	for i in d.conns:
-		pin = d.getDevice(i[0][0]).connectors[i[0][1]]["direction"]
-		pout = d.getDevice(i[1][0]).connectors[i[1][1]]["direction"]
-
+		p =0
+		pin = None
+		pout = None
+		if (d.getDevice(i[0][0]) is not None):
+			pin = d.getDevice(i[0][0]).connectors[i[0][1]]["direction"]
+		else:
+			p+=1
+			print("oops")
+			
+		if (d.getDevice(i[1][0]) is not None):
+			pout = d.getDevice(i[1][0]).connectors[i[1][1]]["direction"]
+		else:
+			p+=1
+			print("oops")
+			
 		if (pin == pout):
 			if (pin is not None):
 				print("Plugged " + str(pin) + " into " + str(pout) + " with", i)
-			
-		st = d.getDevice(i[0][0]).drwConnPos[i[0][1]]
-		fn =  d.getDevice(i[1][0]).drwConnPos[i[1][1]]
-		#dr.line((st,fn), fill=(0,0,0))
-		r = wdc.canvas.create_line(st,fn, fill="black")
+		
+		if (p ==0):
+			st = d.getDevice(i[0][0]).drwConnPos[i[0][1]]
+			fn =  d.getDevice(i[1][0]).drwConnPos[i[1][1]]
+			#dr.line((st,fn), fill=(0,0,0))
+			r = wdc.canvas.create_line(st,fn, fill="black")
+		#else:
+		print(pin, pout)
 		
 t = wdTk()
 
@@ -558,16 +602,12 @@ for i in d.conns:
 	dr.line((st,fn), fill=(0,0,0))
 	#wdc.canvas.create_line(st,fn, fill="black")
 
+import tkinter.filedialog
+	
 mf = t.menu["file"]
-mf.add_command(label="New", state=Tk.DISABLED)
+mf.add_command(label="New", command= t.file_new)
 mf.add_separator()
-mf.add_command(label="Save", command= file_save)
-
-
-add = Tk.Menu()
-add.add_command(label="Device", command=t.devAddWin)
-add.add_command(label="Plug", command=t.connAddWin)
-add.add_command(label="Connection", command=t.wireAddWin)
+mf.add_command(label="Save", command= t.file_save)
 
 edit = Tk.Menu()
 edit.add_command(label="Device", command=t.devEditWin)
@@ -580,7 +620,7 @@ delete.add_command(label="Plug", state=Tk.DISABLED)
 delete.add_command(label="Connection", command=t.wireDelWin)
 
 y.add_cascade(label="File", menu=mf)
-y.add_cascade(label="Add", menu=add)
+y.add_cascade(label="Add", menu=t.menu["add"])
 y.add_cascade(label="Edit", menu=edit)
 y.add_cascade(label="Delete", menu=delete)
 x.mainloop()
