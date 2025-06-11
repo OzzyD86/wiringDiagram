@@ -114,7 +114,7 @@ from colours import colourDirection
 im = Image.new("RGB", (800,600), (255,255,255))
 dr = ImageDraw.Draw(im)
 
-def objMk(dr, p, dms = (0,0,1,1), _type = 0):
+def objMk(dr, p, dms = (0,0,1,1), _type = 1):
 
 	poss = { "left": [], "right": [], "top": [], "bottom" : [] }
 
@@ -126,7 +126,7 @@ def objMk(dr, p, dms = (0,0,1,1), _type = 0):
 		#print(type(dr))
 		raise Exception("Unplacable")
 	
-	if (_type in [0]):
+	if (_type in [0, 1]):
 		if (_type == 0):
 			ct = 0
 			nat = ["left", "right"]
@@ -134,6 +134,20 @@ def objMk(dr, p, dms = (0,0,1,1), _type = 0):
 				poss[nat[ct%2]].append(i)
 				ct+=1
 			print(poss)
+
+		if (_type == 1):
+			ct = 0
+			nat = ["left", "right"]
+			for i in p.connectors.keys():
+				if (p.connectors[i]['direction'] in ["In", "in"]):
+					poss["left"].append(i)
+				elif (p.connectors[i]['direction'] in ["Out", "out"]):
+					poss["right"].append(i)
+				else:
+					poss[nat[ct%2]].append(i)
+					ct+=1
+			print(poss)
+		
 	else:
 		pass
 
@@ -145,9 +159,9 @@ def objMk(dr, p, dms = (0,0,1,1), _type = 0):
 		ln = len(fb)
 		print(ln)
 		ct = 0
-		if (fa in ["left", "top"]):
+		if (fa in ["right", "top"]):
 			os = (- (dms[2]/2)-2.5, - (dms[3]/2)-2.5)
-		elif (fa in ["right"]):
+		elif (fa in ["left"]):
 			os = ((dms[2]/2)+2.5, - (dms[3]/2))
 		elif (fa in ["bottom"]):
 			os = (-(dms[2]/2), (dms[3]/2)+2.5)
@@ -170,7 +184,7 @@ def objMk(dr, p, dms = (0,0,1,1), _type = 0):
 				dr.create_rectangle(lf-2.5, tp-2.5, lf + 2.5, tp+2.5, outline=c)
 				
 			ct += 1
-			outmap[fc] = (lf,tp)		
+			outmap[fc] = (lf,tp)
 
 	if (a==1):
 		dr.rectangle(
