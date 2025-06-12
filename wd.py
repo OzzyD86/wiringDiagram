@@ -64,7 +64,7 @@ class diagram():
 	def load(self, resource):
 		for i in resource.cur.execute("select * from units"):
 		#print(dict(i))
-			self.addDevice(i['iName'], device())
+			self.addDevice(i['iName'], device(i['proName']))
 			if (i["left"] is not None):
 				self.locateDevice(i["iName"], (i["left"],i["top"]),(i["width"],i["height"]))
 
@@ -83,9 +83,13 @@ class diagram():
 				(i["devIn"], i["ConnIn"])
 			)
 		pass
-			
+		
+def check_current_version():
+	return 1
+	
 class device():
-	def __init__(self):
+	def __init__(self, name):
+		self.name = name
 		self.connectors = {}
 		
 	def addConnector(self, key, proto = None, direction = None):
@@ -97,17 +101,14 @@ class device():
 		pass
 
 f = diagramStructure("f.db")
-f.build()
+print(f.check_version())
+if (f.check_version() < check_current_version()):
+	print("Update needed")
+	f.update_version(f.check_version(), check_current_version())
+#exit(1)
+#f.build()
 d = diagram()
 d.load(f)
-
-#d.addDevice("microphone_2", device())
-#print(d.listDevices())
-#p = d.getDevice(d.listDevices()[0])
-
-#f.cur.execute("insert into conns (dName, cName) VALUES ('microphone_1', 'Out')")
-#d.getDevice('microphone_1').addConnector("Out", proto="XLR")
-#f.store.commit()
 
 from colours import colourDirection
 	
@@ -115,7 +116,6 @@ im = Image.new("RGB", (800,600), (255,255,255))
 dr = ImageDraw.Draw(im)
 
 def objMk(dr, p, dms = (0,0,1,1), _type = 1):
-
 	poss = { "left": [], "right": [], "top": [], "bottom" : [] }
 
 	if (type(dr) is ImageDraw.ImageDraw):
@@ -133,7 +133,7 @@ def objMk(dr, p, dms = (0,0,1,1), _type = 1):
 			for i in p.connectors.keys():
 				poss[nat[ct%2]].append(i)
 				ct+=1
-			print(poss)
+			#print(poss)
 
 		if (_type == 1):
 			ct = 0
@@ -146,7 +146,7 @@ def objMk(dr, p, dms = (0,0,1,1), _type = 1):
 				else:
 					poss[nat[ct%2]].append(i)
 					ct+=1
-			print(poss)
+			#print(poss)
 		
 	else:
 		pass
@@ -155,13 +155,13 @@ def objMk(dr, p, dms = (0,0,1,1), _type = 1):
 	
 	for fa, fb in poss.items():
 		tt = (0,0)
-		print(fa)
+		#print(fa)
 		ln = len(fb)
-		print(ln)
+		#print(ln)
 		ct = 0
-		if (fa in ["right", "top"]):
+		if (fa in ["left", "top"]):
 			os = (- (dms[2]/2)-2.5, - (dms[3]/2)-2.5)
-		elif (fa in ["left"]):
+		elif (fa in ["right"]):
 			os = ((dms[2]/2)+2.5, - (dms[3]/2))
 		elif (fa in ["bottom"]):
 			os = (-(dms[2]/2), (dms[3]/2)+2.5)
@@ -182,7 +182,8 @@ def objMk(dr, p, dms = (0,0,1,1), _type = 1):
 				dr.rectangle((lf-2.5, tp-2.5, lf + 2.5, tp+2.5), outline=c)
 			elif (a==2):
 				dr.create_rectangle(lf-2.5, tp-2.5, lf + 2.5, tp+2.5, outline=c)
-				
+			
+			print(p)
 			ct += 1
 			outmap[fc] = (lf,tp)
 
@@ -198,6 +199,7 @@ def objMk(dr, p, dms = (0,0,1,1), _type = 1):
 			dms[0]+(dms[2]/2), dms[1] + (dms[3]/2),
 			outline="black"
 		)
+		dr.create_text(dms[0],dms[1],text=p.name,font=('Arial',4))
 		#dr.tag_bind(rct, "<Button-1>", drag_start)
 		#dr.tag_bind(rct, "<B1-Motion>", drag_motion)
 
@@ -245,12 +247,15 @@ class wdTk():
 		f.store.commit() # That needs moving
 	
 	def devAddComplete(self):
+		if (self.mName.get() in d.listDevices()):
+			tkinter.messagebox.showerror(title="Cannot add device", message="The name of the device is already in use.")
+			return False
 		#print("m:",self.mName.get())
 		#print("h:", self.hName.get())
 		self.core.struct.cur.execute("insert into units (iName, proName, left, top, width, height) values(?, ?,?,?,?,?)", 
 			(self.mName.get(), self.hName.get(),
 			400,300,50,50))
-		d.addDevice(self.mName.get(), device())
+		d.addDevice(self.mName.get(), device(self.hName.get()))
 		#if (i["left"] is not None):
 		d.locateDevice(self.mName.get(), (400,300),(50, 50))
 
@@ -268,6 +273,11 @@ class wdTk():
 			VALUES.append(i + " (" + i + ")")
 			
 		# Find the object
+		if not self.dhName.get() in VALUES:
+			tkinter.messagebox.showerror(title="No device", message="No.")
+			return False
+			return False
+			
 		obj = KEYS[VALUES.index(self.dhName.get())]
 		print(obj)
 		
@@ -315,6 +325,10 @@ class wdTk():
 		redraw()
 	
 	def devEditWin(self):
+		if (len(d.listDevices())== 0):
+			tkinter.messagebox.showerror(title="No devices", message="There are no devices to edit.")
+			return False
+			
 		self.aw = Tk.Tk()
 		KEYS = []
 		VALUES = []
@@ -356,13 +370,17 @@ class wdTk():
 		#print(d.locs)
 		
 	def devDelWin(self):
+		if (len(d.listDevices())== 0):
+			tkinter.messagebox.showerror(title="No devices", message="There are no devices to delete.")
+			return False
+			
 		self.aw = Tk.Tk()
 		KEYS = []
 		VALUES = []
 		for i in d.listDevices():
 			KEYS.append(i)
 			VALUES.append(i + " (" + i + ")")
-	
+
 		#self.mName = Tk.StringVar(self.aw)
 		self.dhName = Tk.StringVar(self.aw)
 		Tk.Label(self.aw, text="Machine Name").grid()
@@ -381,7 +399,9 @@ class wdTk():
 			VALUES.append(i + " (" + i + ")")
 	
 		obj = KEYS[VALUES.index(self.mhName.get())]
-	
+		if (self.cName.get() in d.getDevice(obj).connectors.keys()):
+			tkinter.messagebox.showerror(title="Cannot add plug", message="The name of the plug is already in use for this device.")
+			return False
 		self.core.struct.cur.execute("insert into conns (dName, cName) values(?, ?)", (obj, self.cName.get()))
 		d.getDevice(obj).addConnector(self.cName.get(), proto="XLR")
 		redraw()
@@ -471,6 +491,12 @@ class wdTk():
 		self.core.struct.cur.execute("insert into wire (devIn,connIn,devOut,connOut) values (?,?,?,?)",
 			(objIn, self.incName.get(),
 			objOut, self.outcName.get()))
+			
+		d.addConnection(
+				(objIn, self.incName.get()),
+				(objOut, self.outcName.get())
+			)
+		redraw()
 		self.aw.destroy()
 	
 	def wireDelWin(self):

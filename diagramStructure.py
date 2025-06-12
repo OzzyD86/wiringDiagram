@@ -35,5 +35,53 @@ class diagramStructure():
 				devIn TEXT NULL,
 				connIn TEXT NULL)
 		''')
+		
+		self.store.execute('''
+			create table if not exists config
+				(key text unique not null,
+				value text)
+		''')
+			
+		self.store.execute('''insert into config
+				(key, value) VALUES (?,?)
+			''', ("version", 1))
 		self.store.commit()
+		
+	def check_version(self):
+		try:
+			p = self.store.execute("Select * from config where key = ?", ("version",))
+
+			pass
+		except sqlite3.OperationalError as e:
+			self.store.execute('''
+				create table if not exists config
+				(key text unique not null,
+				value text)
+			''')
+			
+			self.store.execute('''insert into config
+				(key, value) VALUES (?,?)
+			''', ("version", 0))
+			return 0
+		
+		q = p.fetchone()
+		#print(q)
+		if (q is None):
+			self.store.execute('''insert into config
+				(key, value) VALUES (?,?)
+			''', ("version", 1))
+			return 0
+
+		return int(q["value"])
+		
+	def update_version(self, _from, _to):
+		if (_from < 1 and _to > 0):
+			self.store.execute("alter table conns add column draw_position text not null default 'auto'")
+			print("Draw position for connectors")
+		
+			self.store.execute("alter table units add column draw_style text not null default 'auto'")
+			print("Draw position for units")
+		
+			self.store.execute("update config set value = 1 where key = 'version'")
+						
 		pass
