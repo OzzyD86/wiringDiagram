@@ -205,11 +205,11 @@ def objMk(dr, p, dms = (0,0,1,1), _type = 1):
 
 	return outmap
 
-for i in d.listDevices():
-	#print(i)
-	if (i in d.locs):
-		aa = objMk(dr, d.getDevice(i), d.locs[i])
-	d.getDevice(i).drwConnPos = aa
+# Any reason why I'm doing this here?
+#for i in d.listDevices():
+#	if (i in d.locs):
+#		aa = objMk(dr, d.getDevice(i), d.locs[i])
+#	d.getDevice(i).drwConnPos = aa
 
 import tkinter as Tk
 import tkinter.ttk as ttk
@@ -250,8 +250,7 @@ class wdTk():
 		if (self.mName.get() in d.listDevices()):
 			tkinter.messagebox.showerror(title="Cannot add device", message="The name of the device is already in use.")
 			return False
-		#print("m:",self.mName.get())
-		#print("h:", self.hName.get())
+			
 		self.core.struct.cur.execute("insert into units (iName, proName, left, top, width, height) values(?, ?,?,?,?,?)", 
 			(self.mName.get(), self.hName.get(),
 			400,300,50,50))
@@ -263,19 +262,22 @@ class wdTk():
 		redraw()
 		pass
 	
-	def devDelComplete(self):
-		
-		# Load the objects
+	def getKeys(self):
 		KEYS = []
 		VALUES = []
 		for i in d.listDevices():
 			KEYS.append(i)
 			VALUES.append(i + " (" + i + ")")
+		return (KEYS, VALUES)
+		
+	def devDelComplete(self):
+		
+		# Load the objects
+		KEYS, VALUES = self.getKeys()
 			
 		# Find the object
 		if not self.dhName.get() in VALUES:
 			tkinter.messagebox.showerror(title="No device", message="No.")
-			return False
 			return False
 			
 		obj = KEYS[VALUES.index(self.dhName.get())]
@@ -307,11 +309,7 @@ class wdTk():
 		Tk.Button(self.aw, text="Add", command=self.devAddComplete).grid()
 
 	def devEditComplete(self):
-		KEYS = []
-		VALUES = []
-		for i in d.listDevices():
-			KEYS.append(i)
-			VALUES.append(i + " (" + i + ")")
+		KEYS, VALUES = self.getKeys()
 		obj = KEYS[VALUES.index(self.mName.get())]
 		d.locateDevice(obj, (int(self.left.get(), 10),
 			int(self.top.get())), 
@@ -330,11 +328,7 @@ class wdTk():
 			return False
 			
 		self.aw = Tk.Tk()
-		KEYS = []
-		VALUES = []
-		for i in d.listDevices():
-			KEYS.append(i)
-			VALUES.append(i + " (" + i + ")")
+		KEYS, VALUES = self.getKeys()
 	
 		self.top = Tk.StringVar(self.aw)
 		self.left = Tk.StringVar(self.aw)
@@ -356,11 +350,7 @@ class wdTk():
 		Tk.Button(self.aw, text="Add", command=self.devEditComplete).grid()
 
 	def setmName(self, *nope):
-		KEYS = []
-		VALUES = []
-		for i in d.listDevices():
-			KEYS.append(i)
-			VALUES.append(i + " (" + i + ")")
+		KEYS, VALUES = self.getKeys()
 		obj = KEYS[VALUES.index(self.mName.get())]
 		left, top, width, height = d.locs[obj]
 		self.top.set(top)
@@ -375,11 +365,7 @@ class wdTk():
 			return False
 			
 		self.aw = Tk.Tk()
-		KEYS = []
-		VALUES = []
-		for i in d.listDevices():
-			KEYS.append(i)
-			VALUES.append(i + " (" + i + ")")
+		KEYS, VALUES = self.getKeys()
 
 		#self.mName = Tk.StringVar(self.aw)
 		self.dhName = Tk.StringVar(self.aw)
@@ -391,12 +377,7 @@ class wdTk():
 		Tk.Button(self.aw, text="Delete", command=self.devDelComplete).grid()
 
 	def connAddComplete(self):
-		KEYS = []
-		VALUES = []
-		for i in d.listDevices():
-			KEYS.append(i)
-			#print(str(d.getDevice(i)))
-			VALUES.append(i + " (" + i + ")")
+		KEYS, VALUES = self.getKeys()
 	
 		obj = KEYS[VALUES.index(self.mhName.get())]
 		if (self.cName.get() in d.getDevice(obj).connectors.keys()):
@@ -409,12 +390,7 @@ class wdTk():
 		
 	def connAddWin(self):
 		self.aw = Tk.Tk()
-		KEYS = []
-		VALUES = []
-		for i in d.listDevices():
-			KEYS.append(i)
-			#print(str(d.getDevice(i)))
-			VALUES.append(i + " (" + i + ")")
+		KEYS, VALUES = self.getKeys()
 	
 		self.cName = Tk.StringVar(self.aw)
 		self.mhName = Tk.StringVar(self.aw)
@@ -428,12 +404,7 @@ class wdTk():
 	def setInC(self, *what):
 		self.e["state"]='readonly'
 		
-		KEYS = []
-		VALUES = []
-		for i in d.listDevices():
-			KEYS.append(i)
-			#print(str(d.getDevice(i)))
-			VALUES.append(i + " (" + i + ")")
+		KEYS, VALUES = self.getKeys()
 		
 		obj = KEYS[VALUES.index(self.indName.get())]
 		ii = d.getDevice(obj).connectors.keys()
@@ -446,12 +417,7 @@ class wdTk():
 		print(kwargs)
 		self.b["state"]='readonly'
 		
-		KEYS = []
-		VALUES = []
-		for i in d.listDevices():
-			KEYS.append(i)
-			#print(str(d.getDevice(i)))
-			VALUES.append(i + " (" + i + ")")
+		KEYS, VALUES = self.getKeys()
 		
 		obj = KEYS[VALUES.index(kwargs['i'])]
 		ii = d.getDevice(obj).connectors.keys()
@@ -463,12 +429,7 @@ class wdTk():
 		#print(what)
 		self.b["state"]='readonly'
 		
-		KEYS = []
-		VALUES = []
-		for i in d.listDevices():
-			KEYS.append(i)
-			#print(str(d.getDevice(i)))
-			VALUES.append(i + " (" + i + ")")
+		KEYS, VALUES = self.getKeys()
 		
 		obj = KEYS[VALUES.index(self.outdName.get())]
 		ii = d.getDevice(obj).connectors.keys()
@@ -476,12 +437,7 @@ class wdTk():
 		self.b["values"]=list(ii)
 		
 	def wireAddComplete(self):
-		KEYS = []
-		VALUES = []
-		for i in d.listDevices():
-			KEYS.append(i)
-
-			VALUES.append(i + " (" + i + ")")
+		KEYS, VALUES = self.getKeys()
 			
 		#print(self.indName.get(), self.incName.get(),
 		#	self.outdName.get(), self.outcName.get())
@@ -501,11 +457,7 @@ class wdTk():
 	
 	def wireDelWin(self):
 		self.aw = Tk.Tk()
-		KEYS = []
-		VALUES = []
-		for i in d.listDevices():
-			KEYS.append(i)
-			VALUES.append(i + " (" + i + ")")
+		KEYS, VALUES = self.getKeys()
 		
 		self.cName = Tk.StringVar(self.aw)
 		self.mName = Tk.StringVar(self.aw)
@@ -520,11 +472,7 @@ class wdTk():
 		Tk.Button(self.aw, text="Delete", command=self.wireDelComplete).grid()
 
 	def wireDelComplete(self):
-		KEYS = []
-		VALUES = []
-		for i in d.listDevices():
-			KEYS.append(i)
-			VALUES.append(i + " (" + i + ")")
+		KEYS, VALUES = self.getKeys()
 			
 		obj = KEYS[VALUES.index(self.cName.get())]
 	
@@ -542,11 +490,7 @@ class wdTk():
 		
 	def wireAddWin(self):
 		self.aw = Tk.Tk()
-		KEYS = []
-		VALUES = []
-		for i in d.listDevices():
-			KEYS.append(i)
-			VALUES.append(i + " (" + i + ")")
+		KEYS, VALUES = self.getKeys()
 	
 		self.indName = Tk.StringVar(self.aw)
 		self.incName = Tk.StringVar(self.aw)
