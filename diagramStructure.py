@@ -41,10 +41,12 @@ class diagramStructure():
 				(key text unique not null,
 				value text)
 		''')
-			
-		self.store.execute('''insert into config
-				(key, value) VALUES (?,?)
-			''', ("version", 1))
+		try:
+			self.store.execute('''insert into config
+					(key, value) VALUES (?,?)
+				''', ("version", 1))
+		except:
+			pass
 		self.store.commit()
 		
 	def check_version(self):
@@ -58,10 +60,12 @@ class diagramStructure():
 				(key text unique not null,
 				value text)
 			''')
-			
-			self.store.execute('''insert into config
-				(key, value) VALUES (?,?)
-			''', ("version", 0))
+			try:
+				self.store.execute('''insert into config
+					(key, value) VALUES (?,?)
+				''', ("version", 0))
+			except:
+				pass
 			return 0
 		
 		q = p.fetchone()
