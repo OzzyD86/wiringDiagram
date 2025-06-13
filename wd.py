@@ -15,103 +15,19 @@ def drag_motion(event):
     widget.place(x=x, y=y)
 
 from diagramStructure import diagramStructure
+import incs.diagram
 
-class diagram():
-	
-	def __init__(self):
-		self.dev = {}
-		self.conns = []
-		self.locs = {}
-		
-	def addDevice(self, key, dev):
-		self.dev[key] = dev
-		pass
-		
-	def listDevices(self):
-		return list(self.dev.keys())
-	
-	def locateDevice(self, dName, pos = (0,0), sz = (50,50)):
-		self.locs[dName] = (*pos, *sz)
-		#print(self.locs)
-		
-	def getDevice(self, key):
-		try:
-			return self.dev[key]
-		except:
-			return None
-			
-	def addConnection(self, a, b):
-		if (a[0] not in self.dev):
-			return False
-		
-		if (b[0] not in self.dev):
-			return False
-			
-		_out = self.dev[a[0]]
-		_in = self.dev[b[0]]
-		
-		if (not a[1] in _out.connectors ):
-			return False
-
-		if (not b[1] in _in.connectors):
-			return False
-		
-		_out.connectors[a[1]]["connected"] = b
-		_in.connectors[b[1]]["connected"] = a
-		
-		self.conns.append((a,b))
-		
+class diagram(incs.diagram.diagram):
+	# This really shouldn't be here
 	def load(self, resource):
-		for i in resource.cur.execute("select * from units"):
-		#print(dict(i))
-			self.addDevice(i['iName'], device(i['proName']))
-			if (i["left"] is not None):
-				self.locateDevice(i["iName"], (i["left"],i["top"]),(i["width"],i["height"]))
-
-		for i in resource.cur.execute("select * from conns order by `dName` ASC, direction DESC"):#, cName asc"):
-			#print(dict(i))
-			dv = self.getDevice(i["dName"])
-			if (dv is not None):
-				dv.addConnector(i["cName"], proto="XLR", direction=i["direction"])
-			else:
-				print("Connection called for", i["cName"],"on",i["dName"],"which does not exist.")
-				pass
-				
-		for i in resource.cur.execute("select * from wire"):
-			self.addConnection(
-				(i["devOut"], i["ConnOut"]),
-				(i["devIn"], i["ConnIn"])
-			)
-		pass
+		raise Exception("Dont call this")
 		
 def check_current_version():
 	return 1
-	
-class device():
-	def __init__(self, name):
-		self.name = name
-		self.connectors = {}
-		
-	def addConnector(self, key, proto = None, direction = None):
-		self.connectors[key] = {
-			"proto": proto,
-			"direction": direction,
-			"connected": None
-		}
-		pass
 
-f = diagramStructure("f.db")
-print(f.check_version())
-if (f.check_version() < check_current_version()):
-	print("Update needed")
-	f.update_version(f.check_version(), check_current_version())
-#exit(1)
-#f.build()
-d = diagram()
-d.load(f)
-
+from dev import device
 from colours import colourDirection
-	
+
 im = Image.new("RGB", (800,600), (255,255,255))
 dr = ImageDraw.Draw(im)
 
@@ -183,7 +99,7 @@ def objMk(dr, p, dms = (0,0,1,1), _type = 1):
 			elif (a==2):
 				dr.create_rectangle(lf-2.5, tp-2.5, lf + 2.5, tp+2.5, outline=c)
 			
-			print(p)
+			#print(p)
 			ct += 1
 			outmap[fc] = (lf,tp)
 
@@ -205,12 +121,6 @@ def objMk(dr, p, dms = (0,0,1,1), _type = 1):
 
 	return outmap
 
-# Any reason why I'm doing this here?
-#for i in d.listDevices():
-#	if (i in d.locs):
-#		aa = objMk(dr, d.getDevice(i), d.locs[i])
-#	d.getDevice(i).drwConnPos = aa
-
 import tkinter as Tk
 import tkinter.ttk as ttk
 
@@ -220,11 +130,36 @@ class wdCore():
 		self.struct = None #diagramStructure()
 		
 		# Right-o! Let's set up a canvas ... but here?!
-		self.canvas = Tk.Canvas(x, width=800, height=600)
-		self.canvas.grid()
+		#self.canvas = Tk.Canvas(x, width=800, height=600)
+		#self.canvas.grid()
 
+	def load(self, resource):
+		for i in resource.cur.execute("select * from units"):
+		#print(dict(i))
+			self.dia.addDevice(i['iName'], device(i['proName']))
+			if (i["left"] is not None):
+				self.dia.locateDevice(i["iName"], (i["left"],i["top"]),(i["width"],i["height"]))
+
+		for i in resource.cur.execute("select * from conns order by `dName` ASC, direction DESC"):#, cName asc"):
+			#print(dict(i))
+			dv = self.dia.getDevice(i["dName"])
+			if (dv is not None):
+				dv.addConnector(i["cName"], proto="XLR", direction=i["direction"])
+			else:
+				print("Connection called for", i["cName"],"on",i["dName"],"which does not exist.")
+				pass
+				
+		for i in resource.cur.execute("select * from wire"):
+			self.dia.addConnection(
+				(i["devOut"], i["ConnOut"]),
+				(i["devIn"], i["ConnIn"])
+			)
+		pass
+		
 	def importStruct(self, struct):
 		self.struct = struct
+
+#omport wdTk
 
 class wdTk():
 	def __init__(self):
@@ -232,16 +167,43 @@ class wdTk():
 		self.window.title("WiringDiagram")
 		self.core = wdCore(self.window)
 		
+		self.canvas = Tk.Canvas(self.window, width=800, height=600)
+		self.canvas.grid()
+		
 		self.menu = {
 			"root" : Tk.Menu(),
 			"file": Tk.Menu(),
-			"add": Tk.Menu()
+			"add": Tk.Menu(),
+			"edit": Tk.Menu(),
+			"delete": Tk.Menu()
 		}
 	
+		self.window.config(menu=self.menu["root"])
+		mf = self.menu["file"]
+		mf.add_command(label="New", command= self.file_new)
+		mf.add_separator()
+		mf.add_command(label="Save", command= self.file_save)
+
 		add = self.menu["add"]
 		add.add_command(label="Device", command=self.devAddWin)
 		add.add_command(label="Plug", command=self.connAddWin)
 		add.add_command(label="Connection", command=self.wireAddWin)
+
+		edit = self.menu["edit"]
+		edit.add_command(label="Device", command=self.devEditWin)
+		edit.add_command(label="Plug", state=Tk.DISABLED)
+		edit.add_command(label="Connection", state=Tk.DISABLED)
+
+		delete = self.menu["delete"]
+		delete.add_command(label="Device", command=self.devDelWin)
+		delete.add_command(label="Plug", state=Tk.DISABLED)
+		delete.add_command(label="Connection", command=self.wireDelWin)
+
+		y = self.menu["root"]
+		y.add_cascade(label="File", menu=self.menu["file"])
+		y.add_cascade(label="Add", menu=self.menu["add"])
+		y.add_cascade(label="Edit", menu=self.menu["edit"])
+		y.add_cascade(label="Delete", menu=self.menu["delete"])
 
 	def file_save(self):
 		f.store.commit() # That needs moving
@@ -265,7 +227,8 @@ class wdTk():
 	def getKeys(self):
 		KEYS = []
 		VALUES = []
-		for i in d.listDevices():
+		self.core.dia = d # WTF 
+		for i in self.core.dia.listDevices():
 			KEYS.append(i)
 			VALUES.append(i + " (" + i + ")")
 		return (KEYS, VALUES)
@@ -274,14 +237,13 @@ class wdTk():
 		
 		# Load the objects
 		KEYS, VALUES = self.getKeys()
-			
+		
 		# Find the object
 		if not self.dhName.get() in VALUES:
 			tkinter.messagebox.showerror(title="No device", message="No.")
 			return False
 			
 		obj = KEYS[VALUES.index(self.dhName.get())]
-		print(obj)
 		
 		if (self.core.struct is not None):
 			# Delete the object
@@ -290,9 +252,7 @@ class wdTk():
 	
 			# Delete its connectors
 			# Delete any wires relating to it
-		
-		#print("m:",self.mName.get())
-		#print("dh:", self.dhName.get())
+
 		del d.dev[obj]
 		redraw()
 		self.aw.destroy()
@@ -384,6 +344,7 @@ class wdTk():
 			tkinter.messagebox.showerror(title="Cannot add plug", message="The name of the plug is already in use for this device.")
 			return False
 		self.core.struct.cur.execute("insert into conns (dName, cName) values(?, ?)", (obj, self.cName.get()))
+		
 		d.getDevice(obj).addConnector(self.cName.get(), proto="XLR")
 		redraw()
 		self.aw.destroy()
@@ -476,7 +437,6 @@ class wdTk():
 			
 		obj = KEYS[VALUES.index(self.cName.get())]
 	
-		print(obj, self.mName.get())
 		self.core.struct.cur.execute("delete from wire where DevOut = ? and ConnOut = ?",
 			(obj, self.mName.get()))
 		self.core.struct.cur.execute("delete from wire where DevIn = ? and ConnIn = ?",
@@ -518,20 +478,27 @@ class wdTk():
 		else:
 			global f,t,d
 			f = diagramStructure(a)
+			if (f.check_version() < check_current_version()):
+				print("Update needed")
+				f.update_version(f.check_version(), check_current_version())
+
 			f.build()
-			self.dia = d = diagram()
-			d.load(f)
+			self.core.dia = diagram() #WTF!!!
+			#d.load(f)
+			self.core.load(f)
+			self.dia = d = self.core.dia #diagram()
 			self.core.importStruct(f)
 			redraw()
-			print("Yes")
+			
+			#print("Yes")
 		#print(type(a), a)
 		
 def redraw():
-	wdc.canvas.delete("all")
+	t.canvas.delete("all")
 	for i in d.listDevices():
 	#print(i)
 		if (i in d.locs):
-			aa = objMk(wdc.canvas, d.getDevice(i), d.locs[i])
+			aa = objMk(t.canvas, d.getDevice(i), d.locs[i])
 			d.getDevice(i).drwConnPos = aa
 
 	for i in d.conns:
@@ -542,35 +509,53 @@ def redraw():
 			pin = d.getDevice(i[0][0]).connectors[i[0][1]]["direction"]
 		else:
 			p+=1
-			print("oops")
+			#print("oops")
 			
 		if (d.getDevice(i[1][0]) is not None):
 			pout = d.getDevice(i[1][0]).connectors[i[1][1]]["direction"]
 		else:
 			p+=1
-			print("oops")
+			#print("oops")
 			
 		if (pin == pout):
 			if (pin is not None):
 				print("Plugged " + str(pin) + " into " + str(pout) + " with", i)
 		
-		if (p ==0):
+		if (p == 0):
 			st = d.getDevice(i[0][0]).drwConnPos[i[0][1]]
 			fn =  d.getDevice(i[1][0]).drwConnPos[i[1][1]]
 			#dr.line((st,fn), fill=(0,0,0))
-			r = wdc.canvas.create_line(st,fn, fill="black")
+			r = t.canvas.create_line(st,fn, fill="black")
 		#else:
-		print(pin, pout)
+		#print(pin, pout)
 		
 t = wdTk()
 
-t.core.importStruct(f)
+import tkinter.filedialog
+
+f = t.core.struct = diagramStructure("f.db")
+t.core.importStruct(t.core.struct)
 
 x = t.window
-y = t.menu["root"]
-x.config(menu=y)
 wdc = t.core
 
+print(wdc.struct.check_version())
+if (wdc.struct.check_version() < check_current_version()):
+	print("Update needed")
+	wdc.struct.update_version(wdc.struct.check_version(), check_current_version())
+
+wdc.struct.build()
+d = wdc.dia = diagram()
+wdc.load(f)
+
+# Any reason why I'm doing this here?
+# I now know why I'm doing this, not why here!
+for i in d.listDevices():
+	if (i in d.locs):
+		aa = objMk(dr, d.getDevice(i), d.locs[i])
+	d.getDevice(i).drwConnPos = aa
+	
+wdc.dia = d # this is a placeholder!
 redraw()
 
 for i in d.conns:
@@ -586,26 +571,5 @@ for i in d.conns:
 	dr.line((st,fn), fill=(0,0,0))
 	#wdc.canvas.create_line(st,fn, fill="black")
 
-import tkinter.filedialog
-	
-mf = t.menu["file"]
-mf.add_command(label="New", command= t.file_new)
-mf.add_separator()
-mf.add_command(label="Save", command= t.file_save)
-
-edit = Tk.Menu()
-edit.add_command(label="Device", command=t.devEditWin)
-edit.add_command(label="Plug", state=Tk.DISABLED)
-edit.add_command(label="Connection", state=Tk.DISABLED)
-
-delete = Tk.Menu()
-delete.add_command(label="Device", command=t.devDelWin)
-delete.add_command(label="Plug", state=Tk.DISABLED)
-delete.add_command(label="Connection", command=t.wireDelWin)
-
-y.add_cascade(label="File", menu=mf)
-y.add_cascade(label="Add", menu=t.menu["add"])
-y.add_cascade(label="Edit", menu=edit)
-y.add_cascade(label="Delete", menu=delete)
 x.mainloop()
 im.save("mx.png")
