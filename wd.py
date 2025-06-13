@@ -159,7 +159,7 @@ class wdCore():
 	def importStruct(self, struct):
 		self.struct = struct
 
-#import wdTk
+#omport wdTk
 
 class wdTk():
 	def __init__(self):
