@@ -2,7 +2,7 @@ from copy import copy
 from PIL import Image, ImageDraw
 import math as maths
 from diagramStructure import diagramStructure
-import incs.diagram
+from incs.diagram import diagram
 from dev import device
 
 def drag_start(event):
@@ -16,11 +16,6 @@ def drag_motion(event):
     x = widget.winfo_x() - widget._drag_start_x + event.x
     y = widget.winfo_y() - widget._drag_start_y + event.y
     widget.place(x=x, y=y)
-
-class diagram(incs.diagram.diagram):
-	# This really shouldn't be here
-	def load(self, resource):
-		raise Exception("Dont call this")
 		
 def check_current_version():
 	return 1
@@ -31,42 +26,8 @@ dr = ImageDraw.Draw(im)
 import tkinter as Tk
 import tkinter.ttk as ttk
 
-class wdCore():
-	def __init__(self, x):
-		self.dia = diagram()
-		self.struct = None #diagramStructure()
-		
-		# Right-o! Let's set up a canvas ... but here?!
-		#self.canvas = Tk.Canvas(x, width=800, height=600)
-		#self.canvas.grid()
-
-	def load(self, resource):
-		for i in resource.cur.execute("select * from units"):
-		#print(dict(i))
-			self.dia.addDevice(i['iName'], device(i['proName']))
-			if (i["left"] is not None):
-				self.dia.locateDevice(i["iName"], (i["left"],i["top"]),(i["width"],i["height"]))
-
-		for i in resource.cur.execute("select * from conns order by `dName` ASC, direction DESC"):#, cName asc"):
-			#print(dict(i))
-			dv = self.dia.getDevice(i["dName"])
-			if (dv is not None):
-				dv.addConnector(i["cName"], proto="XLR", direction=i["direction"])
-			else:
-				print("Connection called for", i["cName"],"on",i["dName"],"which does not exist.")
-				pass
-				
-		for i in resource.cur.execute("select * from wire"):
-			self.dia.addConnection(
-				(i["devOut"], i["ConnOut"]),
-				(i["devIn"], i["ConnIn"])
-			)
-		pass
-		
-	def importStruct(self, struct):
-		self.struct = struct
-
 import wdTk
+from incs.wdCore import wdCore
 
 class pjaDialog():
 	def __init__(self):
@@ -96,11 +57,6 @@ class pjaDialog():
 		self.top.wait_window(self.top)
 		return self.how
 
-
-class EditWindow():
-	def __init__(self, selected = None):
-		
-		pass
 import incs.wdTk
 
 class w(incs.wdTk.wdTk):
@@ -169,21 +125,6 @@ class wdTk(w):
 
 	def file_save(self):
 		f.store.commit() # That needs moving
-	
-	def devAddComplete(self):
-		if (self.mName.get() in d.listDevices()):
-			tkinter.messagebox.showerror(title="Cannot add device", message="The name of the device is already in use.")
-			return False
-			
-		self.core.struct.cur.execute("insert into units (iName, proName, left, top, width, height) values(?, ?,?,?,?,?)", 
-			(self.mName.get(), self.hName.get(),
-			400,300,50,50))
-		d.addDevice(self.mName.get(), device(self.hName.get()))
-		#if (i["left"] is not None):
-		d.locateDevice(self.mName.get(), (400,300),(50, 50))
-
-		self.aw.destroy()
-		self.redraw()
 		pass
 		
 	def devDelComplete(self):
@@ -211,20 +152,6 @@ class wdTk(w):
 		self.aw.destroy()
 		pass
 	
-	def devEditComplete(self):
-		KEYS, VALUES = self.getKeys()
-		obj = KEYS[VALUES.index(self.mName.get())]
-		d.locateDevice(obj, (int(self.left.get(), 10),
-			int(self.top.get())), 
-			(int(self.width.get()), 
-			int(self.height.get())))
-		self.core.struct.cur.execute("update units set top = ?, left = ?, width = ?, height = ? WHERE `iName` = ?",
-			(self.top.get(), self.left.get(), self.width.get(), self.height.get(), obj))
-
-		self.aw.destroy()
-
-		self.redraw()
-	
 	def setmName(self, *nope):
 		KEYS, VALUES = self.getKeys()
 		obj = KEYS[VALUES.index(self.mName.get())]
@@ -235,23 +162,6 @@ class wdTk(w):
 		self.height.set(height)
 		#print(d.locs)
 		
-	def devDelWin(self):
-		if (len(d.listDevices())== 0):
-			tkinter.messagebox.showerror(title="No devices", message="There are no devices to delete.")
-			return False
-			
-		self.aw = Tk.Tk()
-		KEYS, VALUES = self.getKeys()
-
-		#self.mName = Tk.StringVar(self.aw)
-		self.dhName = Tk.StringVar(self.aw)
-		Tk.Label(self.aw, text="Machine Name").grid()
-		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.dhName, values=VALUES)
-		a.grid()
-		#Tk.Label(self.aw, text="Human Name").grid()
-		#Tk.Entry(self.aw, textvariable= self.hName).grid()
-		Tk.Button(self.aw, text="Delete", command=self.devDelComplete).grid()
-
 	def connAddComplete(self):
 		KEYS, VALUES = self.getKeys()
 	
@@ -261,7 +171,7 @@ class wdTk(w):
 			return False
 		self.core.struct.cur.execute("insert into conns (dName, cName) values(?, ?)", (obj, self.cName.get()))
 		
-		d.getDevice(obj).addConnector(self.cName.get(), proto="XLR")
+		self.core.dia.getDevice(obj).addConnector(self.cName.get(), proto="XLR")
 		self.redraw()
 		self.aw.destroy()
 		
