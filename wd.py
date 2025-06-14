@@ -1,6 +1,9 @@
 from copy import copy
 from PIL import Image, ImageDraw
 import math as maths
+from diagramStructure import diagramStructure
+import incs.diagram
+from dev import device
 
 def drag_start(event):
 	widget = event.widget
@@ -14,9 +17,6 @@ def drag_motion(event):
     y = widget.winfo_y() - widget._drag_start_y + event.y
     widget.place(x=x, y=y)
 
-from diagramStructure import diagramStructure
-import incs.diagram
-
 class diagram(incs.diagram.diagram):
 	# This really shouldn't be here
 	def load(self, resource):
@@ -25,101 +25,8 @@ class diagram(incs.diagram.diagram):
 def check_current_version():
 	return 1
 
-from dev import device
-from colours import colourDirection
-
 im = Image.new("RGB", (800,600), (255,255,255))
 dr = ImageDraw.Draw(im)
-
-def objMk(dr, p, dms = (0,0,1,1), _type = 1):
-	poss = { "left": [], "right": [], "top": [], "bottom" : [] }
-
-	if (type(dr) is ImageDraw.ImageDraw):
-		a = 1
-	elif (type(dr) is Tk.Canvas):
-		a = 2
-	else:
-		#print(type(dr))
-		raise Exception("Unplacable")
-	
-	if (_type in [0, 1]):
-		if (_type == 0):
-			ct = 0
-			nat = ["left", "right"]
-			for i in p.connectors.keys():
-				poss[nat[ct%2]].append(i)
-				ct+=1
-			#print(poss)
-
-		if (_type == 1):
-			ct = 0
-			nat = ["left", "right"]
-			for i in p.connectors.keys():
-				if (p.connectors[i]['direction'] in ["In", "in"]):
-					poss["left"].append(i)
-				elif (p.connectors[i]['direction'] in ["Out", "out"]):
-					poss["right"].append(i)
-				else:
-					poss[nat[ct%2]].append(i)
-					ct+=1
-			#print(poss)
-		
-	else:
-		pass
-
-	outmap = {}
-	
-	for fa, fb in poss.items():
-		tt = (0,0)
-		#print(fa)
-		ln = len(fb)
-		#print(ln)
-		ct = 0
-		if (fa in ["left", "top"]):
-			os = (- (dms[2]/2)-2.5, - (dms[3]/2)-2.5)
-		elif (fa in ["right"]):
-			os = ((dms[2]/2)+2.5, - (dms[3]/2))
-		elif (fa in ["bottom"]):
-			os = (-(dms[2]/2), (dms[3]/2)+2.5)
-		else:
-			os = (0,0)
-			
-		for fc in fb:
-			if (fa in ["left", "right"]):
-				os = (os[0], (-dms[3] /2) + ((ct+1) / (ln+1) * dms[3]))
-			if (fa in ["top", "bottom"]):
-				os = ((-dms[2] /2) + ((ct+1) / (ln+1) * dms[2]), os[1])
-			lf = dms[0] + os[0]
-			tp = dms[1] + os[1]
-
-			c = colourDirection(p.connectors[fc]["direction"], a==2)
-
-			if (a==1):
-				dr.rectangle((lf-2.5, tp-2.5, lf + 2.5, tp+2.5), outline=c)
-			elif (a==2):
-				dr.create_rectangle(lf-2.5, tp-2.5, lf + 2.5, tp+2.5, outline=c)
-			
-			#print(p)
-			ct += 1
-			outmap[fc] = (lf,tp)
-
-	if (a==1):
-		dr.rectangle(
-			(dms[0]-(dms[2]/2), dms[1] - (dms[3]/2),
-			dms[0]+(dms[2]/2), dms[1] + (dms[3]/2)),
-			outline=(0,0,0)
-		)
-	elif (a == 2):
-		rct = dr.create_rectangle(
-			dms[0]-(dms[2]/2), dms[1] - (dms[3]/2),
-			dms[0]+(dms[2]/2), dms[1] + (dms[3]/2),
-			outline="black"
-		)
-		dr.create_text(dms[0],dms[1],text=p.name,font=('Arial',4))
-		#dr.tag_bind(rct, "<Button-1>", drag_start)
-		#dr.tag_bind(rct, "<B1-Motion>", drag_motion)
-
-	return outmap
 
 import tkinter as Tk
 import tkinter.ttk as ttk
@@ -159,9 +66,45 @@ class wdCore():
 	def importStruct(self, struct):
 		self.struct = struct
 
-#omport wdTk
+import wdTk
 
-class wdTk():
+class pjaDialog():
+	def __init__(self):
+		self.top = Tk.Toplevel()
+		#self.master = master
+		self.top.protocol('WM_DELETE_WINDOW', self.cancel_command)
+
+		self.tree = ttk.Treeview(self.top)
+		self.tree.grid(column=0, row=0, sticky='news')	
+		bt = Tk.Button(self.top, text='Select', command=self.ok)
+		bt.grid(column=0, row=1)
+
+	def ok(self):
+		self.quit(self.tree.selection())
+
+	def quit(self, answer=None):
+		self.how = answer
+		self.top.destroy()
+
+	def cancel_command(self):
+		print("Cancel?")
+		self.quit(None)		
+
+	def go(self):
+		self.top.wait_visibility() # window needs to be visible for the grab
+		self.how = None
+		self.top.wait_window(self.top)
+		return self.how
+
+
+class EditWindow():
+	def __init__(self, selected = None):
+		
+		pass
+import incs.wdTk
+
+class w(incs.wdTk.wdTk):
+	
 	def __init__(self):
 		self.window = Tk.Tk()
 		self.window.title("WiringDiagram")
@@ -170,6 +113,8 @@ class wdTk():
 		self.canvas = Tk.Canvas(self.window, width=800, height=600)
 		self.canvas.grid()
 		
+		#self.canvas.bind("<Button-1>", self.click_call)
+
 		self.menu = {
 			"root" : Tk.Menu(),
 			"file": Tk.Menu(),
@@ -179,6 +124,23 @@ class wdTk():
 		}
 	
 		self.window.config(menu=self.menu["root"])
+		
+class wdTk(w):
+	def click_call(self, event):
+		#print(self.canvas.find_closest(event.x,event.y))
+		#print(event)
+		d = Tk.Menu()
+		d.add_command(label="Hello")
+		d.add_command(label=str(self.canvas.find_closest(event.x,event.y)))
+		d.add_separator()
+		for i in self.canvas.gettags(self.canvas.find_closest(event.x,event.y)):
+			d.add_command(label=i)
+		d.tk_popup(self.canvas.winfo_rootx()+event.x, self.canvas.winfo_rooty()+event.y)
+		pass
+		
+	def __init__(self):
+		
+		super().__init__()
 		mf = self.menu["file"]
 		mf.add_command(label="New", command= self.file_new)
 		mf.add_separator()
@@ -221,17 +183,8 @@ class wdTk():
 		d.locateDevice(self.mName.get(), (400,300),(50, 50))
 
 		self.aw.destroy()
-		redraw()
+		self.redraw()
 		pass
-	
-	def getKeys(self):
-		KEYS = []
-		VALUES = []
-		self.core.dia = d # WTF 
-		for i in self.core.dia.listDevices():
-			KEYS.append(i)
-			VALUES.append(i + " (" + i + ")")
-		return (KEYS, VALUES)
 		
 	def devDelComplete(self):
 		
@@ -253,21 +206,11 @@ class wdTk():
 			# Delete its connectors
 			# Delete any wires relating to it
 
-		del d.dev[obj]
-		redraw()
+		del self.core.dia.dev[obj]
+		self.redraw()
 		self.aw.destroy()
 		pass
-		
-	def devAddWin(self):
-		self.aw = Tk.Tk()
-		self.mName = Tk.StringVar(self.aw)
-		self.hName = Tk.StringVar(self.aw)
-		Tk.Label(self.aw, text="Machine Name").grid()
-		Tk.Entry(self.aw, textvariable= self.mName).grid()
-		Tk.Label(self.aw, text="Human Name").grid()
-		Tk.Entry(self.aw, textvariable= self.hName).grid()
-		Tk.Button(self.aw, text="Add", command=self.devAddComplete).grid()
-
+	
 	def devEditComplete(self):
 		KEYS, VALUES = self.getKeys()
 		obj = KEYS[VALUES.index(self.mName.get())]
@@ -280,35 +223,8 @@ class wdTk():
 
 		self.aw.destroy()
 
-		redraw()
+		self.redraw()
 	
-	def devEditWin(self):
-		if (len(d.listDevices())== 0):
-			tkinter.messagebox.showerror(title="No devices", message="There are no devices to edit.")
-			return False
-			
-		self.aw = Tk.Tk()
-		KEYS, VALUES = self.getKeys()
-	
-		self.top = Tk.StringVar(self.aw)
-		self.left = Tk.StringVar(self.aw)
-		self.width = Tk.StringVar(self.aw)
-		self.height = Tk.StringVar(self.aw)
-		self.mName = Tk.StringVar(self.aw)
-		Tk.Label(self.aw, text="Edit Machine").grid()
-		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.mName, values=VALUES).grid()
-		
-		Tk.Label(self.aw, text="Top").grid()
-		Tk.Entry(self.aw, textvariable= self.top).grid()
-		Tk.Label(self.aw, text="Left").grid()
-		Tk.Entry(self.aw, textvariable= self.left).grid()
-		Tk.Label(self.aw, text="Width").grid()
-		Tk.Entry(self.aw, textvariable= self.width).grid()
-		Tk.Label(self.aw, text="Height").grid()
-		Tk.Entry(self.aw, textvariable= self.height).grid()
-		self.mName.trace('w',self.setmName)
-		Tk.Button(self.aw, text="Add", command=self.devEditComplete).grid()
-
 	def setmName(self, *nope):
 		KEYS, VALUES = self.getKeys()
 		obj = KEYS[VALUES.index(self.mName.get())]
@@ -346,7 +262,7 @@ class wdTk():
 		self.core.struct.cur.execute("insert into conns (dName, cName) values(?, ?)", (obj, self.cName.get()))
 		
 		d.getDevice(obj).addConnector(self.cName.get(), proto="XLR")
-		redraw()
+		self.redraw()
 		self.aw.destroy()
 		
 	def connAddWin(self):
@@ -375,7 +291,7 @@ class wdTk():
 
 	def setM(self, *what, **kwargs):
 		#print(what)
-		print(kwargs)
+		#print(kwargs)
 		self.b["state"]='readonly'
 		
 		KEYS, VALUES = self.getKeys()
@@ -413,7 +329,7 @@ class wdTk():
 				(objIn, self.incName.get()),
 				(objOut, self.outcName.get())
 			)
-		redraw()
+		self.redraw()
 		self.aw.destroy()
 	
 	def wireDelWin(self):
@@ -441,7 +357,7 @@ class wdTk():
 			(obj, self.mName.get()))
 		self.core.struct.cur.execute("delete from wire where DevIn = ? and ConnIn = ?",
 			(obj, self.mName.get()))
-		redraw()
+		self.redraw()
 		self.aw.destroy()
 		pass
 		
@@ -488,48 +404,49 @@ class wdTk():
 			self.core.load(f)
 			self.dia = d = self.core.dia #diagram()
 			self.core.importStruct(f)
-			redraw()
+			self.redraw()
 			
 			#print("Yes")
 		#print(type(a), a)
 		
-def redraw():
-	t.canvas.delete("all")
-	for i in d.listDevices():
-	#print(i)
-		if (i in d.locs):
-			aa = objMk(t.canvas, d.getDevice(i), d.locs[i])
-			d.getDevice(i).drwConnPos = aa
-
-	for i in d.conns:
-		p =0
-		pin = None
-		pout = None
-		if (d.getDevice(i[0][0]) is not None):
-			pin = d.getDevice(i[0][0]).connectors[i[0][1]]["direction"]
-		else:
-			p+=1
-			#print("oops")
-			
-		if (d.getDevice(i[1][0]) is not None):
-			pout = d.getDevice(i[1][0]).connectors[i[1][1]]["direction"]
-		else:
-			p+=1
-			#print("oops")
-			
-		if (pin == pout):
-			if (pin is not None):
-				print("Plugged " + str(pin) + " into " + str(pout) + " with", i)
+	def redraw(self):
+		d = self.core.dia
 		
-		if (p == 0):
-			st = d.getDevice(i[0][0]).drwConnPos[i[0][1]]
-			fn =  d.getDevice(i[1][0]).drwConnPos[i[1][1]]
-			#dr.line((st,fn), fill=(0,0,0))
-			r = t.canvas.create_line(st,fn, fill="black")
-		#else:
-		#print(pin, pout)
+		self.canvas.delete("all")
+		for i in d.listDevices():
+			if (i in d.locs):
+				aa = d.objMk(self.canvas, d.getDevice(i), d.locs[i])
+				d.getDevice(i).drwConnPos = aa
+
+		for i in d.conns:
+			p =0
+			pin = None
+			pout = None
+			if (d.getDevice(i[0][0]) is not None):
+				pin = d.getDevice(i[0][0]).connectors[i[0][1]]["direction"]
+			else:
+				p+=1
+			
+			if (d.getDevice(i[1][0]) is not None):
+				pout = d.getDevice(i[1][0]).connectors[i[1][1]]["direction"]
+			else:
+				p+=1
+			
+			if (pin == pout):
+				if (pin is not None):
+					print("Plugged " + str(pin) + " into " + str(pout) + " with", i)
+		
+			if (p == 0):
+				st = d.getDevice(i[0][0]).drwConnPos[i[0][1]]
+				fn =  d.getDevice(i[1][0]).drwConnPos[i[1][1]]
+				#dr.line((st,fn), fill=(0,0,0))
+				r = self.canvas.create_line(st,fn, fill="black")
+			#else:
+			#print(pin, pout)
 		
 t = wdTk()
+
+#p = pjaDialog().go()
 
 import tkinter.filedialog
 
@@ -552,11 +469,11 @@ wdc.load(f)
 # I now know why I'm doing this, not why here!
 for i in d.listDevices():
 	if (i in d.locs):
-		aa = objMk(dr, d.getDevice(i), d.locs[i])
+		aa = wdc.dia.objMk(dr, d.getDevice(i), d.locs[i])
 	d.getDevice(i).drwConnPos = aa
 	
 wdc.dia = d # this is a placeholder!
-redraw()
+t.redraw()
 
 for i in d.conns:
 	pin = d.getDevice(i[0][0]).connectors[i[0][1]]["direction"]
