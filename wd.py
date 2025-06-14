@@ -167,36 +167,17 @@ class wdTk(w):
 		ii = d.getDevice(obj).connectors.keys()
 		
 		self.b["values"]=list(ii)
-			
-	def wireDelWin(self):
-		self.aw = Tk.Tk()
-		KEYS, VALUES = self.getKeys()
-		
-		self.cName = Tk.StringVar(self.aw)
-		self.mName = Tk.StringVar(self.aw)
-		Tk.Label(self.aw, text="Machine Name").grid()
-		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.cName, values=VALUES).grid()
-		
-		Tk.Label(self.aw, text="Connection Point").grid()
-		self.b = ttk.Combobox(self.aw, state='disabled', textvariable= self.mName, values=VALUES)
-		self.b.grid()
-		self.cName.trace('w', lambda *a, b = self.b: self.setM(i = self.cName.get(), o = b))
-		self.mName.trace('w', self.setM2)
-		Tk.Button(self.aw, text="Delete", command=self.wireDelComplete).grid()
 
 	def wireDelComplete(self):
 		KEYS, VALUES = self.getKeys()
 			
 		obj = KEYS[VALUES.index(self.cName.get())]
 	
-		self.core.struct.cur.execute("delete from wire where DevOut = ? and ConnOut = ?",
-			(obj, self.mName.get()))
-		self.core.struct.cur.execute("delete from wire where DevIn = ? and ConnIn = ?",
-			(obj, self.mName.get()))
+		self.core.deleteWire(obj, self.mName.get())
 		self.redraw()
 		self.aw.destroy()
 		pass
-		
+					
 	def setM2(self, *args):
 		pass
 		

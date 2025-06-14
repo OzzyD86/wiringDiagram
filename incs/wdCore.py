@@ -69,3 +69,11 @@ class wdCore():
 			(devIn, conIn),
 			(devOut, conOut)
 		)
+
+	def deleteWire(self, obj, conn):
+		self.struct.cur.execute("delete from wire where DevOut = ? and ConnOut = ?",
+			(obj, conn))
+		self.struct.cur.execute("delete from wire where DevIn = ? and ConnIn = ?",
+			(obj, conn))
+			
+		self.dia.deleteConnection((obj, conn))

@@ -22,7 +22,16 @@ class diagram():
 			return self.dev[key]
 		except:
 			return None
-			
+	
+	def deleteConnection(self, a):
+		_tmp = []
+		for i in self.conns:
+			if not (a == i[0] or a == i[1]):
+				_tmp.append(i)
+			else:
+				print("Deleted", i)
+		self.conns = _tmp
+	
 	def addConnection(self, a, b):
 		if (a[0] not in self.dev):
 			return False
