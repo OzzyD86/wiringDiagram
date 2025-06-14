@@ -168,16 +168,7 @@ class wdTk(w):
 		
 		self.b["values"]=list(ii)
 
-	def wireDelComplete(self):
-		KEYS, VALUES = self.getKeys()
-			
-		obj = KEYS[VALUES.index(self.cName.get())]
-	
-		self.core.deleteWire(obj, self.mName.get())
-		self.redraw()
-		self.aw.destroy()
-		pass
-					
+				
 	def setM2(self, *args):
 		pass
 		

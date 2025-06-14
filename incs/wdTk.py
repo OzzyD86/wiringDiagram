@@ -203,6 +203,16 @@ class wdTk():
 		self.mName.trace('w', self.setM2)
 		Tk.Button(self.aw, text="Delete", command=self.wireDelComplete).grid()
 
+	def wireDelComplete(self):
+		KEYS, VALUES = self.getKeys()
+			
+		obj = KEYS[VALUES.index(self.cName.get())]
+	
+		self.core.deleteWire(obj, self.mName.get())
+		self.redraw()
+		self.aw.destroy()
+		pass
+		
 	# == Drawing management ==
 	def redraw(self):
 		d = self.core.dia
