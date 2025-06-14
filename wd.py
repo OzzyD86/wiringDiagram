@@ -1,5 +1,5 @@
 from copy import copy
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 import math as maths
 from diagramStructure import diagramStructure
 from incs.diagram import diagram
@@ -19,9 +19,6 @@ def drag_motion(event):
 		
 def check_current_version():
 	return 1
-
-im = Image.new("RGB", (800,600), (255,255,255))
-dr = ImageDraw.Draw(im)
 
 import tkinter as Tk
 import tkinter.ttk as ttk
@@ -136,20 +133,6 @@ class wdTk(w):
 		self.height.set(height)
 		#print(d.locs)
 		
-	def connAddComplete(self):
-		KEYS, VALUES = self.getKeys()
-	
-		obj = KEYS[VALUES.index(self.mhName.get())]
-		if (self.cName.get() in d.getDevice(obj).connectors.keys()):
-			tkinter.messagebox.showerror(title="Cannot add plug", message="The name of the plug is already in use for this device.")
-			return False
-			
-		self.core.struct.cur.execute("insert into conns (dName, cName) values(?, ?)", (obj, self.cName.get()))
-		self.core.dia.getDevice(obj).addConnector(self.cName.get(), proto="XLR")
-		
-		self.redraw()
-		self.aw.destroy()
-		
 	def setInC(self, *what):
 		self.e["state"]='readonly'
 		
@@ -236,29 +219,6 @@ class wdTk(w):
 	def setM2(self, *args):
 		pass
 		
-	def wireAddWin(self):
-		self.aw = Tk.Tk()
-		KEYS, VALUES = self.getKeys()
-	
-		self.indName = Tk.StringVar(self.aw)
-		self.incName = Tk.StringVar(self.aw)
-		self.outdName = Tk.StringVar(self.aw)
-		self.outcName = Tk.StringVar(self.aw)
-		Tk.Label(self.aw, text="Output Machine Name").grid()
-		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.outdName, values=VALUES).grid()
-		
-		self.indName.trace('w',self.setInC)
-		self.outdName.trace('w',self.setOutC)
-		Tk.Label(self.aw, text="Output Connection Name").grid()
-		self.b = ttk.Combobox(self.aw, state='disabled', textvariable= self.outcName)
-		self.b.grid()
-		Tk.Label(self.aw, text="Input Machine Name").grid()
-		c = ttk.Combobox(self.aw, state='readonly', textvariable= self.indName, values=VALUES).grid()
-		Tk.Label(self.aw, text="Input Connection Name").grid()
-		self.e = ttk.Combobox(self.aw, state='disabled', textvariable= self.incName)
-		self.e.grid()
-		Tk.Button(self.aw, text="Add", command=self.wireAddComplete).grid()
-
 	def file_new(self):
 		a = tkinter.filedialog.asksaveasfilename()
 		if (len(a) == 0):
@@ -339,26 +299,32 @@ wdc.load(f)
 
 # Any reason why I'm doing this here?
 # I now know why I'm doing this, not why here!
-for i in d.listDevices():
-	if (i in d.locs):
-		aa = wdc.dia.objMk(dr, d.getDevice(i), d.locs[i])
-	d.getDevice(i).drwConnPos = aa
 	
-wdc.dia = d # this is a placeholder!
+#wdc.dia = d # this is a placeholder!
 t.redraw()
 
-for i in d.conns:
-	pin = d.getDevice(i[0][0]).connectors[i[0][1]]["direction"]
-	pout = d.getDevice(i[1][0]).connectors[i[1][1]]["direction"]
+def exportPng():
+	im = Image.new("RGB", (800,600), (255,255,255))
+	f = ImageFont.load_default_imagefont()
+	dr = ImageDraw.Draw(im)
+	for i in t.core.dia.listDevices():
+		if (i in t.core.dia.locs):
+			aa = wdc.dia.objMk(dr, d.getDevice(i), d.locs[i])
+		t.core.dia.getDevice(i).drwConnPos = aa
 
-	if (pin == pout):
-		if (pin is not None):
-			print("Plugged " + str(pin) + " into " + str(pout) + " with", i)
+	for i in t.core.dia.conns:
+		pin = d.getDevice(i[0][0]).connectors[i[0][1]]["direction"]
+		pout = d.getDevice(i[1][0]).connectors[i[1][1]]["direction"]
+
+		if (pin == pout):
+			if (pin is not None):
+				print("Plugged " + str(pin) + " into " + str(pout) + " with", i)
 			
-	st = d.getDevice(i[0][0]).drwConnPos[i[0][1]]
-	fn =  d.getDevice(i[1][0]).drwConnPos[i[1][1]]
-	dr.line((st,fn), fill=(0,0,0))
+		st = d.getDevice(i[0][0]).drwConnPos[i[0][1]]
+		fn =  d.getDevice(i[1][0]).drwConnPos[i[1][1]]
+		dr.line((st,fn), fill=(0,0,0))
+	return im
 	#wdc.canvas.create_line(st,fn, fill="black")
 
 x.mainloop()
-im.save("mx.png")
+exportPng().save("mx.png")
