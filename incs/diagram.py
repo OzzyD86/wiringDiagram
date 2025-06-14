@@ -1,3 +1,7 @@
+from colours import colourDirection
+from PIL import ImageDraw
+import tkinter as Tk
+
 class diagram():
 	def __init__(self):
 		self.dev = {}
@@ -39,3 +43,97 @@ class diagram():
 		_in.connectors[b[1]]["connected"] = a
 		
 		self.conns.append((a,b))
+		
+	def objMk(self, dr, p, dms = (0,0,1,1), _type = 1, honour_db = False):
+		poss = { "left": [], "right": [], "top": [], "bottom" : [] }
+
+		if (type(dr) is ImageDraw.ImageDraw):
+			a = 1
+		elif (type(dr) is Tk.Canvas):
+			a = 2
+		else:
+			a = 0
+			#print(type(dr))
+		# Maybe in the future, a diagramless version will be needed?
+		#print(type(dr))
+			raise Exception("Unplacable")
+	
+		if (_type in [0, 1]):
+			if (_type == 0):
+				ct = 0
+				nat = ["left", "right"]
+				for i in p.connectors.keys():
+					poss[nat[ct%2]].append(i)
+					ct+=1
+			#print(poss)
+
+			if (_type == 1):
+				ct = 0
+				nat = ["left", "right"]
+				for i in p.connectors.keys():
+					if (p.connectors[i]['direction'] in ["In", "in"]):
+						poss["left"].append(i)
+					elif (p.connectors[i]['direction'] in ["Out", "out"]):
+						poss["right"].append(i)
+					else:
+						poss[nat[ct%2]].append(i)
+						ct+=1
+			#print(poss)
+		
+		else:
+			pass
+
+		outmap = {}
+	
+		for fa, fb in poss.items():
+			tt = (0,0)
+			ln = len(fb)
+			ct = 0
+			if (fa in ["left", "top"]):
+				os = (- (dms[2]/2)-2.5, - (dms[3]/2)-2.5)
+			elif (fa in ["right"]):
+				os = ((dms[2]/2)+2.5, - (dms[3]/2))
+			elif (fa in ["bottom"]):
+				os = (-(dms[2]/2), (dms[3]/2)+2.5)
+			else:
+				os = (0,0)
+			
+			for fc in fb:
+				if (fa in ["left", "right"]):
+					os = (os[0], (-dms[3] /2) + ((ct+1) / (ln+1) * dms[3]))
+				if (fa in ["top", "bottom"]):
+					os = ((-dms[2] /2) + ((ct+1) / (ln+1) * dms[2]), os[1])
+				lf = dms[0] + os[0]
+				tp = dms[1] + os[1]
+
+				c = colourDirection(p.connectors[fc]["direction"], a==2)
+
+				if (a==1):
+					dr.rectangle((lf-2.5, tp-2.5, lf + 2.5, tp+2.5), outline=c)
+				elif (a==2):
+					op = dr.create_rectangle(lf-2.5, tp-2.5, lf + 2.5, tp+2.5, outline=c)
+					dr.addtag_withtag("_conn", op)
+					dr.addtag_withtag(fc, op)
+				#print(p)
+				ct += 1
+				outmap[fc] = (lf,tp)
+
+		if (a==1):
+			dr.rectangle(
+				(dms[0]-(dms[2]/2), dms[1] - (dms[3]/2),
+				dms[0]+(dms[2]/2), dms[1] + (dms[3]/2)),
+				outline=(0,0,0)
+			)
+		elif (a == 2):
+			rct = dr.create_rectangle(
+				dms[0]-(dms[2]/2), dms[1] - (dms[3]/2),
+				dms[0]+(dms[2]/2), dms[1] + (dms[3]/2),
+				outline="black"
+			)
+			dr.addtag_withtag(p.name, rct)
+			dr.addtag_withtag("_dev", rct)
+			dr.create_text(dms[0],dms[1],text=p.name,font=('Arial',4))
+		#dr.tag_bind(rct, "<Button-1>", drag_start)
+		#dr.tag_bind(rct, "<B1-Motion>", drag_motion)
+
+		return outmap
