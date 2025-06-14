@@ -1,4 +1,5 @@
 import tkinter as Tk
+import tkinter.ttk as ttk
 
 class wdTk():
 
@@ -10,7 +11,11 @@ class wdTk():
 			KEYS.append(i)
 			VALUES.append(i + " (" + i + ")")
 		return (KEYS, VALUES)
-		
+	
+	## === Do Device Management
+	
+	# == Device Adding
+	
 	def devAddWin(self):
 		self.aw = Tk.Tk()
 		self.mName = Tk.StringVar(self.aw)
@@ -21,6 +26,20 @@ class wdTk():
 		Tk.Entry(self.aw, textvariable= self.hName).grid()
 		Tk.Button(self.aw, text="Add", command=self.devAddComplete).grid()
 
+	def devAddComplete(self):
+		if (self.mName.get() in self.core.dia.listDevices()):
+			tkinter.messagebox.showerror(title="Cannot add device", message="The name of the device is already in use.")
+			return False
+		
+		self.core.addDevice(
+			self.mName.get(), self.hName.get(),
+			(400,300,50,50))
+		
+		self.aw.destroy()
+		self.redraw()
+		
+	# == Device Editing
+	
 	def devEditWin(self):
 		if (len(self.core.dia.listDevices())== 0):
 			tkinter.messagebox.showerror(title="No devices", message="There are no devices to edit.")
@@ -48,6 +67,39 @@ class wdTk():
 		self.mName.trace('w',self.setmName)
 		Tk.Button(self.aw, text="Add", command=self.devEditComplete).grid()
 
+	def devEditComplete(self):
+		KEYS, VALUES = self.getKeys()
+		obj = KEYS[VALUES.index(self.mName.get())]
+		
+		self.core.updateDevice(obj,
+			(int(self.left.get()),
+			int(self.top.get()), 
+			int(self.width.get()), 
+			int(self.height.get()))
+		)
+		self.aw.destroy()
+		self.redraw()
+		
+	# == Device Deleting
+	
+	def devDelWin(self):
+		if (len(self.core.dia.listDevices())== 0):
+			tkinter.messagebox.showerror(title="No devices", message="There are no devices to delete.")
+			return False
+			
+		self.aw = Tk.Tk()
+		KEYS, VALUES = self.getKeys()
+
+		#self.mName = Tk.StringVar(self.aw)
+		self.dhName = Tk.StringVar(self.aw)
+		Tk.Label(self.aw, text="Machine Name").grid()
+		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.dhName, values=VALUES)
+		a.grid()
+		#Tk.Label(self.aw, text="Human Name").grid()
+		#Tk.Entry(self.aw, textvariable= self.hName).grid()
+		Tk.Button(self.aw, text="Delete", command=self.devDelComplete).grid()
+
+	# == Drawing management ==
 	def redraw(self):
 		d = self.core.dia
 		
