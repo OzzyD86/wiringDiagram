@@ -173,6 +173,18 @@ class wdTk():
 		self.e.grid()
 		Tk.Button(self.aw, text="Add", command=self.wireAddComplete).grid()
 
+	def wireAddComplete(self):
+		KEYS, VALUES = self.getKeys()
+			
+		#print(self.indName.get(), self.incName.get(),
+		#	self.outdName.get(), self.outcName.get())
+		objIn = KEYS[VALUES.index(self.indName.get())]
+		objOut = KEYS[VALUES.index(self.outdName.get())]
+
+		self.core.addWire(objIn, self.incName.get(), objOut, self.outcName.get())
+		self.redraw()
+		self.aw.destroy()
+
 	# == Drawing management ==
 	def redraw(self):
 		d = self.core.dia

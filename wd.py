@@ -167,26 +167,7 @@ class wdTk(w):
 		ii = d.getDevice(obj).connectors.keys()
 		
 		self.b["values"]=list(ii)
-		
-	def wireAddComplete(self):
-		KEYS, VALUES = self.getKeys()
 			
-		#print(self.indName.get(), self.incName.get(),
-		#	self.outdName.get(), self.outcName.get())
-		objIn = KEYS[VALUES.index(self.indName.get())]
-		objOut = KEYS[VALUES.index(self.outdName.get())]
-
-		self.core.struct.cur.execute("insert into wire (devIn,connIn,devOut,connOut) values (?,?,?,?)",
-			(objIn, self.incName.get(),
-			objOut, self.outcName.get()))
-			
-		d.addConnection(
-				(objIn, self.incName.get()),
-				(objOut, self.outcName.get())
-			)
-		self.redraw()
-		self.aw.destroy()
-	
 	def wireDelWin(self):
 		self.aw = Tk.Tk()
 		KEYS, VALUES = self.getKeys()
