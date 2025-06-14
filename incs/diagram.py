@@ -45,7 +45,10 @@ class diagram():
 		self.conns.append((a,b))
 		
 	def objMk(self, dr, p, dms = (0,0,1,1), _type = 1, honour_db = False):
-		f = ImageFont.load_default_imagefont()
+		try:
+			f = ImageFont.load_default_imagefont()
+		except:
+			f = ImageFont.load_default() #_imagefont()
 		poss = { "left": [], "right": [], "top": [], "bottom" : [] }
 
 		if (type(dr) is ImageDraw.ImageDraw):
@@ -135,7 +138,7 @@ class diagram():
 			)
 			dr.addtag_withtag(p.name, rct)
 			dr.addtag_withtag("_dev", rct)
-			dr.create_text(dms[0],dms[1],text=p.name,font=('Arial',4))
+			dr.create_text(dms[0],dms[1],text=p.name,font=('Arial',12))
 		#dr.tag_bind(rct, "<Button-1>", drag_start)
 		#dr.tag_bind(rct, "<B1-Motion>", drag_motion)
 

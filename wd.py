@@ -305,7 +305,7 @@ t.redraw()
 
 def exportPng():
 	im = Image.new("RGB", (800,600), (255,255,255))
-	f = ImageFont.load_default_imagefont()
+	#f = ImageFont.load_default_imagefont()
 	dr = ImageDraw.Draw(im)
 	for i in t.core.dia.listDevices():
 		if (i in t.core.dia.locs):
