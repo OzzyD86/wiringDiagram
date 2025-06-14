@@ -32,10 +32,10 @@ class wdCore():
 	def importStruct(self, struct):
 		self.struct = struct
 		
-	def addDevice(self, hName, mName, coords = (400,300,50,50)):
+	def addDevice(self, mName, hName, coords = (400,300,50,50)):
 		self.struct.cur.execute("insert into units (iName, proName, left, top, width, height) values(?, ?,?,?,?,?)", 
 			(mName, hName, *coords))
-		self.dia.addDevice(hName, device(mName))
+		self.dia.addDevice(mName, device(hName))
 		#if (i["left"] is not None):
 		self.dia.locateDevice(mName, (coords[0],coords[1]),(coords[2], coords[3]))
 
