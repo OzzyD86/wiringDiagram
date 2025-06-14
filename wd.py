@@ -26,7 +26,6 @@ dr = ImageDraw.Draw(im)
 import tkinter as Tk
 import tkinter.ttk as ttk
 
-import wdTk
 from incs.wdCore import wdCore
 
 class pjaDialog():
@@ -126,31 +125,6 @@ class wdTk(w):
 	def file_save(self):
 		f.store.commit() # That needs moving
 		pass
-		
-	def devDelComplete(self):
-		
-		# Load the objects
-		KEYS, VALUES = self.getKeys()
-		
-		# Find the object
-		if not self.dhName.get() in VALUES:
-			tkinter.messagebox.showerror(title="No device", message="No.")
-			return False
-			
-		obj = KEYS[VALUES.index(self.dhName.get())]
-		
-		if (self.core.struct is not None):
-			# Delete the object
-			self.core.struct.cur.execute("delete from units where iName = ?", (obj,))
-			#self.core.struct.store.commit() # Don't do that here
-	
-			# Delete its connectors
-			# Delete any wires relating to it
-
-		del self.core.dia.dev[obj]
-		self.redraw()
-		self.aw.destroy()
-		pass
 	
 	def setmName(self, *nope):
 		KEYS, VALUES = self.getKeys()
@@ -169,25 +143,13 @@ class wdTk(w):
 		if (self.cName.get() in d.getDevice(obj).connectors.keys()):
 			tkinter.messagebox.showerror(title="Cannot add plug", message="The name of the plug is already in use for this device.")
 			return False
+			
 		self.core.struct.cur.execute("insert into conns (dName, cName) values(?, ?)", (obj, self.cName.get()))
-		
 		self.core.dia.getDevice(obj).addConnector(self.cName.get(), proto="XLR")
+		
 		self.redraw()
 		self.aw.destroy()
 		
-	def connAddWin(self):
-		self.aw = Tk.Tk()
-		KEYS, VALUES = self.getKeys()
-	
-		self.cName = Tk.StringVar(self.aw)
-		self.mhName = Tk.StringVar(self.aw)
-		Tk.Label(self.aw, text="Machine Name").grid()
-		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.mhName, values=VALUES)
-		a.grid()
-		Tk.Label(self.aw, text="Connection Name").grid()
-		Tk.Entry(self.aw, textvariable= self.cName).grid()
-		Tk.Button(self.aw, text="Add", command=self.connAddComplete).grid()
-
 	def setInC(self, *what):
 		self.e["state"]='readonly'
 		
