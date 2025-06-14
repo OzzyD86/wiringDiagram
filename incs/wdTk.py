@@ -99,6 +99,40 @@ class wdTk():
 		#Tk.Entry(self.aw, textvariable= self.hName).grid()
 		Tk.Button(self.aw, text="Delete", command=self.devDelComplete).grid()
 
+	def devDelComplete(self):
+		
+		# Load the objects
+		KEYS, VALUES = self.getKeys()
+		
+		# Find the object
+		if not self.dhName.get() in VALUES:
+			tkinter.messagebox.showerror(title="No device", message="No.")
+			return False
+			
+		obj = KEYS[VALUES.index(self.dhName.get())]
+		
+		self.core.deleteDevice(obj)
+		self.redraw()
+		self.aw.destroy()
+		pass
+		
+	## === Do Connector Management
+	
+	# == Connector Adding
+	
+	def connAddWin(self):
+		self.aw = Tk.Tk()
+		KEYS, VALUES = self.getKeys()
+	
+		self.cName = Tk.StringVar(self.aw)
+		self.mhName = Tk.StringVar(self.aw)
+		Tk.Label(self.aw, text="Machine Name").grid()
+		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.mhName, values=VALUES)
+		a.grid()
+		Tk.Label(self.aw, text="Connection Name").grid()
+		Tk.Entry(self.aw, textvariable= self.cName).grid()
+		Tk.Button(self.aw, text="Add", command=self.connAddComplete).grid()
+
 	# == Drawing management ==
 	def redraw(self):
 		d = self.core.dia

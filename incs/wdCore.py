@@ -46,3 +46,13 @@ class wdCore():
 			coords[0], coords[1]), 
 			(coords[2], coords[3]))
 		pass
+	
+	def deleteDevice(self, obj):
+		if (self.struct is not None):
+			# Delete the object
+			self.struct.cur.execute("delete from units where iName = ?", (obj,))
+	
+			# Delete its connectors
+			# Delete any wires relating to it
+
+		del self.dia.dev[obj]
