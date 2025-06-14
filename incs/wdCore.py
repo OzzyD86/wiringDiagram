@@ -56,3 +56,8 @@ class wdCore():
 			# Delete any wires relating to it
 
 		del self.dia.dev[obj]
+		
+	def addConnector(self, obj, cName, proto = "XLR", dir = "auto"):
+		self.struct.cur.execute("insert into conns (dName, cName) values(?, ?)", (obj, cName))
+		self.dia.getDevice(obj).addConnector(cName, proto)
+	

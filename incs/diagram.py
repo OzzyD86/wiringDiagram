@@ -1,5 +1,5 @@
 from colours import colourDirection
-from PIL import ImageDraw
+from PIL import ImageDraw, ImageFont
 import tkinter as Tk
 
 class diagram():
@@ -45,6 +45,7 @@ class diagram():
 		self.conns.append((a,b))
 		
 	def objMk(self, dr, p, dms = (0,0,1,1), _type = 1, honour_db = False):
+		f = ImageFont.load_default_imagefont()
 		poss = { "left": [], "right": [], "top": [], "bottom" : [] }
 
 		if (type(dr) is ImageDraw.ImageDraw):
@@ -124,6 +125,8 @@ class diagram():
 				dms[0]+(dms[2]/2), dms[1] + (dms[3]/2)),
 				outline=(0,0,0)
 			)
+			dr.text((dms[0],dms[1]), p.name,font=f,fill=(0,0,0))
+	
 		elif (a == 2):
 			rct = dr.create_rectangle(
 				dms[0]-(dms[2]/2), dms[1] - (dms[3]/2),

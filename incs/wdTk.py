@@ -133,6 +133,46 @@ class wdTk():
 		Tk.Entry(self.aw, textvariable= self.cName).grid()
 		Tk.Button(self.aw, text="Add", command=self.connAddComplete).grid()
 
+	def connAddComplete(self):
+		KEYS, VALUES = self.getKeys()
+	
+		obj = KEYS[VALUES.index(self.mhName.get())]
+		if (self.cName.get() in self.core.dia.getDevice(obj).connectors.keys()):
+			tkinter.messagebox.showerror(title="Cannot add plug", message="The name of the plug is already in use for this device.")
+			return False
+		
+		self.core.addConnector(obj, self.cName.get())
+			
+		self.redraw()
+		self.aw.destroy()
+		
+	## === Do Wire Management
+	
+	# == Wire Adding
+	
+	def wireAddWin(self):
+		self.aw = Tk.Tk()
+		KEYS, VALUES = self.getKeys()
+	
+		self.indName = Tk.StringVar(self.aw)
+		self.incName = Tk.StringVar(self.aw)
+		self.outdName = Tk.StringVar(self.aw)
+		self.outcName = Tk.StringVar(self.aw)
+		Tk.Label(self.aw, text="Output Machine Name").grid()
+		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.outdName, values=VALUES).grid()
+		
+		self.indName.trace('w',self.setInC)
+		self.outdName.trace('w',self.setOutC)
+		Tk.Label(self.aw, text="Output Connection Name").grid()
+		self.b = ttk.Combobox(self.aw, state='disabled', textvariable= self.outcName)
+		self.b.grid()
+		Tk.Label(self.aw, text="Input Machine Name").grid()
+		c = ttk.Combobox(self.aw, state='readonly', textvariable= self.indName, values=VALUES).grid()
+		Tk.Label(self.aw, text="Input Connection Name").grid()
+		self.e = ttk.Combobox(self.aw, state='disabled', textvariable= self.incName)
+		self.e.grid()
+		Tk.Button(self.aw, text="Add", command=self.wireAddComplete).grid()
+
 	# == Drawing management ==
 	def redraw(self):
 		d = self.core.dia
