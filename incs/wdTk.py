@@ -7,7 +7,8 @@ class wdTk():
 		self.window = Tk.Tk()
 		self.window.title("WiringDiagram")
 		self.core = wdCore(self.window)
-		
+		self.window.protocol('WM_DELETE_WINDOW', self.quit)
+
 		self.canvas = Tk.Canvas(self.window, width=800, height=600)
 		self.canvas.grid()
 		self.vscroll = Tk.Scrollbar(self.window)
@@ -28,7 +29,7 @@ class wdTk():
 		self.window.config(menu=self.menu["root"])
 		
 	def quit(self):
-		if (tkinter.messagebox.askquestion(title=None, message="Are you sure") == "yes"):
+		if (Tk.messagebox.askquestion(title=None, message="Are you sure") == "yes"):
 			exit(0)
 			
 	def getKeys(self):
