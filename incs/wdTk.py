@@ -175,7 +175,7 @@ class wdTk():
 	
 		obj = KEYS[VALUES.index(self.mhName.get())]
 		if (self.cName.get() in self.core.dia.getDevice(obj).connectors.keys()):
-			tkinter.messagebox.showerror(title="Cannot add plug", message="The name of the plug is already in use for this device.")
+			Tk.messagebox.showerror(title="Cannot add plug", message="The name of the plug is already in use for this device.")
 			return False
 		
 		if (self.val.get() == 1):
@@ -185,7 +185,7 @@ class wdTk():
 				self.core.addConnector(obj, self.cName.get()+"_"+str(i+1), dir= self.ddName.get())
 			pass
 		else:
-			tkinter.messagebox.showerror(title="Cannot add plug", message="Invalid value.")
+			Tk.messagebox.showerror(title="Cannot add plug", message="Invalid value.")
 			return False
 		
 		self.redraw()

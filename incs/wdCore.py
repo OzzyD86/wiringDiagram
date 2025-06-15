@@ -59,7 +59,7 @@ class wdCore():
 		
 	def addConnector(self, obj, cName, proto = "XLR", dir = "auto"):
 		self.struct.cur.execute("insert into conns (dName, cName, direction) values(?, ?, ?)", (obj, cName, dir))
-		self.dia.getDevice(obj).addConnector(cName, proto)
+		self.dia.getDevice(obj).addConnector(cName, proto, dir)
 	
 	def addWire(self, devIn, conIn, devOut, conOut):
 		self.struct.cur.execute("insert into wire (devIn,connIn,devOut,connOut) values (?,?,?,?)",
