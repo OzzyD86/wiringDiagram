@@ -123,7 +123,7 @@ class wdTk():
 	def connAddWin(self):
 		self.aw = Tk.Tk()
 		KEYS, VALUES = self.getKeys()
-	
+		self.val = Tk.IntVar(self.aw)
 		self.cName = Tk.StringVar(self.aw)
 		self.mhName = Tk.StringVar(self.aw)
 		Tk.Label(self.aw, text="Machine Name").grid()
@@ -131,6 +131,9 @@ class wdTk():
 		a.grid()
 		Tk.Label(self.aw, text="Connection Name").grid()
 		Tk.Entry(self.aw, textvariable= self.cName).grid()
+		Tk.Label(self.aw, text="Quantity").grid()
+		Tk.Spinbox(self.aw, from_=1, to=32, textvariable=self.val).grid()
+		
 		Tk.Button(self.aw, text="Add", command=self.connAddComplete).grid()
 
 	def connAddComplete(self):
@@ -141,8 +144,16 @@ class wdTk():
 			tkinter.messagebox.showerror(title="Cannot add plug", message="The name of the plug is already in use for this device.")
 			return False
 		
-		self.core.addConnector(obj, self.cName.get())
-			
+		if (self.val.get() == 1):
+			self.core.addConnector(obj, self.cName.get())
+		elif (self.val.get() > 1):
+			for i in range(self.val.get()):
+				self.core.addConnector(obj, self.cName.get()+"_"+str(i+1))
+			pass
+		else:
+			tkinter.messagebox.showerror(title="Cannot add plug", message="Invalid value.")
+			return False
+		
 		self.redraw()
 		self.aw.destroy()
 		
