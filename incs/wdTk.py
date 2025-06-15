@@ -155,11 +155,16 @@ class wdTk():
 		self.val = Tk.IntVar(self.aw)
 		self.cName = Tk.StringVar(self.aw)
 		self.mhName = Tk.StringVar(self.aw)
+		self.ddName = Tk.StringVar(self.aw)
+		self.ddName.set("None")
 		Tk.Label(self.aw, text="Machine Name").grid()
 		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.mhName, values=VALUES)
 		a.grid()
 		Tk.Label(self.aw, text="Connection Name").grid()
 		Tk.Entry(self.aw, textvariable= self.cName).grid()
+		Tk.Label(self.aw, text="Data Direction").grid()
+		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.ddName, values=["In", "Out", "Both", "None"]).grid()
+
 		Tk.Label(self.aw, text="Quantity").grid()
 		Tk.Spinbox(self.aw, from_=1, to=32, textvariable=self.val).grid()
 		
@@ -174,10 +179,10 @@ class wdTk():
 			return False
 		
 		if (self.val.get() == 1):
-			self.core.addConnector(obj, self.cName.get())
+			self.core.addConnector(obj, self.cName.get(), dir= self.ddName.get())
 		elif (self.val.get() > 1):
 			for i in range(self.val.get()):
-				self.core.addConnector(obj, self.cName.get()+"_"+str(i+1))
+				self.core.addConnector(obj, self.cName.get()+"_"+str(i+1), dir= self.ddName.get())
 			pass
 		else:
 			tkinter.messagebox.showerror(title="Cannot add plug", message="Invalid value.")
