@@ -23,7 +23,7 @@ def check_current_version():
 import tkinter as Tk
 import tkinter.ttk as ttk
 
-from incs.wdCore import wdCore
+#from incs.wdCore omport wdCore
 
 class pjaDialog():
 	def __init__(self):
@@ -54,30 +54,8 @@ class pjaDialog():
 		return self.how
 
 import incs.wdTk
-
-class w(incs.wdTk.wdTk):
 	
-	def __init__(self):
-		self.window = Tk.Tk()
-		self.window.title("WiringDiagram")
-		self.core = wdCore(self.window)
-		
-		self.canvas = Tk.Canvas(self.window, width=800, height=600)
-		self.canvas.grid()
-		
-		#self.canvas.bind("<Button-1>", self.click_call)
-
-		self.menu = {
-			"root" : Tk.Menu(),
-			"file": Tk.Menu(),
-			"add": Tk.Menu(),
-			"edit": Tk.Menu(),
-			"delete": Tk.Menu()
-		}
-	
-		self.window.config(menu=self.menu["root"])
-		
-class wdTk(w):
+class wdTk(incs.wdTk.wdTk):
 	def click_call(self, event):
 		#print(self.canvas.find_closest(event.x,event.y))
 		#print(event)
@@ -89,14 +67,19 @@ class wdTk(w):
 			d.add_command(label=i)
 		d.tk_popup(self.canvas.winfo_rootx()+event.x, self.canvas.winfo_rooty()+event.y)
 		pass
-		
+			
 	def __init__(self):
 		
 		super().__init__()
 		mf = self.menu["file"]
 		mf.add_command(label="New", command= self.file_new)
 		mf.add_separator()
+		mf.add_command(label="Load", state=Tk.DISABLED)
 		mf.add_command(label="Save", command= self.file_save)
+		mf.add_command(label="Save As...", state=Tk.DISABLED)
+		mf.add_separator()
+		mf.add_command(label="Quit", command=self.quit)
+			
 
 		add = self.menu["add"]
 		add.add_command(label="Device", command=self.devAddWin)
