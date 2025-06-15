@@ -147,7 +147,7 @@ class diagram():
 			)
 			dr.addtag_withtag(p.name, rct)
 			dr.addtag_withtag("_dev", rct)
-			dr.create_text(dms[0],dms[1],text=p.name,font=('Arial',12))
+			dr.create_text(dms[0],dms[1],text=p.name,font=('Arial',4))
 		#dr.tag_bind(rct, "<Button-1>", drag_start)
 		#dr.tag_bind(rct, "<B1-Motion>", drag_motion)
 

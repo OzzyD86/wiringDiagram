@@ -1,8 +1,36 @@
 import tkinter as Tk
 import tkinter.ttk as ttk
+from incs.wdCore import wdCore
 
 class wdTk():
+	def __init__(self):
+		self.window = Tk.Tk()
+		self.window.title("WiringDiagram")
+		self.core = wdCore(self.window)
+		
+		self.canvas = Tk.Canvas(self.window, width=800, height=600)
+		self.canvas.grid()
+		self.vscroll = Tk.Scrollbar(self.window)
+		self.vscroll.grid(column=1, row=0,sticky="news")
+		self.hscroll = Tk.Scrollbar(self.window,orient=Tk.HORIZONTAL)
+		self.hscroll.grid(column=0, row=1,sticky="news")
+		
+		#self.canvas.bind("<Button-1>", self.click_call)
 
+		self.menu = {
+			"root" : Tk.Menu(),
+			"file": Tk.Menu(),
+			"add": Tk.Menu(),
+			"edit": Tk.Menu(),
+			"delete": Tk.Menu()
+		}
+	
+		self.window.config(menu=self.menu["root"])
+		
+	def quit(self):
+		if (tkinter.messagebox.askquestion(title=None, message="Are you sure") == "yes"):
+			exit(0)
+			
 	def getKeys(self):
 		KEYS = []
 		VALUES = []
