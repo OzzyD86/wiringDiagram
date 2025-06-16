@@ -22,6 +22,7 @@ def check_current_version():
 
 import tkinter as Tk
 import tkinter.ttk as ttk
+import tkinter.filedialog
 
 #from incs.wdCore omport wdCore
 
@@ -81,41 +82,6 @@ class wdTk(incs.wdTk.wdTk):
 		self.width.set(width)
 		self.height.set(height)
 		#print(d.locs)
-		
-	def setInC(self, *what):
-		self.e["state"]='readonly'
-		
-		KEYS, VALUES = self.getKeys()
-		
-		obj = KEYS[VALUES.index(self.indName.get())]
-		ii = self.core.dia.getDevice(obj).connectors.keys()
-		#print(ii)
-		
-		self.e["values"]=list(ii)
-
-	def setM(self, *what, **kwargs):
-		#print(what)
-		#print(kwargs)
-		self.b["state"]='readonly'
-		
-		KEYS, VALUES = self.getKeys()
-		
-		obj = KEYS[VALUES.index(kwargs['i'])]
-		ii = self.core.dia.getDevice(obj).connectors.keys()
-		
-		kwargs['o']["values"]=list(ii)
-		
-	def setOutC(self, *kwargs):
-
-		#print(what)
-		self.b["state"]='readonly'
-		
-		KEYS, VALUES = self.getKeys()
-		
-		obj = KEYS[VALUES.index(self.outdName.get())]
-		ii = self.core.dia.getDevice(obj).connectors.keys()
-		
-		self.b["values"]=list(ii)
 				
 	def setM2(self, *args):
 		pass
@@ -149,7 +115,7 @@ class wdTk(incs.wdTk.wdTk):
 		if (len(a) == 0):
 			print("Cancelled?")
 		else:
-			global f,t,d
+			#global f
 			f = diagramStructure(a)
 			f.build()
 			if (f.check_version() < check_current_version()):
@@ -157,7 +123,6 @@ class wdTk(incs.wdTk.wdTk):
 				f.update_version(f.check_version(), check_current_version())
 
 			self.core.dia = diagram() #WTF!!!
-			#d.load(f)
 			self.core.load(f)
 			#d = self.core.dia #diagram()
 			self.core.importStruct(f)
@@ -166,46 +131,9 @@ class wdTk(incs.wdTk.wdTk):
 			#print("Yes")
 		#print(type(a), a)
 		
-	def redraw(self):
-		d = self.core.dia
-		
-		self.canvas.delete("all")
-		for i in d.listDevices():
-			if (i in d.locs):
-				aa = d.objMk(self.canvas, d.getDevice(i), d.locs[i])
-				d.getDevice(i).drwConnPos = aa
-
-		for i in d.conns:
-			p =0
-			pin = None
-			pout = None
-			if (d.getDevice(i[0][0]) is not None):
-				pin = d.getDevice(i[0][0]).connectors[i[0][1]]["direction"]
-			else:
-				p+=1
-			
-			if (d.getDevice(i[1][0]) is not None):
-				pout = d.getDevice(i[1][0]).connectors[i[1][1]]["direction"]
-			else:
-				p+=1
-			
-			if (pin == pout):
-				if (pin is not None):
-					print("Plugged " + str(pin) + " into " + str(pout) + " with", i)
-		
-			if (p == 0):
-				st = d.getDevice(i[0][0]).drwConnPos[i[0][1]]
-				fn =  d.getDevice(i[1][0]).drwConnPos[i[1][1]]
-				#dr.line((st,fn), fill=(0,0,0))
-				r = self.canvas.create_line(st,fn, fill="black")
-			#else:
-			#print(pin, pout)
-		
 t = wdTk()
 
 #p = pjaDialog().go()
-
-import tkinter.filedialog
 
 f = t.core.struct = diagramStructure("f.db")
 t.core.importStruct(t.core.struct)
@@ -213,16 +141,13 @@ t.core.importStruct(t.core.struct)
 x = t.window
 wdc = t.core
 
-print(wdc.struct.check_version())
+#print(wdc.struct.check_version())
 if (wdc.struct.check_version() < check_current_version()):
 	print("Update needed")
 	wdc.struct.update_version(wdc.struct.check_version(), check_current_version())
 
 wdc.struct.build()
-#d = wdc.dia = diagram()
 wdc.load(f)
-	
-#wdc.dia = d # this is a placeholder!
 t.redraw()
 
 #t.core.dia.exportPng().save("mx2.png")
