@@ -1,5 +1,5 @@
 from colours import colourDirection
-from PIL import ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont
 import tkinter as Tk
 
 class diagram():
@@ -52,6 +52,9 @@ class diagram():
 		_in.connectors[b[1]]["connected"] = a
 		
 		self.conns.append((a,b))
+	
+	def bbox(self, p):
+		pass
 		
 	def objMk(self, dr, p, dms = (0,0,1,1), _type = 1, honour_db = False):
 		try:
@@ -152,3 +155,25 @@ class diagram():
 		#dr.tag_bind(rct, "<B1-Motion>", drag_motion)
 
 		return outmap
+		
+	def exportPng(self):
+		im = Image.new("RGB", (800,600), (255,255,255))
+		#f = ImageFont.load_default_imagefont()
+		dr = ImageDraw.Draw(im)
+		for i in self.listDevices():
+			if (i in self.locs):
+				aa = self.objMk(dr, self.getDevice(i), self.locs[i])
+			self.getDevice(i).drwConnPos = aa
+	
+		for i in self.conns:
+			pin = self.getDevice(i[0][0]).connectors[i[0][1]]["direction"]
+			pout = self.getDevice(i[1][0]).connectors[i[1][1]]["direction"]
+
+			if (pin == pout):
+				if (pin is not None):
+					print("Plugged " + str(pin) + " into " + str(pout) + " with", i)
+			
+			st = self.getDevice(i[0][0]).drwConnPos[i[0][1]]
+			fn =  self.getDevice(i[1][0]).drwConnPos[i[1][1]]
+			dr.line((st,fn), fill=(0,0,0))
+		return im
