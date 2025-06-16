@@ -56,6 +56,7 @@ class wdTk():
 			
 		add = self.menu["add"]
 		add.add_command(label="Device", command=self.devAddWin)
+		add.add_command(label="Duplicate Device", command=self.dupDevAddWin)
 		add.add_command(label="Plug", command=self.connAddWin)
 		add.add_command(label="Connection", command=self.wireAddWin)
 
@@ -96,7 +97,49 @@ class wdTk():
 	## === Do Device Management
 	
 	# == Device Adding
+
+	def dupDevAddWin(self):
+		self.aw = Tk.Tk()
+
+		KEYS, VALUES = self.getKeys()
+
+		self.dName = Tk.StringVar(self.aw)
+		self.mName = Tk.StringVar(self.aw)
+		self.hName = Tk.StringVar(self.aw)
 	
+		Tk.Label(self.aw, text="Existing machine to duplicate").grid()
+		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.dName, values=VALUES).grid()
+
+		Tk.Label(self.aw, text="New Machine Name").grid()
+		Tk.Entry(self.aw, textvariable= self.mName).grid()
+		Tk.Label(self.aw, text="Human Name").grid()
+		Tk.Entry(self.aw, textvariable= self.hName).grid()
+		Tk.Button(self.aw, text="Add", command=self.dupDevAddComplete).grid()
+
+	def dupDevAddComplete(self):
+		KEYS, VALUES = self.getKeys()
+		obj = KEYS[VALUES.index(self.dName.get())]
+		
+		
+		if (self.mName.get() in self.core.dia.listDevices()):
+			tkinter.messagebox.showerror(title="Cannot add device", message="The name of the device is already in use.")
+			return False
+		
+		d = self.core.dia.getDevice(obj)
+		s = self.core.dia.locs[obj]
+		print(s)
+		
+		self.core.addDevice(
+			self.mName.get(), self.hName.get(),
+			(400,300,s[2],s[3]))
+		
+		for i, j in d.connectors.items():
+			self.core.addConnector(self.mName.get(), i, dir=  j['direction'])
+		
+		self.aw.destroy()
+		self.redraw()
+
+		
 	def devAddWin(self):
 		self.aw = Tk.Tk()
 		self.mName = Tk.StringVar(self.aw)
