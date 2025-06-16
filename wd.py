@@ -68,40 +68,6 @@ class wdTk(incs.wdTk.wdTk):
 		d.tk_popup(self.canvas.winfo_rootx()+event.x, self.canvas.winfo_rooty()+event.y)
 		pass
 			
-	def __init__(self):
-		
-		super().__init__()
-		mf = self.menu["file"]
-		mf.add_command(label="New", command= self.file_new)
-		mf.add_separator()
-		mf.add_command(label="Load", state=Tk.DISABLED)
-		mf.add_command(label="Save", command= self.file_save)
-		mf.add_command(label="Save As...", state=Tk.DISABLED)
-		mf.add_separator()
-		mf.add_command(label="Quit", command=self.quit)
-			
-
-		add = self.menu["add"]
-		add.add_command(label="Device", command=self.devAddWin)
-		add.add_command(label="Plug", command=self.connAddWin)
-		add.add_command(label="Connection", command=self.wireAddWin)
-
-		edit = self.menu["edit"]
-		edit.add_command(label="Device", command=self.devEditWin)
-		edit.add_command(label="Plug", state=Tk.DISABLED)
-		edit.add_command(label="Connection", state=Tk.DISABLED)
-
-		delete = self.menu["delete"]
-		delete.add_command(label="Device", command=self.devDelWin)
-		delete.add_command(label="Plug", state=Tk.DISABLED)
-		delete.add_command(label="Connection", command=self.wireDelWin)
-
-		y = self.menu["root"]
-		y.add_cascade(label="File", menu=self.menu["file"])
-		y.add_cascade(label="Add", menu=self.menu["add"])
-		y.add_cascade(label="Edit", menu=self.menu["edit"])
-		y.add_cascade(label="Delete", menu=self.menu["delete"])
-
 	def file_save(self):
 		f.store.commit() # That needs moving
 		pass
@@ -109,7 +75,7 @@ class wdTk(incs.wdTk.wdTk):
 	def setmName(self, *nope):
 		KEYS, VALUES = self.getKeys()
 		obj = KEYS[VALUES.index(self.mName.get())]
-		left, top, width, height = d.locs[obj]
+		left, top, width, height = self.core.dia.locs[obj]
 		self.top.set(top)
 		self.left.set(left)
 		self.width.set(width)
@@ -122,7 +88,7 @@ class wdTk(incs.wdTk.wdTk):
 		KEYS, VALUES = self.getKeys()
 		
 		obj = KEYS[VALUES.index(self.indName.get())]
-		ii = d.getDevice(obj).connectors.keys()
+		ii = self.core.dia.getDevice(obj).connectors.keys()
 		#print(ii)
 		
 		self.e["values"]=list(ii)
@@ -135,7 +101,7 @@ class wdTk(incs.wdTk.wdTk):
 		KEYS, VALUES = self.getKeys()
 		
 		obj = KEYS[VALUES.index(kwargs['i'])]
-		ii = d.getDevice(obj).connectors.keys()
+		ii = self.core.dia.getDevice(obj).connectors.keys()
 		
 		kwargs['o']["values"]=list(ii)
 		
@@ -147,12 +113,35 @@ class wdTk(incs.wdTk.wdTk):
 		KEYS, VALUES = self.getKeys()
 		
 		obj = KEYS[VALUES.index(self.outdName.get())]
-		ii = d.getDevice(obj).connectors.keys()
+		ii = self.core.dia.getDevice(obj).connectors.keys()
 		
 		self.b["values"]=list(ii)
-
 				
 	def setM2(self, *args):
+		pass
+		
+	def file_load(self):
+		a = tkinter.filedialog.askopenfile()
+		
+		#print(a.name,a)
+		# This is literally the new code
+		if (a is None):
+			print("Cancelled?")
+		else:
+			a = a.name
+			global f,t,d
+			f = diagramStructure(a)
+			f.build()
+			if (f.check_version() < check_current_version()):
+				print("Update needed")
+				f.update_version(f.check_version(), check_current_version())
+
+			self.core.dia = diagram() #WTF!!!
+			#d.load(f)
+			self.core.load(f)
+		#	d = self.core.dia #diagram()
+			self.core.importStruct(f)
+			self.redraw()
 		pass
 		
 	def file_new(self):
@@ -162,15 +151,15 @@ class wdTk(incs.wdTk.wdTk):
 		else:
 			global f,t,d
 			f = diagramStructure(a)
+			f.build()
 			if (f.check_version() < check_current_version()):
 				print("Update needed")
 				f.update_version(f.check_version(), check_current_version())
 
-			f.build()
 			self.core.dia = diagram() #WTF!!!
 			#d.load(f)
 			self.core.load(f)
-			self.dia = d = self.core.dia #diagram()
+			#d = self.core.dia #diagram()
 			self.core.importStruct(f)
 			self.redraw()
 			
@@ -230,37 +219,11 @@ if (wdc.struct.check_version() < check_current_version()):
 	wdc.struct.update_version(wdc.struct.check_version(), check_current_version())
 
 wdc.struct.build()
-d = wdc.dia = diagram()
+#d = wdc.dia = diagram()
 wdc.load(f)
-
-# Any reason why I'm doing this here?
-# I now know why I'm doing this, not why here!
 	
 #wdc.dia = d # this is a placeholder!
 t.redraw()
 
-def exportPng():
-	im = Image.new("RGB", (800,600), (255,255,255))
-	#f = ImageFont.load_default_imagefont()
-	dr = ImageDraw.Draw(im)
-	for i in t.core.dia.listDevices():
-		if (i in t.core.dia.locs):
-			aa = wdc.dia.objMk(dr, d.getDevice(i), d.locs[i])
-		t.core.dia.getDevice(i).drwConnPos = aa
-
-	for i in t.core.dia.conns:
-		pin = d.getDevice(i[0][0]).connectors[i[0][1]]["direction"]
-		pout = d.getDevice(i[1][0]).connectors[i[1][1]]["direction"]
-
-		if (pin == pout):
-			if (pin is not None):
-				print("Plugged " + str(pin) + " into " + str(pout) + " with", i)
-			
-		st = d.getDevice(i[0][0]).drwConnPos[i[0][1]]
-		fn =  d.getDevice(i[1][0]).drwConnPos[i[1][1]]
-		dr.line((st,fn), fill=(0,0,0))
-	return im
-	#wdc.canvas.create_line(st,fn, fill="black")
-
+#t.core.dia.exportPng().save("mx2.png")
 x.mainloop()
-exportPng().save("mx.png")
