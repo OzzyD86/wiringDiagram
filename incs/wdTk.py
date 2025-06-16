@@ -3,29 +3,81 @@ import tkinter.ttk as ttk
 from incs.wdCore import wdCore
 
 class wdTk():
+	def resize_canvas(self, event):
+   
+		new_width = event.width
+		new_height = event.height
+
+		# Update the canvas size
+		self.canvas.config(width=new_width, height=new_height)
+
 	def __init__(self):
 		self.window = Tk.Tk()
 		self.window.title("WiringDiagram")
 		self.core = wdCore(self.window)
 		self.window.protocol('WM_DELETE_WINDOW', self.quit)
-
+		self.window.geometry("860x660")
+		#frame = Tk.Frame(self.window, height=900,width=700)
+		#frame.grid(column=0,row=0)
 		self.canvas = Tk.Canvas(self.window, width=800, height=600)
-		self.canvas.grid()
+		self.canvas.grid(sticky="news")
 		self.vscroll = Tk.Scrollbar(self.window)
 		self.vscroll.grid(column=1, row=0,sticky="news")
 		self.hscroll = Tk.Scrollbar(self.window,orient=Tk.HORIZONTAL)
 		self.hscroll.grid(column=0, row=1,sticky="news")
-		
+		self.canvas.config(scrollregion = (0,-0,800,600))
+		self.canvas.configure(yscrollcommand=self.vscroll.set, xscrollcommand=self.hscroll.set)
+		self.vscroll.config( command = self.canvas.yview )
+		self.hscroll.config( command = self.canvas.xview )
+		self.window.rowconfigure(0, weight=1)
+		self.window.columnconfigure(0, weight=1)
 		#self.canvas.bind("<Button-1>", self.click_call)
-
+		#self.window.bind('<Configure>', self.resize_canvas)
+	
 		self.menu = {
 			"root" : Tk.Menu(),
 			"file": Tk.Menu(),
 			"add": Tk.Menu(),
 			"edit": Tk.Menu(),
-			"delete": Tk.Menu()
+			"delete": Tk.Menu(),
+			"export": Tk.Menu()
 		}
 	
+		mf = self.menu["file"]
+		mf.add_command(label="New", command= self.file_new)
+		mf.add_separator()
+		mf.add_command(label="Load", command=self.file_load)
+		mf.add_command(label="Save", command= self.file_save)
+		mf.add_command(label="Save As...", state=Tk.DISABLED)
+		mf.add_separator()
+		mf.add_command(label="Properties...", state=Tk.DISABLED)
+		mf.add_separator()
+		mf.add_command(label="Quit", command=self.quit)
+			
+		add = self.menu["add"]
+		add.add_command(label="Device", command=self.devAddWin)
+		add.add_command(label="Plug", command=self.connAddWin)
+		add.add_command(label="Connection", command=self.wireAddWin)
+
+		edit = self.menu["edit"]
+		edit.add_command(label="Device", command=self.devEditWin)
+		edit.add_command(label="Plug", state=Tk.DISABLED)
+		edit.add_command(label="Connection", state=Tk.DISABLED)
+
+		delete = self.menu["delete"]
+		delete.add_command(label="Device", command=self.devDelWin)
+		delete.add_command(label="Plug", state=Tk.DISABLED)
+		delete.add_command(label="Connection", command=self.wireDelWin)
+
+		self.menu["export"].add_command(label="PNG", state=Tk.DISABLED)
+
+		y = self.menu["root"]
+		y.add_cascade(label="File", menu=self.menu["file"])
+		y.add_cascade(label="Add", menu=self.menu["add"])
+		y.add_cascade(label="Edit", menu=self.menu["edit"])
+		y.add_cascade(label="Delete", menu=self.menu["delete"])
+		y.add_cascade(label="Export", menu=self.menu["export"])
+
 		self.window.config(menu=self.menu["root"])
 		
 	def quit(self):

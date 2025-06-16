@@ -6,6 +6,9 @@ class wdCore():
 		self.dia = diagram()
 		self.struct = None #diagramStructure()
 
+	def open_file(self, file):
+		pass
+		
 	def load(self, resource):
 		for i in resource.cur.execute("select * from units"):
 		#print(dict(i))
