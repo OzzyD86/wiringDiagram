@@ -4,6 +4,7 @@ import tkinter as Tk
 
 class diagram():
 	def __init__(self):
+		self.bounds = [0,0,0,0]
 		self.dev = {}
 		self.conns = []
 		self.locs = {}
@@ -16,7 +17,19 @@ class diagram():
 	
 	def locateDevice(self, dName, pos = (0,0), sz = (50,50)):
 		self.locs[dName] = (*pos, *sz)
-
+		
+		if ((pos[0] - (sz[0] / 2) - 10) < self.bounds[0]):
+			self.bounds[0] = (pos[0] - (sz[0] / 2) - 10)
+			
+		if ((pos[0] + (sz[0] / 2) + 10) > self.bounds[2]):
+			self.bounds[2] = (pos[0] + (sz[0] / 2) + 10) 
+			
+		if ((pos[1] - (sz[1] / 2) - 10) < self.bounds[1]):
+			self.bounds[1] = (pos[1] - (sz[1] / 2) - 10)
+			
+		if ((pos[1] + (sz[1] / 2) + 10) > self.bounds[3]):
+			self.bounds[3] = (pos[1] + (sz[1] / 2) + 10) 
+			
 	def getDevice(self, key):
 		try:
 			return self.dev[key]

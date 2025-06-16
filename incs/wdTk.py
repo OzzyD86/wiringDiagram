@@ -158,6 +158,7 @@ class wdTk():
 			int(self.width.get()), 
 			int(self.height.get()))
 		)
+		self.canvas.config(scrollregion=(self.core.dia.bounds))
 		self.aw.destroy()
 		self.redraw()
 		
@@ -258,18 +259,19 @@ class wdTk():
 		Tk.Label(self.aw, text="Output Machine Name").grid()
 		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.outdName, values=VALUES).grid()
 		
-		self.indName.trace('w',self.setInC)
-		self.outdName.trace('w',self.setOutC)
 		Tk.Label(self.aw, text="Output Connection Name").grid()
 		self.b = ttk.Combobox(self.aw, state='disabled', textvariable= self.outcName)
 		self.b.grid()
+			
 		Tk.Label(self.aw, text="Input Machine Name").grid()
 		c = ttk.Combobox(self.aw, state='readonly', textvariable= self.indName, values=VALUES).grid()
 		Tk.Label(self.aw, text="Input Connection Name").grid()
 		self.e = ttk.Combobox(self.aw, state='disabled', textvariable= self.incName)
 		self.e.grid()
 		Tk.Button(self.aw, text="Add", command=self.wireAddComplete).grid()
-
+		self.outdName.trace('w', lambda *a, b = self.b: self.setM(i = self.outdName.get(), o = b)) #self.setOutC)
+		self.indName.trace('w', lambda *a, b = self.e: self.setM(i = self.indName.get(), o = b))#self.setInC)
+	
 	def wireAddComplete(self):
 		KEYS, VALUES = self.getKeys()
 			
@@ -297,7 +299,7 @@ class wdTk():
 		self.b = ttk.Combobox(self.aw, state='disabled', textvariable= self.mName, values=VALUES)
 		self.b.grid()
 		self.cName.trace('w', lambda *a, b = self.b: self.setM(i = self.cName.get(), o = b))
-		self.mName.trace('w', self.setM2)
+		#self.mName.trace('w', self.setM2)
 		Tk.Button(self.aw, text="Delete", command=self.wireDelComplete).grid()
 
 	def wireDelComplete(self):
@@ -345,3 +347,47 @@ class wdTk():
 				r = self.canvas.create_line(st,fn, fill="black")
 			#else:
 			#print(pin, pout)
+
+	def setM(self, *what, **kwargs):
+		#print(what)
+		#print(kwargs)
+		kwargs['o']["state"]='readonly'
+		
+		KEYS, VALUES = self.getKeys()
+		obj = KEYS[VALUES.index(kwargs['i'])]
+		ii = self.core.dia.getDevice(obj).connectors.keys()
+		
+		kwargs['o']["values"]=list(ii)
+				
+	def redraw(self):
+		d = self.core.dia
+		
+		self.canvas.delete("all")
+		for i in d.listDevices():
+			if (i in d.locs):
+				aa = d.objMk(self.canvas, d.getDevice(i), d.locs[i])
+				d.getDevice(i).drwConnPos = aa
+
+		for i in d.conns:
+			p =0
+			pin = None
+			pout = None
+			if (d.getDevice(i[0][0]) is not None):
+				pin = d.getDevice(i[0][0]).connectors[i[0][1]]["direction"]
+			else:
+				p+=1
+			
+			if (d.getDevice(i[1][0]) is not None):
+				pout = d.getDevice(i[1][0]).connectors[i[1][1]]["direction"]
+			else:
+				p+=1
+			
+			if (pin == pout):
+				if (pin is not None):
+					print("Plugged " + str(pin) + " into " + str(pout) + " with", i)
+		
+			if (p == 0):
+				st = d.getDevice(i[0][0]).drwConnPos[i[0][1]]
+				fn =  d.getDevice(i[1][0]).drwConnPos[i[1][1]]
+				r = self.canvas.create_line(st,fn, fill="black")
+		
