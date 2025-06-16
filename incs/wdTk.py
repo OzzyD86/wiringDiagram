@@ -69,7 +69,7 @@ class wdTk():
 		delete.add_command(label="Plug", state=Tk.DISABLED)
 		delete.add_command(label="Connection", command=self.wireDelWin)
 
-		self.menu["export"].add_command(label="PNG", state=Tk.DISABLED)
+		self.menu["export"].add_command(label="PNG", command=self.export_png)
 
 		y = self.menu["root"]
 		y.add_cascade(label="File", menu=self.menu["file"])
@@ -391,3 +391,11 @@ class wdTk():
 				fn =  d.getDevice(i[1][0]).drwConnPos[i[1][1]]
 				r = self.canvas.create_line(st,fn, fill="black")
 		
+	def export_png(self):
+		files = [#('All Files', '*.*'), 
+			 ('Portable Network Graphics', '*.png')]
+		file = Tk.filedialog.asksaveasfile(filetypes = files, defaultextension = files)
+		
+		if (file is not None):
+			self.core.dia.exportPng().save(file.name)
+		#print(file)
