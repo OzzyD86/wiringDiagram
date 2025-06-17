@@ -1,7 +1,5 @@
 from copy import copy
 from PIL import Image, ImageDraw, ImageFont
-import math as maths
-from diagramStructure import diagramStructure
 from incs.diagram import diagram
 from dev import device
 
@@ -70,7 +68,7 @@ class wdTk(incs.wdTk.wdTk):
 		pass
 			
 	def file_save(self):
-		f.store.commit() # That needs moving
+		self.core.struct.store.commit() # That needs moving
 		pass
 	
 	def setmName(self, *nope):
@@ -91,20 +89,7 @@ t = wdTk()
 #p = pjaDialog().go()
 
 t.core.open_file("f.db")
-#f = t.core.struct = diagramStructure("f.db")
-#t.core.importStruct(t.core.struct)
-
-x = t.window
-wdc = t.core
-
-#print(wdc.struct.check_version())
-#if (wdc.struct.check_version() < check_current_version()):
-#	print("Update needed")
-#	wdc.struct.update_version(wdc.struct.check_version(), check_current_version())
-
-#wdc.struct.build()
-#wdc.load(f)
 t.redraw()
 
 #t.core.dia.exportPng().save("mx2.png")
-x.mainloop()
+t.window.mainloop()
