@@ -57,6 +57,7 @@ class wdTk():
 		add = self.menu["add"]
 		add.add_command(label="Device", command=self.devAddWin)
 		add.add_command(label="Duplicate Device", command=self.dupDevAddWin)
+		add.add_separator()
 		add.add_command(label="Plug", command=self.connAddWin)
 		add.add_command(label="Connection", command=self.wireAddWin)
 
@@ -442,3 +443,31 @@ class wdTk():
 		if (file is not None):
 			self.core.dia.exportPng().save(file.name)
 		#print(file)
+		
+	def file_load(self):
+		files = [#('All Files', '*.*'), 
+			 ('Databases', '*.db')]
+		a = Tk.filedialog.askopenfile(filetypes = files, defaultextension = files)
+	
+		# This is literally the new code
+		if (a is None):
+			print("Cancelled?")
+		else:
+			a = a.name
+			self.core.open_file(a)
+			self.redraw()
+		pass
+		
+	def file_new(self):
+		files = [#('All Files', '*.*'), 
+			 ('Databases', '*.db')]
+	
+		a = Tk.filedialog.asksaveasfilename(filetypes = files, defaultextension = files)
+		if (len(a) == 0):
+			print("Cancelled?")
+		else:
+			self.core.open_file(a)
+			self.redraw()
+			
+			#print("Yes")
+		#print(type(a), a)

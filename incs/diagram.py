@@ -8,6 +8,9 @@ class diagram():
 		self.dev = {}
 		self.conns = []
 		self.locs = {}
+	
+	def clear(self):
+		self.__init__() # Just makes sense
 		
 	def addDevice(self, key, dev):
 		self.dev[key] = dev

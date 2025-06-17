@@ -1,12 +1,27 @@
 from incs.diagram import diagram
 from dev import device
+from diagramStructure import diagramStructure
 
 class wdCore():
+	
 	def __init__(self, x = None):
 		self.dia = diagram()
 		self.struct = None #diagramStructure()
 
+	def check_current_version(self):
+		return 1
+		
 	def open_file(self, file):
+		f = diagramStructure(file)
+		f.build()
+		if (f.check_version() < self.check_current_version()):
+			print("Update needed")
+			f.update_version(f.check_version(), self.check_current_version())
+
+		self.dia.clear()
+		self.load(f)
+
+		self.importStruct(f)
 		pass
 		
 	def load(self, resource):
