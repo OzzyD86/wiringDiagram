@@ -18,7 +18,7 @@ def drag_motion(event):
     widget.place(x=x, y=y)
 		
 def check_current_version():
-	return 1
+	return t.core.check_current_version()
 
 import tkinter as Tk
 import tkinter.ttk as ttk
@@ -86,68 +86,24 @@ class wdTk(incs.wdTk.wdTk):
 	def setM2(self, *args):
 		pass
 		
-	def file_load(self):
-		a = tkinter.filedialog.askopenfile()
-		
-		#print(a.name,a)
-		# This is literally the new code
-		if (a is None):
-			print("Cancelled?")
-		else:
-			a = a.name
-			global f,t,d
-			f = diagramStructure(a)
-			f.build()
-			if (f.check_version() < check_current_version()):
-				print("Update needed")
-				f.update_version(f.check_version(), check_current_version())
-
-			self.core.dia = diagram() #WTF!!!
-			#d.load(f)
-			self.core.load(f)
-		#	d = self.core.dia #diagram()
-			self.core.importStruct(f)
-			self.redraw()
-		pass
-		
-	def file_new(self):
-		a = tkinter.filedialog.asksaveasfilename()
-		if (len(a) == 0):
-			print("Cancelled?")
-		else:
-			#global f
-			f = diagramStructure(a)
-			f.build()
-			if (f.check_version() < check_current_version()):
-				print("Update needed")
-				f.update_version(f.check_version(), check_current_version())
-
-			self.core.dia = diagram() #WTF!!!
-			self.core.load(f)
-			#d = self.core.dia #diagram()
-			self.core.importStruct(f)
-			self.redraw()
-			
-			#print("Yes")
-		#print(type(a), a)
-		
 t = wdTk()
 
 #p = pjaDialog().go()
 
-f = t.core.struct = diagramStructure("f.db")
-t.core.importStruct(t.core.struct)
+t.core.open_file("f.db")
+#f = t.core.struct = diagramStructure("f.db")
+#t.core.importStruct(t.core.struct)
 
 x = t.window
 wdc = t.core
 
 #print(wdc.struct.check_version())
-if (wdc.struct.check_version() < check_current_version()):
-	print("Update needed")
-	wdc.struct.update_version(wdc.struct.check_version(), check_current_version())
+#if (wdc.struct.check_version() < check_current_version()):
+#	print("Update needed")
+#	wdc.struct.update_version(wdc.struct.check_version(), check_current_version())
 
-wdc.struct.build()
-wdc.load(f)
+#wdc.struct.build()
+#wdc.load(f)
 t.redraw()
 
 #t.core.dia.exportPng().save("mx2.png")
