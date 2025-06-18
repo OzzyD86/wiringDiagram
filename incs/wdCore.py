@@ -23,6 +23,7 @@ class wdCore():
 
 		self.importStruct(f)
 		f.clear_changed()
+		
 		pass
 		
 	def load(self, resource):

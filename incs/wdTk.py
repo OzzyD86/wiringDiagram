@@ -88,6 +88,8 @@ class wdTk():
 	def open_file(self, file):
 		self.core.open_file(file)
 		self._open_file = file
+		self.canvas.config(scrollregion=(self.core.dia.bounds))
+
 		self.updateWindowTitle()
 		
 	def quit(self):
@@ -499,6 +501,7 @@ class wdTk():
 			self.redraw()
 			self._open_file = a
 			self.core.struct.clear_changed()
+			self.canvas.config(scrollregion=(self.core.dia.bounds))
 			self.updateWindowTitle()
 			
 		pass
