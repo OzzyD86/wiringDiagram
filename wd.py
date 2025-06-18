@@ -69,6 +69,7 @@ class wdTk(incs.wdTk.wdTk):
 			
 	def file_save(self):
 		self.core.struct.store.commit() # That needs moving
+		self.core.struct.clear_changed()
 		pass
 	
 	def setmName(self, *nope):

@@ -3,6 +3,7 @@ import sqlite3
 class diagramStructure():
 	
 	def __init__(self, f):
+		self._changed = False
 		self.store = sqlite3.connect(f)
 		self.store.row_factory = sqlite3.Row
 		self.cur = self.store.cursor()
@@ -89,3 +90,12 @@ class diagramStructure():
 			self.store.execute("update config set value = 1 where key = 'version'")
 						
 		pass
+
+	def is_changed(self):
+		return self._changed
+		
+	def set_changed(self):
+		self._changed = True
+		
+	def clear_changed(self):
+		self._changed = False

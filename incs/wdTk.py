@@ -83,8 +83,20 @@ class wdTk():
 		self.window.config(menu=self.menu["root"])
 		
 	def quit(self):
-		if (Tk.messagebox.askquestion(title=None, message="Are you sure") == "yes"):
-			exit(0)
+		#print("Closing:", self.core.struct.is_changed())
+		if (self.core.struct.is_changed()):
+			a = Tk.messagebox.askyesnocancel(title="Unsaved Changed", message="There are unsaved changes. Save before closing?")
+			#print(a)
+			if (a is None):
+				return None
+			elif (a is False):
+				exit(0)
+			elif (a is True):
+				self.file_save()
+				exit(0)
+		else:
+			if (Tk.messagebox.askquestion(title=None, message="Are you sure") == "yes"):
+				exit(0)
 			
 	def getKeys(self):
 		KEYS = []
@@ -445,6 +457,14 @@ class wdTk():
 		#print(file)
 		
 	def file_load(self):
+		if (self.core.struct.is_changed()):
+			a = Tk.messagebox.askyesnocancel(title="Unsaved Changed", message="There are unsaved changes. Save before load?")
+			#print(a)
+			if (a is None):
+				return None
+			elif (a is True):
+				self.file_save()
+
 		files = [#('All Files', '*.*'), 
 			 ('Databases', '*.db')]
 		a = Tk.filedialog.askopenfile(filetypes = files, defaultextension = files)
@@ -456,9 +476,17 @@ class wdTk():
 			a = a.name
 			self.core.open_file(a)
 			self.redraw()
+			self.core.struct.set_changed()
 		pass
 		
 	def file_new(self):
+		if (self.core.struct.is_changed()):
+			a = Tk.messagebox.askyesnocancel(title="Unsaved Changed", message="There are unsaved changes. Save before clearing?")
+			#print(a)
+			if (a is None):
+				return None
+			elif (a is True):
+				self.file_save()
 		files = [#('All Files', '*.*'), 
 			 ('Databases', '*.db')]
 	
@@ -471,3 +499,4 @@ class wdTk():
 			
 			#print("Yes")
 		#print(type(a), a)
+		self.core.struct.clear_changed()
