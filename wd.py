@@ -70,6 +70,7 @@ class wdTk(incs.wdTk.wdTk):
 	def file_save(self):
 		self.core.struct.store.commit() # That needs moving
 		self.core.struct.clear_changed()
+		self.updateWindowTitle()
 		pass
 	
 	def setmName(self, *nope):
@@ -89,7 +90,7 @@ t = wdTk()
 
 #p = pjaDialog().go()
 
-t.core.open_file("f.db")
+t.open_file("f.db")
 t.redraw()
 
 #t.core.dia.exportPng().save("mx2.png")
