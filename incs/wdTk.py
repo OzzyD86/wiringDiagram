@@ -88,6 +88,11 @@ class wdTk():
 	def open_file(self, file):
 		self.core.open_file(file)
 		self._open_file = file
+		self.canvas.config(scrollregion=(self.core.dia.bounds))
+		self.canvas.configure(yscrollcommand=self.vscroll.set, xscrollcommand=self.hscroll.set)
+		self.vscroll.config( command = self.canvas.yview )
+		self.hscroll.config( command = self.canvas.xview )
+	
 		self.updateWindowTitle()
 		
 	def quit(self):
