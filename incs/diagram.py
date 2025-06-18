@@ -72,7 +72,7 @@ class diagram():
 	def bbox(self, p):
 		pass
 		
-	def objMk(self, dr, p, dms = (0,0,1,1), _type = 1, honour_db = False):
+	def objMk(self, dr, p, dms = (0,0,1,1), _type = 1, honour_db = False, offset = (0,0)):
 		try:
 			f = ImageFont.load_default_imagefont()
 		except:
@@ -141,7 +141,7 @@ class diagram():
 				c = colourDirection(p.connectors[fc]["direction"], a==2)
 
 				if (a==1):
-					dr.rectangle((lf-2.5, tp-2.5, lf + 2.5, tp+2.5), outline=c)
+					dr.rectangle((lf-2.5+offset[0], tp-2.5+offset[1], lf + 2.5+offset[0], tp+2.5+offset[1]), outline=c)
 				elif (a==2):
 					op = dr.create_rectangle(lf-2.5, tp-2.5, lf + 2.5, tp+2.5, outline=c)
 					dr.addtag_withtag("_conn", op)
@@ -152,11 +152,11 @@ class diagram():
 
 		if (a==1):
 			dr.rectangle(
-				(dms[0]-(dms[2]/2), dms[1] - (dms[3]/2),
-				dms[0]+(dms[2]/2), dms[1] + (dms[3]/2)),
+				(dms[0]-(dms[2]/2)+offset[0], dms[1] - (dms[3]/2)+offset[1],
+				dms[0]+(dms[2]/2)+offset[0], dms[1] + (dms[3]/2)+offset[1]),
 				outline=(0,0,0)
 			)
-			dr.text((dms[0],dms[1]), p.name,font=f,fill=(0,0,0))
+			dr.text((dms[0]+offset[0],dms[1]+offset[1]), p.name,font=f,fill=(0,0,0))
 	
 		elif (a == 2):
 			rct = dr.create_rectangle(
@@ -173,12 +173,16 @@ class diagram():
 		return outmap
 		
 	def exportPng(self):
-		im = Image.new("RGB", (800,600), (255,255,255))
+	
+		print(self.bounds)
+		w = int(self.bounds[2] - self.bounds[0])
+		h = int(self.bounds[3] - self.bounds[1])
+		im = Image.new("RGB", (w,h), (255,255,255))
 		#f = ImageFont.load_default_imagefont()
 		dr = ImageDraw.Draw(im)
 		for i in self.listDevices():
 			if (i in self.locs):
-				aa = self.objMk(dr, self.getDevice(i), self.locs[i])
+				aa = self.objMk(dr, self.getDevice(i), self.locs[i], offset = (-self.bounds[0], -self.bounds[1]))
 			self.getDevice(i).drwConnPos = aa
 	
 		for i in self.conns:
@@ -191,5 +195,5 @@ class diagram():
 			
 			st = self.getDevice(i[0][0]).drwConnPos[i[0][1]]
 			fn =  self.getDevice(i[1][0]).drwConnPos[i[1][1]]
-			dr.line((st,fn), fill=(0,0,0))
+			dr.line((st[0] - self.bounds[0], st[1] - self.bounds[1] ,fn[0] - self.bounds[0], fn[1] - self.bounds[1]), fill=(0,0,0))
 		return im
