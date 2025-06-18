@@ -1,6 +1,6 @@
 from incs.diagram import diagram
 from dev import device
-from incs.diagramStructure import diagramStructure
+from diagramStructure import diagramStructure
 
 class wdCore():
 	
@@ -22,7 +22,6 @@ class wdCore():
 		self.load(f)
 
 		self.importStruct(f)
-		f.clear_changed()
 		pass
 		
 	def load(self, resource):
@@ -54,7 +53,6 @@ class wdCore():
 	def addDevice(self, mName, hName, coords = (400,300,50,50)):
 		self.struct.cur.execute("insert into units (iName, proName, left, top, width, height) values(?, ?,?,?,?,?)", 
 			(mName, hName, *coords))
-		self.struct.set_changed()
 		self.dia.addDevice(mName, device(hName))
 		#if (i["left"] is not None):
 		self.dia.locateDevice(mName, (coords[0],coords[1]),(coords[2], coords[3]))
@@ -65,8 +63,6 @@ class wdCore():
 		self.dia.locateDevice(mName, (
 			coords[0], coords[1]), 
 			(coords[2], coords[3]))
-		self.struct.set_changed()
-
 		pass
 	
 	def deleteDevice(self, obj):
@@ -78,13 +74,11 @@ class wdCore():
 			# Delete any wires relating to it
 
 		del self.dia.dev[obj]
-		self.struct.set_changed()
-	
+		
 	def addConnector(self, obj, cName, proto = "XLR", dir = "auto"):
 		self.struct.cur.execute("insert into conns (dName, cName, direction) values(?, ?, ?)", (obj, cName, dir))
 		self.dia.getDevice(obj).addConnector(cName, proto, dir)
-		self.struct.set_changed()
-
+	
 	def addWire(self, devIn, conIn, devOut, conOut):
 		self.struct.cur.execute("insert into wire (devIn,connIn,devOut,connOut) values (?,?,?,?)",
 			(devIn, conIn, devOut, conOut))
@@ -93,7 +87,6 @@ class wdCore():
 			(devIn, conIn),
 			(devOut, conOut)
 		)
-		self.struct.set_changed()
 
 	def deleteWire(self, obj, conn):
 		self.struct.cur.execute("delete from wire where DevOut = ? and ConnOut = ?",
@@ -102,4 +95,3 @@ class wdCore():
 			(obj, conn))
 			
 		self.dia.deleteConnection((obj, conn))
-		self.struct.set_changed()

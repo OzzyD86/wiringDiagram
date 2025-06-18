@@ -12,8 +12,11 @@ class wdTk():
 		self.canvas.config(width=new_width, height=new_height)
 
 	def __init__(self):
+		self.app_name = "WiringDiagram"
+		self._open_file = None
+		
 		self.window = Tk.Tk()
-		self.window.title("WiringDiagram")
+		self.window.title(self.app_name)
 		self.core = wdCore(self.window)
 		self.window.protocol('WM_DELETE_WINDOW', self.quit)
 		self.window.geometry("860x660")
@@ -82,9 +85,27 @@ class wdTk():
 
 		self.window.config(menu=self.menu["root"])
 		
+	def open_file(self, file):
+		self.core.open_file(file)
+		self._open_file = file
+		self.updateWindowTitle()
+		
 	def quit(self):
-		if (Tk.messagebox.askquestion(title=None, message="Are you sure") == "yes"):
-			exit(0)
+		#print("Closing:", self.core.struct.is_changed())
+		if (self.core.struct.is_changed()):
+			a = Tk.messagebox.askyesnocancel(title="Unsaved Changed", message="There are unsaved changes. Save before closing?")
+			#print(a)
+			if (a is None):
+				return None
+			elif (a is False):
+				exit(0)
+			elif (a is True):
+				self.file_save()
+
+				exit(0)
+		else:
+			if (Tk.messagebox.askquestion(title=None, message="Are you sure") == "yes"):
+				exit(0)
 			
 	def getKeys(self):
 		KEYS = []
@@ -136,7 +157,8 @@ class wdTk():
 		
 		for i, j in d.connectors.items():
 			self.core.addConnector(self.mName.get(), i, dir=  j['direction'])
-		
+
+		self.updateWindowTitle()		
 		self.aw.destroy()
 		self.redraw()
 
@@ -160,6 +182,7 @@ class wdTk():
 			self.mName.get(), self.hName.get(),
 			(400,300,50,50))
 		
+		self.updateWindowTitle()		
 		self.aw.destroy()
 		self.redraw()
 		
@@ -203,6 +226,8 @@ class wdTk():
 			int(self.height.get()))
 		)
 		self.canvas.config(scrollregion=(self.core.dia.bounds))
+		self.updateWindowTitle()
+
 		self.aw.destroy()
 		self.redraw()
 		
@@ -238,6 +263,8 @@ class wdTk():
 		obj = KEYS[VALUES.index(self.dhName.get())]
 		
 		self.core.deleteDevice(obj)
+		self.updateWindowTitle()
+
 		self.redraw()
 		self.aw.destroy()
 		pass
@@ -285,6 +312,8 @@ class wdTk():
 			Tk.messagebox.showerror(title="Cannot add plug", message="Invalid value.")
 			return False
 		
+		self.updateWindowTitle()
+
 		self.redraw()
 		self.aw.destroy()
 		
@@ -325,6 +354,8 @@ class wdTk():
 		objOut = KEYS[VALUES.index(self.outdName.get())]
 
 		self.core.addWire(objIn, self.incName.get(), objOut, self.outcName.get())
+		self.updateWindowTitle()
+
 		self.redraw()
 		self.aw.destroy()
 
@@ -350,8 +381,9 @@ class wdTk():
 		KEYS, VALUES = self.getKeys()
 			
 		obj = KEYS[VALUES.index(self.cName.get())]
-	
+
 		self.core.deleteWire(obj, self.mName.get())
+		self.updateWindowTitle()
 		self.redraw()
 		self.aw.destroy()
 		pass
@@ -445,6 +477,15 @@ class wdTk():
 		#print(file)
 		
 	def file_load(self):
+		if (self.core.struct.is_changed()):
+			a = Tk.messagebox.askyesnocancel(title="Unsaved Changed", message="There are unsaved changes. Save before load?")
+			#print(a)
+			if (a is None):
+				return None
+			elif (a is True):
+				self.file_save()
+
+
 		files = [#('All Files', '*.*'), 
 			 ('Databases', '*.db')]
 		a = Tk.filedialog.askopenfile(filetypes = files, defaultextension = files)
@@ -456,9 +497,31 @@ class wdTk():
 			a = a.name
 			self.core.open_file(a)
 			self.redraw()
+			self._open_file = a
+			self.core.struct.clear_changed()
+			self.updateWindowTitle()
+			
 		pass
+	
+	def updateWindowTitle(self):
+		title = self.app_name
+		if (self._open_file is not None):
+			title += " [" + self._open_file 
+			if (self.core.struct.is_changed()):
+				title += "*"
+			title += "]"
+		self.window.title(title)
 		
 	def file_new(self):
+		if (self.core.struct.is_changed()):
+			a = Tk.messagebox.askyesnocancel(title="Unsaved Changed", message="There are unsaved changes. Save before clearing?")
+			#print(a)
+			if (a is None):
+				return None
+			elif (a is True):
+				self.file_save()
+
+
 		files = [#('All Files', '*.*'), 
 			 ('Databases', '*.db')]
 	
@@ -466,8 +529,11 @@ class wdTk():
 		if (len(a) == 0):
 			print("Cancelled?")
 		else:
+			self._open_file = a
 			self.core.open_file(a)
 			self.redraw()
+			self.updateWindowTitle()
+			self.core.struct.clear_changed()
 			
 			#print("Yes")
 		#print(type(a), a)
