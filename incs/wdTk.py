@@ -496,7 +496,7 @@ class wdTk():
 		
 		for m,n in olines.items():
 			self.canvas.create_line(d.wp[m[0]]["loc"], d.wp[m[1]]["loc"], width=n, fill="black")
-			print(m,n)
+			#print(m,n)
 			
 	def export_png(self):
 		files = [#('All Files', '*.*'), 

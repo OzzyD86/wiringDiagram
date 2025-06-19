@@ -27,7 +27,7 @@ class diagram():
 		for i, j in self.conns.items():
 			p[i] = { "out": j[0], "in": j[1], "proc" : [] }
 			if (i in self.cwps):
-				for k in self.cwps[i]:
+				for k in sorted(self.cwps[i], key=lambda kk: kk['order']):
 					p[i]["proc"].append(k["wpid"])
 					#print(k)
 		return p
@@ -197,7 +197,8 @@ class diagram():
 		
 	def exportPng(self):
 		olines = {}
-		print(self.bounds)
+		a = self.buildWaypointLists()
+		#print(a)
 		w = int(self.bounds[2] - self.bounds[0])
 		h = int(self.bounds[3] - self.bounds[1])
 		im = Image.new("RGB", (w,h), (255,255,255))
@@ -233,6 +234,7 @@ class diagram():
 				st = self.getDevice(i[0][0]).drwConnPos[i[0][1]]
 				fn =  self.getDevice(i[1][0]).drwConnPos[i[1][1]]
 				if (k in self.cwps):
+					#print(k)
 					for l in self.cwps[k]:
 						#print(l)
 						if (l["wpid"] in self.wp):
@@ -240,7 +242,7 @@ class diagram():
 							cs.append(l["wpid"])
 							#print(d.wp[l["wpid"]]["loc"])
 				#print(n)
-				
+
 				if (len(cs) > 1):
 					#print(cs)
 					dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],n[0]-self.bounds[0],n[1]-self.bounds[1]), fill=(0,0,0))
@@ -254,8 +256,8 @@ class diagram():
 						else:
 							olines[cs[m], cs[m+1]] = 1
 				else:
-					print(st,fn)
-					print("n:",n)
+					#print(st,fn)
+					#print("n:",n)
 					if (len(n) == 0):
 						dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill=(0,0,0))
 					else:
@@ -267,7 +269,7 @@ class diagram():
 				self.wp[m[0]]["loc"][1]-self.bounds[1], 
 				self.wp[m[1]]["loc"][0]-self.bounds[0],
 				self.wp[m[1]]["loc"][1]-self.bounds[1]), width=n, fill=(0,0,0))
-			print(m,n)
+			#print(m,n)
 		'''for i in self.conns.values():
 			pin = self.getDevice(i[0][0]).connectors[i[0][1]]["direction"]
 			pout = self.getDevice(i[1][0]).connectors[i[1][1]]["direction"]
