@@ -9,7 +9,7 @@ class wdCore():
 		self.struct = None #diagramStructure()
 
 	def check_current_version(self):
-		return 1
+		return 2
 		
 	def open_file(self, file):
 		f = diagramStructure(file)
@@ -43,11 +43,22 @@ class wdCore():
 				pass
 				
 		for i in resource.cur.execute("select * from wire"):
-			self.dia.addConnection(
+			self.dia.addConnection(i["id"],
 				(i["devOut"], i["ConnOut"]),
 				(i["devIn"], i["ConnIn"])
 			)
+			
+		for i in resource.cur.execute("select * from waypoints"):
+			self.dia.addWaypoint(i["id"], i["name"],
+				(i["x"], i["y"])
+				#(i["devIn"], i["ConnIn"])
+			)
+		for i in resource.cur.execute("select * from wp_ls"):
+			self.dia.addConnectionWaypoint(
+				i["wire_id"], i["wp_id"], i["ord"]
+			)
 		pass
+		
 		
 	def importStruct(self, struct):
 		self.struct = struct
@@ -89,8 +100,8 @@ class wdCore():
 	def addWire(self, devIn, conIn, devOut, conOut):
 		self.struct.cur.execute("insert into wire (devIn,connIn,devOut,connOut) values (?,?,?,?)",
 			(devIn, conIn, devOut, conOut))
-			
-		self.dia.addConnection(
+		print(self.struct.cur.lastrowid)
+		self.dia.addConnection(self.struct.cur.lastrowid, 
 			(devIn, conIn),
 			(devOut, conOut)
 		)
