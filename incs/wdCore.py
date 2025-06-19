@@ -9,7 +9,7 @@ class wdCore():
 		self.struct = None #diagramStructure()
 
 	def check_current_version(self):
-		return 1
+		return 2
 		
 	def open_file(self, file):
 		f = diagramStructure(file)

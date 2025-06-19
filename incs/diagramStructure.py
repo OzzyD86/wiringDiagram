@@ -88,7 +88,41 @@ class diagramStructure():
 			print("Draw position for units")
 		
 			self.store.execute("update config set value = 1 where key = 'version'")
-						
+		
+		if (_from < 2):
+			self.store.execute('''create table if not exists waypoints
+				(id integer primary key autoincrement,
+				`name` text not null,
+				x integer not null,
+				y integer not null
+				)
+			''')
+			self.store.execute('''create table if not exists wp_ls
+				(wire_id integer not null,
+				wp_id integer not null,
+				`ord` integer not null,
+				primary key (wire_id,ord))
+			''')
+			self.store.execute("CREATE TABLE tmp AS SELECT * FROM wire")
+			self.store.execute("drop TABLE wire")
+			self.cur.execute('''
+				CREate table if not exists `wire`
+					(id integer primary key autoincrement,
+					devOut TEXT NOT NULL,
+					connOut TEXT NOT NULL,
+					devIn TEXT NULL,
+					connIn TEXT NULL)
+				''')
+			self.store.execute('''insert into wire
+				(devOut, connOut, devIn, connIn)
+				select devOut, connOut, devIn, connIn from tmp''')
+		
+			self.store.execute("drop TABLE tmp")
+		
+			self.store.execute("update config set value = 2 where key = 'version'")
+		
+			print("Draw position for connectors")
+
 		pass
 
 	def is_changed(self):
