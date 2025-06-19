@@ -445,7 +445,7 @@ class wdTk():
 				aa = d.objMk(self.canvas, d.getDevice(i), d.locs[i])
 				d.getDevice(i).drwConnPos = aa
 
-		for i in d.conns:
+		for i in d.conns.values():
 			p =0
 			pin = None
 			pout = None

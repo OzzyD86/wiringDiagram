@@ -6,9 +6,22 @@ class diagram():
 	def __init__(self):
 		self.bounds = [0,0,0,0]
 		self.dev = {}
-		self.conns = []
+		self.conns = {}
 		self.locs = {}
+		self.wp = {}
+		self.cwps = {}
 	
+	def addWaypoint(self, key, name, loc):
+		self.wp[key] = { "name" : name, "loc" : loc }
+		pass
+	
+	def addConnectionWaypoint(self, conn, wpid, order):
+		
+		pass
+		
+	def buildWaypointLists(self):
+		return {}
+		
 	def clear(self):
 		self.__init__() # Just makes sense
 		
@@ -40,15 +53,15 @@ class diagram():
 			return None
 	
 	def deleteConnection(self, a):
-		_tmp = []
-		for i in self.conns:
+		_tmp = {}
+		for j,i in self.conns.items():
 			if not (a == i[0] or a == i[1]):
-				_tmp.append(i)
+				_tmp[j] = i
 			else:
 				print("Deleted", i)
 		self.conns = _tmp
 	
-	def addConnection(self, a, b):
+	def addConnection(self, id, a, b):
 		if (a[0] not in self.dev):
 			return False
 		
@@ -67,7 +80,7 @@ class diagram():
 		_out.connectors[a[1]]["connected"] = b
 		_in.connectors[b[1]]["connected"] = a
 		
-		self.conns.append((a,b))
+		self.conns[id] = ((a,b))
 	
 	def bbox(self, p):
 		pass
@@ -185,7 +198,7 @@ class diagram():
 				aa = self.objMk(dr, self.getDevice(i), self.locs[i], offset = (-self.bounds[0], -self.bounds[1]))
 			self.getDevice(i).drwConnPos = aa
 	
-		for i in self.conns:
+		for i in self.conns.values():
 			pin = self.getDevice(i[0][0]).connectors[i[0][1]]["direction"]
 			pout = self.getDevice(i[1][0]).connectors[i[1][1]]["direction"]
 
