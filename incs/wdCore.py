@@ -47,7 +47,18 @@ class wdCore():
 				(i["devOut"], i["ConnOut"]),
 				(i["devIn"], i["ConnIn"])
 			)
+			
+		for i in resource.cur.execute("select * from waypoints"):
+			self.dia.addWaypoint(i["id"], i["name"],
+				(i["x"], i["y"])
+				#(i["devIn"], i["ConnIn"])
+			)
+		for i in resource.cur.execute("select * from wp_ls"):
+			self.dia.addConnectionWaypoint(
+				i["wire_id"], i["wp_id"], i["ord"]
+			)
 		pass
+		
 		
 	def importStruct(self, struct):
 		self.struct = struct

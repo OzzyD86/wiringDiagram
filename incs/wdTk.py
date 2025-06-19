@@ -438,14 +438,16 @@ class wdTk():
 				
 	def redraw(self):
 		d = self.core.dia
-		
+		a = d.buildWaypointLists()
+		#print(a)
+		olines = {}
 		self.canvas.delete("all")
 		for i in d.listDevices():
 			if (i in d.locs):
 				aa = d.objMk(self.canvas, d.getDevice(i), d.locs[i])
 				d.getDevice(i).drwConnPos = aa
 
-		for i in d.conns.values():
+		for k,i in d.conns.items():
 			p =0
 			pin = None
 			pout = None
@@ -464,10 +466,38 @@ class wdTk():
 					print("Plugged " + str(pin) + " into " + str(pout) + " with", i)
 		
 			if (p == 0):
+				n = []
+				cs = []
 				st = d.getDevice(i[0][0]).drwConnPos[i[0][1]]
 				fn =  d.getDevice(i[1][0]).drwConnPos[i[1][1]]
-				r = self.canvas.create_line(st,fn, fill="black")
+				if (k in d.cwps):
+					for l in d.cwps[k]:
+						#print(l)
+						if (l["wpid"] in d.wp):
+							n += d.wp[l["wpid"]]["loc"]
+							cs.append(l["wpid"])
+							#print(d.wp[l["wpid"]]["loc"])
+				#print(n)
+				
+				if (len(cs) > 1):
+					print(cs)
+					r = self.canvas.create_line(st,n[0:2], fill="black")
+					r = self.canvas.create_line(n[-2:] ,fn, fill="black")
+	
+					for m in range(len(cs)-1):
+						q = (cs[m], cs[m+1])
+						#print(q)
+						if ((cs[m], cs[m+1]) in olines):
+							olines[cs[m], cs[m+1]] += 1
+						else:
+							olines[cs[m], cs[m+1]] = 1
+				else:
+					r = self.canvas.create_line(st,n,fn, fill="black")
 		
+		for m,n in olines.items():
+			self.canvas.create_line(d.wp[m[0]]["loc"], d.wp[m[1]]["loc"], width=n, fill="black")
+			print(m,n)
+			
 	def export_png(self):
 		files = [#('All Files', '*.*'), 
 			 ('Portable Network Graphics', '*.png')]

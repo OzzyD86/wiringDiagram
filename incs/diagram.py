@@ -16,11 +16,21 @@ class diagram():
 		pass
 	
 	def addConnectionWaypoint(self, conn, wpid, order):
-		
+		if (conn in self.cwps):
+			self.cwps[conn].append({ "wpid" : wpid, "order": order})
+		else:
+			self.cwps[conn] = [{ "wpid" : wpid, "order": order}]
 		pass
 		
 	def buildWaypointLists(self):
-		return {}
+		p = {}
+		for i, j in self.conns.items():
+			p[i] = { "out": j[0], "in": j[1], "proc" : [] }
+			if (i in self.cwps):
+				for k in self.cwps[i]:
+					p[i]["proc"].append(k["wpid"])
+					#print(k)
+		return p
 		
 	def clear(self):
 		self.__init__() # Just makes sense
