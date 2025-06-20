@@ -10,7 +10,7 @@ class diagram():
 		self.locs = {}
 		self.wp = {}
 		self.cwps = {}
-	
+		self.wp_labelling = False
 	def addWaypoint(self, key, name, loc):
 		self.wp[key] = { "name" : name, "loc" : loc }
 		pass
@@ -202,7 +202,7 @@ class diagram():
 		w = int(self.bounds[2] - self.bounds[0])
 		h = int(self.bounds[3] - self.bounds[1])
 		im = Image.new("RGB", (w,h), (255,255,255))
-		#f = ImageFont.load_default_imagefont()
+		f = ImageFont.load_default_imagefont()
 		dr = ImageDraw.Draw(im)
 		for i in self.listDevices():
 			if (i in self.locs):
@@ -269,7 +269,12 @@ class diagram():
 				self.wp[m[0]]["loc"][1]-self.bounds[1], 
 				self.wp[m[1]]["loc"][0]-self.bounds[0],
 				self.wp[m[1]]["loc"][1]-self.bounds[1]), width=n, fill=(0,0,0))
-			#print(m,n)
+	
+		if (self.wp_labelling.get()):
+			for i,j in self.wp.items():
+				dr.text((j["loc"][0]-self.bounds[0],j["loc"][1]+self.bounds[1]), j["name"],font=f,fill=(0,0,0))
+
+		#print(m,n)
 		'''for i in self.conns.values():
 			pin = self.getDevice(i[0][0]).connectors[i[0][1]]["direction"]
 			pout = self.getDevice(i[1][0]).connectors[i[1][1]]["direction"]

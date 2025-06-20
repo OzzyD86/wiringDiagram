@@ -89,7 +89,7 @@ class wdTk():
 		
 		#self.wp_labelling = False
 		self.menu["export"].add_checkbutton(label="Honour waypoints", state=Tk.DISABLED, onvalue=True, offvalue=False, variable=self.waypointing)
-		self.menu["export"].add_checkbutton(label="Show waypoint labels", state=Tk.DISABLED, onvalue=True, offvalue=False, variable=self.wp_labels)
+		self.menu["export"].add_checkbutton(label="Show waypoint labels", onvalue=True, offvalue=False, variable=self.wp_labels)
 		self.menu["export"].add_separator()
 		self.menu["export"].add_command(label="PNG", command=self.export_png)
 
@@ -102,9 +102,11 @@ class wdTk():
 
 		self.window.config(menu=self.menu["root"])
 	
-	def set_export_vars(self):
-		self.core.waypointing = self.waypointing
-		self.core.wp_labelling = self.wp_labels
+	def set_export_vars(self, *args, **kwargs):
+		self.core.dia.waypointing = self.waypointing
+		self.core.dia.wp_labelling = self.wp_labels
+		self.redraw()
+	#	print(self.wp_labels.get())
 		pass
 		
 	def open_file(self, file):
@@ -171,7 +173,7 @@ class wdTk():
 		
 		d = self.core.dia.getDevice(obj)
 		s = self.core.dia.locs[obj]
-		print(s)
+	#	print(s)
 		
 		self.core.addDevice(
 			self.mName.get(), self.hName.get(),
@@ -183,7 +185,6 @@ class wdTk():
 		self.updateWindowTitle()		
 		self.aw.destroy()
 		self.redraw()
-
 		
 	def devAddWin(self):
 		self.aw = Tk.Tk()
@@ -571,40 +572,6 @@ class wdTk():
 		self.aw.destroy()
 		
 	# == Drawing management ==
-	def redraw(self):
-		d = self.core.dia
-		
-		self.canvas.delete("all")
-		for i in d.listDevices():
-			if (i in d.locs):
-				aa = objMk(self.canvas, d.getDevice(i), d.locs[i])
-				d.getDevice(i).drwConnPos = aa
-
-		for i in d.conns:
-			p =0
-			pin = None
-			pout = None
-			if (d.getDevice(i[0][0]) is not None):
-				pin = d.getDevice(i[0][0]).connectors[i[0][1]]["direction"]
-			else:
-				p+=1
-			
-			if (d.getDevice(i[1][0]) is not None):
-				pout = d.getDevice(i[1][0]).connectors[i[1][1]]["direction"]
-			else:
-				p+=1
-			
-			if (pin == pout):
-				if (pin is not None):
-					print("Plugged " + str(pin) + " into " + str(pout) + " with", i)
-		
-			if (p == 0):
-				st = d.getDevice(i[0][0]).drwConnPos[i[0][1]]
-				fn =  d.getDevice(i[1][0]).drwConnPos[i[1][1]]
-				#dr.line((st,fn), fill=(0,0,0))
-				r = self.canvas.create_line(st,fn, fill="black")
-			#else:
-			#print(pin, pout)
 
 	def setM(self, *what, **kwargs):
 		#print(what)
@@ -678,6 +645,11 @@ class wdTk():
 		for m,n in olines.items():
 			self.canvas.create_line(d.wp[m[0]]["loc"], d.wp[m[1]]["loc"], width=n, fill="black")
 			#print(m,n)
+		if (self.wp_labels.get()):
+			for i,j in d.wp.items():
+				self.canvas.create_text(j["loc"][0],j["loc"][1],text=j["name"],font=('Arial',4))
+
+		#	print(i,j)
 			
 	def export_png(self):
 		files = [#('All Files', '*.*'), 
