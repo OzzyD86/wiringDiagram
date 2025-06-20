@@ -113,6 +113,7 @@ class wdTk():
 		self.core.open_file(file)
 		self._open_file = file
 		self.canvas.config(scrollregion=(self.core.dia.bounds))
+		self.set_export_vars()
 		self.updateWindowTitle()
 		
 	def quit(self):
