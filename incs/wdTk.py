@@ -64,7 +64,7 @@ class wdTk():
 		add.add_command(label="Plug", command=self.connAddWin)
 		add.add_command(label="Connection", command=self.wireAddWin)
 		add.add_command(label="Waypoint", command = self.waypointAddWin)
-		add.add_command(label="Waypoint Connector", state=Tk.DISABLED)
+		add.add_command(label="Waypoint Connector", command=self.routeAddWin)
 	
 		edit = self.menu["edit"]
 		edit.add_command(label="Device", command=self.devEditWin)
@@ -164,7 +164,6 @@ class wdTk():
 	def dupDevAddComplete(self):
 		KEYS, VALUES = self.getKeys()
 		obj = KEYS[VALUES.index(self.dName.get())]
-		
 		
 		if (self.mName.get() in self.core.dia.listDevices()):
 			tkinter.messagebox.showerror(title="Cannot add device", message="The name of the device is already in use.")
@@ -483,6 +482,94 @@ class wdTk():
 		self.aw.destroy()
 		pass
 	
+	## === Routing management
+	
+	# == Add Route
+	def setRoute(self, *args, **kwargs):
+		print(self.core.dia.cwps)
+		p = {0: "Insert at beginning" }
+		if (int(self.wire.get()) in self.core.dia.cwps):
+			for i in self.core.dia.cwps[int(self.wire.get())]:
+				p[i["order"]] = "Insert after " + str(i["wpid"])
+		else:
+			print("Blank")
+		self.b['state']='readonly'
+		self.b["values"] = list(p.values())
+		
+		
+	def routeAddWin(self):
+		self.aw = Tk.Tk()
+		VALUES = []
+		for i,j in self.core.dia.conns.items():
+			#print(i,j)
+			VALUES.append(i)
+		#KEYS, VALUES = self.getKeys()
+	
+		self.wire = Tk.StringVar(self.aw)
+		self.pos = Tk.StringVar(self.aw)
+		self.wpn = Tk.StringVar(self.aw)
+		#self.outcName = Tk.StringVar(self.aw)
+		Tk.Label(self.aw, text="select wire id").grid()
+		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.wire, values=VALUES).grid()
+		p = []
+		for i,j in self.core.dia.wp.items():
+			p.append(j)
+			print(i,j)
+		Tk.Label(self.aw, text="select waypoint").grid()
+		c = ttk.Combobox(self.aw, state='readonly', textvariable= self.wpn, values=p).grid()
+		
+		#Tk.Label(self.aw, text="Position").grid()
+		#self.b = ttk.Combobox(self.aw, state='disabled', textvariable= self.pos)
+		#self.b.grid()
+			
+		'''Tk.Label(self.aw, text="Input Connection Name").grid()
+		self.e = ttk.Combobox(self.aw, state='disabled', textvariable= self.pos)
+		self.e.grid()'''
+		Tk.Button(self.aw, text="Add", command=self.routeAddComplete).grid()
+		#self.outdName.trace('w', lambda *a, b = self.b: self.setM(i = self.outdName.get(), o = b)) #self.setOutC)'''
+		#self.wire.trace('w', self.setRoute)
+	
+	def routeAddComplete(self):
+		print(self.wpn.get())
+		for i,j in self.core.dia.wp.items():
+			if (self.wpn.get() == str(j)):
+				wpn = i
+				print("i:",i)
+			else:
+				print(i,j)
+		q = self.core.struct.cur.execute(
+			"select max(ord) as o from wp_ls where wire_id = ?",
+			(self.wire.get(),)
+		)
+		r = q.fetchone()
+		s = dict(r)
+		if (s["o"] is None):
+			ord = 1
+		else:
+			ord = s["o"] + 1
+		self.core.dia.addConnectionWaypoint(
+			int(self.wire.get()),
+			i,
+			ord
+		)
+		self.core.struct.cur.execute("insert into wp_ls (wire_id, wp_id, ord) values (?,?,?)",
+			(int(self.wire.get()), i, ord)
+		)
+		pass
+		
+		'''KEYS, VALUES = self.getKeys()
+			
+		#print(self.indName.get(), self.incName.get(),
+		#	self.outdName.get(), self.outcName.get())
+		objIn = KEYS[VALUES.index(self.indName.get())]
+		objOut = KEYS[VALUES.index(self.outdName.get())]
+
+		self.core.addWire(objIn, self.incName.get(), objOut, self.outcName.get())'''
+		self.updateWindowTitle()
+
+		self.redraw()
+		self.aw.destroy()
+		
 	# == Drawing management ==
 	def redraw(self):
 		d = self.core.dia
