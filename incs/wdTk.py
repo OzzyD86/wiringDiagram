@@ -77,7 +77,7 @@ class wdTk():
 		delete.add_command(label="Device", command=self.devDelWin)
 		delete.add_command(label="Plug", state=Tk.DISABLED)
 		delete.add_command(label="Connection", command=self.wireDelWin)
-		delete.add_command(label="Waypoint", state=Tk.DISABLED)
+		delete.add_command(label="Waypoint", command= self.waypointDelWin)
 		delete.add_command(label="Waypoint Connector", state=Tk.DISABLED)
 	
 		self.waypointing = Tk.BooleanVar()
@@ -444,6 +444,44 @@ class wdTk():
 	# == Editing
 	
 	# == Deleting
+	
+	def waypointDelWin(self):
+		#if (len(self.core.dia.listDevices())== 0):
+		#	tkinter.messagebox.showerror(title="No devices", message="There are no devices to delete.")
+		#	return False
+		VALUES = []
+		self.aw = Tk.Tk()
+		for i,j in self.core.dia.wp.items():
+			VALUES.append(j["name"])
+			print(i)
+
+		#self.mName = Tk.StringVar(self.aw)
+		self.wpName = Tk.StringVar(self.aw)
+		Tk.Label(self.aw, text="Waypoint Name").grid()
+		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.wpName, values=VALUES)
+		a.grid()
+		#Tk.Label(self.aw, text="Human Name").grid()
+		#Tk.Entry(self.aw, textvariable= self.hName).grid()
+		Tk.Button(self.aw, text="Delete", command=self.waypointDelComplete).grid()
+
+	def waypointDelComplete(self):
+		
+		# Load the objects
+		#KEYS, VALUES = self.getKeys()
+		
+		# Find the object
+		#if not self.dhName.get() in VALUES:
+		#	tkinter.messagebox.showerror(title="No device", message="No.")
+		#	return False
+			
+		obj = self.wpName.get()
+		
+		self.core.deleteWaypoint(obj)
+		self.updateWindowTitle()
+
+		self.redraw()
+		self.aw.destroy()
+		pass
 	
 	# == Drawing management ==
 	def redraw(self):

@@ -127,3 +127,11 @@ class wdCore():
 		#if (i["left"] is not None):
 		#self.dia.locateDevice(mName, (coords[0],coords[1]),(coords[2], coords[3]))
 
+	def deleteWaypoint(self,wid):
+		for i,j in self.dia.wp.items():
+			if (j['name'] == wid):
+				a = i
+				
+		del self.dia.wp[a]
+		self.struct.cur.execute("delete from waypoints where name = ?", (wid,))
+		self.struct.set_changed()
