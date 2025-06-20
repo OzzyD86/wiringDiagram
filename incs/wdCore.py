@@ -8,6 +8,9 @@ class wdCore():
 		self.dia = diagram()
 		self.struct = None #diagramStructure()
 
+		self.waypointing = True
+		self.wp_labelling = False
+		
 	def check_current_version(self):
 		return 2
 		
@@ -58,7 +61,6 @@ class wdCore():
 				i["wire_id"], i["wp_id"], i["ord"]
 			)
 		pass
-		
 		
 	def importStruct(self, struct):
 		self.struct = struct
@@ -115,3 +117,13 @@ class wdCore():
 			
 		self.dia.deleteConnection((obj, conn))
 		self.struct.set_changed()
+		
+	def addWaypoint(self, hName, coords = (50,50)):
+		self.struct.cur.execute("insert into waypoints (name, x, y) values(?,?,?)", 
+			(hName, *coords))
+		self.struct.set_changed()
+		k = self.struct.cur.lastrowid
+		self.dia.addWaypoint(k, hName, coords)
+		#if (i["left"] is not None):
+		#self.dia.locateDevice(mName, (coords[0],coords[1]),(coords[2], coords[3]))
+

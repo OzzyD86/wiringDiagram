@@ -63,17 +63,34 @@ class wdTk():
 		add.add_separator()
 		add.add_command(label="Plug", command=self.connAddWin)
 		add.add_command(label="Connection", command=self.wireAddWin)
-
+		add.add_command(label="Waypoint", command = self.waypointAddWin)
+		add.add_command(label="Waypoint Connector", state=Tk.DISABLED)
+	
 		edit = self.menu["edit"]
 		edit.add_command(label="Device", command=self.devEditWin)
 		edit.add_command(label="Plug", state=Tk.DISABLED)
 		edit.add_command(label="Connection", state=Tk.DISABLED)
-
+		edit.add_command(label="Waypoint", state=Tk.DISABLED)
+		edit.add_command(label="Waypoint Connector", state=Tk.DISABLED)
+	
 		delete = self.menu["delete"]
 		delete.add_command(label="Device", command=self.devDelWin)
 		delete.add_command(label="Plug", state=Tk.DISABLED)
 		delete.add_command(label="Connection", command=self.wireDelWin)
-
+		delete.add_command(label="Waypoint", state=Tk.DISABLED)
+		delete.add_command(label="Waypoint Connector", state=Tk.DISABLED)
+	
+		self.waypointing = Tk.BooleanVar()
+		self.waypointing.set(True)
+		self.waypointing.trace('w', self.set_export_vars)
+		self.wp_labels = Tk.BooleanVar()
+		self.wp_labels.set(False)
+		self.wp_labels.trace('w', self.set_export_vars)
+		
+		#self.wp_labelling = False
+		self.menu["export"].add_checkbutton(label="Honour waypoints", state=Tk.DISABLED, onvalue=True, offvalue=False, variable=self.waypointing)
+		self.menu["export"].add_checkbutton(label="Show waypoint labels", state=Tk.DISABLED, onvalue=True, offvalue=False, variable=self.wp_labels)
+		self.menu["export"].add_separator()
 		self.menu["export"].add_command(label="PNG", command=self.export_png)
 
 		y = self.menu["root"]
@@ -84,6 +101,11 @@ class wdTk():
 		y.add_cascade(label="Export", menu=self.menu["export"])
 
 		self.window.config(menu=self.menu["root"])
+	
+	def set_export_vars(self):
+		self.core.waypointing = self.waypointing
+		self.core.wp_labelling = self.wp_labels
+		pass
 		
 	def open_file(self, file):
 		self.core.open_file(file)
@@ -388,7 +410,41 @@ class wdTk():
 		self.redraw()
 		self.aw.destroy()
 		pass
+	
+	## === Waypoint management
+	
+	# == Adding
+	
+	def waypointAddWin(self):
+		self.aw = Tk.Tk()
+		self.wName = Tk.StringVar(self.aw)
+		self.top = Tk.IntVar(self.aw)
+		self.left = Tk.IntVar(self.aw)
+		Tk.Label(self.aw, text="Waypoint Name").grid()
+		Tk.Entry(self.aw, textvariable= self.wName).grid()
+		Tk.Label(self.aw, text="Top position").grid()
+		Tk.Entry(self.aw, textvariable= self.top).grid()
+		Tk.Label(self.aw, text="Left position").grid()
+		Tk.Entry(self.aw, textvariable= self.left).grid()
+		Tk.Button(self.aw, text="Add", command=self.waypointAddComplete).grid()
+
+	def waypointAddComplete(self):
+		#if (self.mName.get() in self.core.dia.listDevices()):
+		#	tkinter.messagebox.showerror(title="Cannot add device", message="The name of the device is already in use.")
+		#	return False
 		
+		self.core.addWaypoint(
+			self.wName.get(),
+			(self.left.get(),self.top.get()))
+		
+		self.updateWindowTitle()		
+		self.aw.destroy()
+		self.redraw()
+	
+	# == Editing
+	
+	# == Deleting
+	
 	# == Drawing management ==
 	def redraw(self):
 		d = self.core.dia
