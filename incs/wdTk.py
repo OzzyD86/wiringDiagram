@@ -88,7 +88,7 @@ class wdTk():
 		self.wp_labels.trace('w', self.set_export_vars)
 		
 		#self.wp_labelling = False
-		self.menu["export"].add_checkbutton(label="Honour waypoints", state=Tk.DISABLED, onvalue=True, offvalue=False, variable=self.waypointing)
+		self.menu["export"].add_checkbutton(label="Honour waypoints", onvalue=True, offvalue=False, variable=self.waypointing)
 		self.menu["export"].add_checkbutton(label="Show waypoint labels", onvalue=True, offvalue=False, variable=self.wp_labels)
 		self.menu["export"].add_separator()
 		self.menu["export"].add_command(label="PNG", command=self.export_png)
@@ -519,7 +519,7 @@ class wdTk():
 		p = []
 		for i,j in self.core.dia.wp.items():
 			p.append(j)
-			print(i,j)
+			#print(i,j)
 		Tk.Label(self.aw, text="select waypoint").grid()
 		c = ttk.Combobox(self.aw, state='readonly', textvariable= self.wpn, values=p).grid()
 		
@@ -575,16 +575,18 @@ class wdTk():
 		self.redraw()
 		self.aw.destroy()
 	
+	def getRoutes(self):
+		p = {}
+		for i,j in self.core.dia.cwps.items():
+			for k in j:
+				p[i,k["wpid"], k["order"]] = str((i,k["wpid"]))
+		return p
 	
 	def routeDelWin(self):
 		self.aw = Tk.Tk()
 		
-		VALUES = []
-		for i,j in self.core.dia.cwps.items():
-			for k in j:
-				#print(i,k["wpid"])
-			#print(i,j)
-				VALUES.append((i,k["wpid"]))
+		VALUES = list(self.getRoutes().values())
+		print(self.getRoutes().values())
 		#KEYS, VALUES = self.getKeys()
 	
 		'''self.wire = Tk.StringVar(self.aw)
@@ -609,14 +611,18 @@ class wdTk():
 		#self.wire.trace('w', self.setRoute)'''
 	
 	def routeDelComplete(self):
-		p = (self.rName.get().split(" "))
-		#print(p)
+		q = self.getRoutes()
+		KEYS = list(q.keys())
+		VALUES = list(q.values())
+		#print(list(q.values()))
+		p = KEYS[VALUES.index(self.rName.get())]
+		print(p)
 		
 		if (int(p[0]) in self.core.dia.cwps.keys()):
 			q = self.core.dia.cwps[int(p[0])]
 			r = []
 			for i in q:
-				print(i)
+				#print(i)
 				if (i["wpid"] != int(p[1])):
 					print("added",i)
 					r.append(i)
@@ -629,38 +635,6 @@ class wdTk():
 		self.core.struct.cur.execute("delete from wp_ls where wire_id = ? and wp_id =?",
 			(p[0],p[1])
 		)
-		'''for i,j in self.core.dia.wp.items():
-			if (self.wpn.get() == str(j)):
-				wpn = i
-				print("i:",i)
-			else:
-				print(i,j)
-		q = self.core.struct.cur.execute(
-			"select max(ord) as o from wp_ls where wire_id = ?",
-			(self.wire.get(),)
-		)
-		r = q.fetchone()
-		s = dict(r)
-		if (s["o"] is None):
-			ord = 1
-		else:
-			ord = s["o"] + 1
-		self.core.dia.addConnectionWaypoint(
-			int(self.wire.get()),
-			wpn,
-			ord
-		)
-		self.core.struct.cur.execute("insert into wp_ls (wire_id, wp_id, ord) values (?,?,?)",
-			(int(self.wire.get()), wpn, ord)
-		)
-		pass
-		
-		'''#KEYS, VALUES = self.getKeys()
-			
-		#print(self.indName.get(), self.incName.get(),
-		#	self.outdName.get(), self.outcName.get())
-		#objIn = KEYS[VALUES.index(self.indName.get())]
-		#objOut = KEYS[VALUES.index(self.outdName.get())]
 
 		#self.core.addWire(objIn, self.incName.get(), objOut, self.outcName.get())''#'
 		self.core.struct.set_changed()
@@ -722,25 +696,31 @@ class wdTk():
 							cs.append(l["wpid"])
 							#print(d.wp[l["wpid"]]["loc"])
 				#print(n)
-				
-				if (len(cs) > 1):
-					print(cs)
-					r = self.canvas.create_line(st,n[0:2], fill="black")
-					r = self.canvas.create_line(n[-2:] ,fn, fill="black")
+			
+				if (self.waypointing.get()):
+					if (len(cs) > 1):
+						print(cs)
+						r = self.canvas.create_line(st,n[0:2], fill="black")
+						r = self.canvas.create_line(n[-2:] ,fn, fill="black")
 	
-					for m in range(len(cs)-1):
-						q = (cs[m], cs[m+1])
-						#print(q)
-						if ((cs[m], cs[m+1]) in olines):
-							olines[cs[m], cs[m+1]] += 1
-						else:
-							olines[cs[m], cs[m+1]] = 1
+						for m in range(len(cs)-1):
+							q = (cs[m], cs[m+1])
+							#print(q)
+							if ((cs[m], cs[m+1]) in olines):
+								olines[cs[m], cs[m+1]] += 1
+							else:
+								olines[cs[m], cs[m+1]] = 1
+					else:
+						r = self.canvas.create_line(st,n,fn, fill="black")
 				else:
-					r = self.canvas.create_line(st,n,fn, fill="black")
-		
-		for m,n in olines.items():
-			self.canvas.create_line(d.wp[m[0]]["loc"], d.wp[m[1]]["loc"], width=n, fill="black")
+					r = self.canvas.create_line(st,fn, fill="black")
+
+
+		if (self.waypointing.get()):
+			for m,n in olines.items():
+				self.canvas.create_line(d.wp[m[0]]["loc"], d.wp[m[1]]["loc"], width=n, fill="black")
 			#print(m,n)
+			
 		if (self.wp_labels.get()):
 			for i,j in d.wp.items():
 				self.canvas.create_text(j["loc"][0],j["loc"][1],text=j["name"],font=('Arial',4))

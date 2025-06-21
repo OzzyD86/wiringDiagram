@@ -245,33 +245,37 @@ class diagram():
 							#print(d.wp[l["wpid"]]["loc"])
 				#print(n)
 
-				if (len(cs) > 1):
-					#print(cs)
-					dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],n[0]-self.bounds[0],n[1]-self.bounds[1]), fill=(0,0,0))
-					dr.line((n[-2]-self.bounds[0], n[-1] ,fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill=(0,0,0))
+				if (self.waypointing.get()):
+					if (len(cs) > 1):
+						#print(cs)
+						dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],n[0]-self.bounds[0],n[1]-self.bounds[1]), fill=(0,0,0))
+						dr.line((n[-2]-self.bounds[0], n[-1] ,fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill=(0,0,0))
 	
-					for m in range(len(cs)-1):
-						q = (cs[m], cs[m+1])
-						#print(q)
-						if ((cs[m], cs[m+1]) in olines):
-							olines[cs[m], cs[m+1]] += 1
-						else:
-							olines[cs[m], cs[m+1]] = 1
-				else:
-					#print(st,fn)
-					#print("n:",n)
-					if (len(n) == 0):
-						dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill=(0,0,0))
+						for m in range(len(cs)-1):
+							q = (cs[m], cs[m+1])
+							#print(q)
+							if ((cs[m], cs[m+1]) in olines):
+								olines[cs[m], cs[m+1]] += 1
+							else:
+								olines[cs[m], cs[m+1]] = 1
 					else:
-						dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],n[0]-self.bounds[0],n[1]-self.bounds[1]), fill="black")
-						dr.line((n[0]-self.bounds[0], n[1]-self.bounds[1],fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill="black")
-						
-		for m,n in olines.items():
-			dr.line((self.wp[m[0]]["loc"][0]-self.bounds[0],
-				self.wp[m[0]]["loc"][1]-self.bounds[1], 
-				self.wp[m[1]]["loc"][0]-self.bounds[0],
-				self.wp[m[1]]["loc"][1]-self.bounds[1]), width=n, fill=(0,0,0))
-	
+						#print(st,fn)
+						#print("n:",n)
+						if (len(n) == 0):
+							dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill=(0,0,0))
+						else:
+							dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],n[0]-self.bounds[0],n[1]-self.bounds[1]), fill="black")
+							dr.line((n[0]-self.bounds[0], n[1]-self.bounds[1],fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill="black")
+				else:
+					dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill=(0,0,0))
+		
+		if (self.waypointing.get()):
+			for m,n in olines.items():
+				dr.line((self.wp[m[0]]["loc"][0]-self.bounds[0],
+					self.wp[m[0]]["loc"][1]-self.bounds[1], 
+					self.wp[m[1]]["loc"][0]-self.bounds[0],
+					self.wp[m[1]]["loc"][1]-self.bounds[1]), width=n, fill=(0,0,0))
+		
 		if (self.wp_labelling.get()):
 			for i,j in self.wp.items():
 				dr.text((j["loc"][0]-self.bounds[0],j["loc"][1]+self.bounds[1]), j["name"],font=f,fill=(0,0,0))
