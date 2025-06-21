@@ -78,7 +78,7 @@ class wdTk():
 		delete.add_command(label="Plug", state=Tk.DISABLED)
 		delete.add_command(label="Connection", command=self.wireDelWin)
 		delete.add_command(label="Waypoint", command= self.waypointDelWin)
-		delete.add_command(label="Waypoint Connector", state=Tk.DISABLED)
+		delete.add_command(label="Waypoint Connector", command=self.routeDelWin)
 	
 		self.waypointing = Tk.BooleanVar()
 		self.waypointing.set(True)
@@ -461,6 +461,10 @@ class wdTk():
 		Tk.Label(self.aw, text="Waypoint Name").grid()
 		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.wpName, values=VALUES)
 		a.grid()
+		
+		var = Tk.IntVar()
+		Tk.Checkbutton(self.aw, text="Delete associated paths", variable=var, 
+			onvalue=1, offvalue=0, state=Tk.DISABLED).grid()
 		#Tk.Label(self.aw, text="Human Name").grid()
 		#Tk.Entry(self.aw, textvariable= self.hName).grid()
 		Tk.Button(self.aw, text="Delete", command=self.waypointDelComplete).grid()
@@ -570,7 +574,99 @@ class wdTk():
 		self.core.struct.set_changed()
 		self.redraw()
 		self.aw.destroy()
+	
+	
+	def routeDelWin(self):
+		self.aw = Tk.Tk()
 		
+		VALUES = []
+		for i,j in self.core.dia.cwps.items():
+			for k in j:
+				#print(i,k["wpid"])
+			#print(i,j)
+				VALUES.append((i,k["wpid"]))
+		#KEYS, VALUES = self.getKeys()
+	
+		'''self.wire = Tk.StringVar(self.aw)
+		self.pos = Tk.StringVar(self.aw)
+		self.wpn = Tk.StringVar(self.aw)'''
+		self.rName = Tk.StringVar(self.aw)
+		Tk.Label(self.aw, text="select wire id").grid()
+		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.rName, values=VALUES).grid()
+
+		'''Tk.Label(self.aw, text="select waypoint").grid()
+		c = ttk.Combobox(self.aw, state='readonly', textvariable= self.wpn, values=p).grid()
+		
+		#Tk.Label(self.aw, text="Position").grid()
+		#self.b = ttk.Combobox(self.aw, state='disabled', textvariable= self.pos)
+		#self.b.grid()
+			
+		'#''Tk.Label(self.aw, text="Input Connection Name").grid()
+		self.e = ttk.Combobox(self.aw, state='disabled', textvariable= self.pos)
+		self.e.grid()'''
+		Tk.Button(self.aw, text="Delete", command=self.routeDelComplete).grid()
+		#self.outdName.trace('w', lambda *a, b = self.b: self.setM(i = self.outdName.get(), o = b)) #self.setOutC)''#'
+		#self.wire.trace('w', self.setRoute)'''
+	
+	def routeDelComplete(self):
+		p = (self.rName.get().split(" "))
+		#print(p)
+		
+		if (int(p[0]) in self.core.dia.cwps.keys()):
+			q = self.core.dia.cwps[int(p[0])]
+			r = []
+			for i in q:
+				print(i)
+				if (i["wpid"] != int(p[1])):
+					print("added",i)
+					r.append(i)
+				else:
+					print("skipped",i)
+			self.core.dia.cwps[int(p[0])] = r
+		else:
+			print("no",self.core.dia.cwps)
+			
+		self.core.struct.cur.execute("delete from wp_ls where wire_id = ? and wp_id =?",
+			(p[0],p[1])
+		)
+		'''for i,j in self.core.dia.wp.items():
+			if (self.wpn.get() == str(j)):
+				wpn = i
+				print("i:",i)
+			else:
+				print(i,j)
+		q = self.core.struct.cur.execute(
+			"select max(ord) as o from wp_ls where wire_id = ?",
+			(self.wire.get(),)
+		)
+		r = q.fetchone()
+		s = dict(r)
+		if (s["o"] is None):
+			ord = 1
+		else:
+			ord = s["o"] + 1
+		self.core.dia.addConnectionWaypoint(
+			int(self.wire.get()),
+			wpn,
+			ord
+		)
+		self.core.struct.cur.execute("insert into wp_ls (wire_id, wp_id, ord) values (?,?,?)",
+			(int(self.wire.get()), wpn, ord)
+		)
+		pass
+		
+		'''#KEYS, VALUES = self.getKeys()
+			
+		#print(self.indName.get(), self.incName.get(),
+		#	self.outdName.get(), self.outcName.get())
+		#objIn = KEYS[VALUES.index(self.indName.get())]
+		#objOut = KEYS[VALUES.index(self.outdName.get())]
+
+		#self.core.addWire(objIn, self.incName.get(), objOut, self.outcName.get())''#'
+		self.core.struct.set_changed()
+		self.updateWindowTitle()
+		self.redraw()
+		self.aw.destroy()
 	# == Drawing management ==
 
 	def setM(self, *what, **kwargs):

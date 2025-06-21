@@ -10,7 +10,9 @@ class diagram():
 		self.locs = {}
 		self.wp = {}
 		self.cwps = {}
-		self.wp_labelling = False
+		self.wp_labelling = Tk.BooleanVar()
+		self.wp_labelling.set(False)
+		
 	def addWaypoint(self, key, name, loc):
 		self.wp[key] = { "name" : name, "loc" : loc }
 		pass
