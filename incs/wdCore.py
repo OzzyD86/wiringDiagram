@@ -47,8 +47,8 @@ class wdCore():
 				
 		for i in resource.cur.execute("select * from wire"):
 			self.dia.addConnection(i["id"],
-				(i["devOut"], i["ConnOut"]),
-				(i["devIn"], i["ConnIn"])
+				(i["devIn"], i["ConnIn"]),
+				(i["devOut"], i["ConnOut"])
 			)
 			
 		for i in resource.cur.execute("select * from waypoints"):

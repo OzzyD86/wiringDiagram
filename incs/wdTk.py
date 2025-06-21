@@ -377,7 +377,7 @@ class wdTk():
 		objIn = KEYS[VALUES.index(self.indName.get())]
 		objOut = KEYS[VALUES.index(self.outdName.get())]
 
-		self.core.addWire(objIn, self.incName.get(), objOut, self.outcName.get())
+		self.core.addWire(objOut, self.outcName.get(), objIn, self.incName.get())
 		self.updateWindowTitle()
 
 		self.redraw()
@@ -488,7 +488,7 @@ class wdTk():
 	
 	# == Add Route
 	def setRoute(self, *args, **kwargs):
-		print(self.core.dia.cwps)
+		#print(self.core.dia.cwps)
 		p = {0: "Insert at beginning" }
 		if (int(self.wire.get()) in self.core.dia.cwps):
 			for i in self.core.dia.cwps[int(self.wire.get())]:
@@ -497,7 +497,6 @@ class wdTk():
 			print("Blank")
 		self.b['state']='readonly'
 		self.b["values"] = list(p.values())
-		
 		
 	def routeAddWin(self):
 		self.aw = Tk.Tk()
@@ -551,11 +550,11 @@ class wdTk():
 			ord = s["o"] + 1
 		self.core.dia.addConnectionWaypoint(
 			int(self.wire.get()),
-			i,
+			wpn,
 			ord
 		)
 		self.core.struct.cur.execute("insert into wp_ls (wire_id, wp_id, ord) values (?,?,?)",
-			(int(self.wire.get()), i, ord)
+			(int(self.wire.get()), wpn, ord)
 		)
 		pass
 		
@@ -568,7 +567,7 @@ class wdTk():
 
 		self.core.addWire(objIn, self.incName.get(), objOut, self.outcName.get())'''
 		self.updateWindowTitle()
-
+		self.core.struct.set_changed()
 		self.redraw()
 		self.aw.destroy()
 		
