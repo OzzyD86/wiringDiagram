@@ -2,6 +2,7 @@ import tkinter as Tk
 import tkinter.ttk as ttk
 from incs.wdCore import wdCore
 from widgets.connector_points import connector_points
+from widgets.EntryWidget import EntryWidget
 
 class wdTk():
 	def resize_canvas(self, event):
@@ -159,10 +160,9 @@ class wdTk():
 		Tk.Label(self.aw, text="Existing machine to duplicate").grid()
 		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.dName, values=VALUES).grid()
 
-		Tk.Label(self.aw, text="New Machine Name").grid()
-		Tk.Entry(self.aw, textvariable= self.mName).grid()
-		Tk.Label(self.aw, text="Human Name").grid()
-		Tk.Entry(self.aw, textvariable= self.hName).grid()
+		EntryWidget(self.aw, text="New Machine Name", variable=self.mName).grid()
+		EntryWidget(self.aw, text="Human Name", variable=self.hName).grid()
+
 		Tk.Button(self.aw, text="Add", command=self.dupDevAddComplete).grid()
 
 	def dupDevAddComplete(self):
@@ -192,10 +192,8 @@ class wdTk():
 		self.aw = Tk.Tk()
 		self.mName = Tk.StringVar(self.aw)
 		self.hName = Tk.StringVar(self.aw)
-		Tk.Label(self.aw, text="Machine Name").grid()
-		Tk.Entry(self.aw, textvariable= self.mName).grid()
-		Tk.Label(self.aw, text="Human Name").grid()
-		Tk.Entry(self.aw, textvariable= self.hName).grid()
+		EntryWidget(self.aw, text="New Machine Name", variable=self.mName).grid()
+		EntryWidget(self.aw, text="Human Name", variable=self.hName).grid()
 		Tk.Button(self.aw, text="Add", command=self.devAddComplete).grid()
 
 	def devAddComplete(self):
@@ -229,14 +227,11 @@ class wdTk():
 		Tk.Label(self.aw, text="Edit Machine").grid()
 		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.mName, values=VALUES).grid()
 		
-		Tk.Label(self.aw, text="Top").grid()
-		Tk.Entry(self.aw, textvariable= self.top).grid()
-		Tk.Label(self.aw, text="Left").grid()
-		Tk.Entry(self.aw, textvariable= self.left).grid()
-		Tk.Label(self.aw, text="Width").grid()
-		Tk.Entry(self.aw, textvariable= self.width).grid()
-		Tk.Label(self.aw, text="Height").grid()
-		Tk.Entry(self.aw, textvariable= self.height).grid()
+		EntryWidget(self.aw, text="Top", variable=self.top).grid()
+		EntryWidget(self.aw, text="Left", variable=self.left).grid()
+		EntryWidget(self.aw, text="Width", variable=self.width).grid()
+		EntryWidget(self.aw, text="Height", variable=self.height).grid()
+
 		self.mName.trace('w',self.setmName)
 		Tk.Button(self.aw, text="Add", command=self.devEditComplete).grid()
 
@@ -309,8 +304,9 @@ class wdTk():
 		Tk.Label(self.aw, text="Machine Name").grid()
 		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.mhName, values=VALUES)
 		a.grid()
-		Tk.Label(self.aw, text="Connection Name").grid()
-		Tk.Entry(self.aw, textvariable= self.cName).grid()
+
+		EntryWidget(self.aw, text="Connection Name", variable=self.cName).grid()
+		
 		Tk.Label(self.aw, text="Data Direction").grid()
 		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.ddName, values=["In", "Out", "Both", "None"]).grid()
 
@@ -348,8 +344,6 @@ class wdTk():
 		self.aw = Tk.Tk()
 		KEYS, VALUES = self.getKeys()
 	
-		#self.indName = Tk.StringVar(self.aw)
-		#self.incName = Tk.StringVar(self.aw)
 		self.outdName = Tk.StringVar(self.aw)
 		self.outcName = Tk.StringVar(self.aw)
 		Tk.Label(self.aw, text="Machine Name").grid()
@@ -455,12 +449,10 @@ class wdTk():
 		self.wName = Tk.StringVar(self.aw)
 		self.top = Tk.IntVar(self.aw)
 		self.left = Tk.IntVar(self.aw)
-		Tk.Label(self.aw, text="Waypoint Name").grid()
-		Tk.Entry(self.aw, textvariable= self.wName).grid()
-		Tk.Label(self.aw, text="Top position").grid()
-		Tk.Entry(self.aw, textvariable= self.top).grid()
-		Tk.Label(self.aw, text="Left position").grid()
-		Tk.Entry(self.aw, textvariable= self.left).grid()
+		
+		EntryWidget(self.aw, text="Waypoint Name", variable=self.wName).grid()
+		EntryWidget(self.aw, text="Top position", variable=self.top).grid()
+		EntryWidget(self.aw, text="Left position", variable=self.left).grid()
 		Tk.Button(self.aw, text="Add", command=self.waypointAddComplete).grid()
 
 	def waypointAddComplete(self):
@@ -491,7 +483,7 @@ class wdTk():
 				print(obj, j["name"], i)
 				o = i
 		d = self.core.dia.wp[o]
-		print(d)
+		#print(d)
 		self.top.set(d["loc"][1])
 		self.left.set(d["loc"][0])
 		#self.width.set(width)
@@ -515,10 +507,9 @@ class wdTk():
 		Tk.Label(self.aw, text="Edit Waypoint").grid()
 		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.wName, values=VALUES).grid()
 		
-		Tk.Label(self.aw, text="Top").grid()
-		Tk.Entry(self.aw, textvariable= self.top).grid()
-		Tk.Label(self.aw, text="Left").grid()
-		Tk.Entry(self.aw, textvariable= self.left).grid()
+		EntryWidget(self.aw, text="Top position", variable=self.top).grid()
+		EntryWidget(self.aw, text="Left position", variable=self.left).grid()
+
 		self.wName.trace('w',self.setwName)
 		Tk.Button(self.aw, text="Edit", command=self.waypointEditComplete).grid()
 
@@ -804,7 +795,7 @@ class wdTk():
 			
 				if (self.waypointing.get()):
 					if (len(cs) > 1):
-						print(cs)
+						#print(cs)
 						r = self.canvas.create_line(st,n[0:2], fill="black")
 						r = self.canvas.create_line(n[-2:] ,fn, fill="black")
 	

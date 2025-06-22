@@ -24,13 +24,15 @@ class connector_points(Tk.Frame):
 		
 		for i in self.c.get_children():
 			self.c.delete(i)
-		for i in self.diagram.conns:
-			if (i[0][0] == obj) or (i[1][0] == obj):
-				if (i[0][1] == self.cName.get()) or (i[1][1] == self.cName.get()):
-					if (i[0][1] == self.cName.get()):
-						self.c.insert("", "end", values=(i[1][0], i[1][1]))
+			
+		for i in self.diagram.conns.items():
+			print(i[1])
+			if (i[1][0][0] == obj) or (i[1][1][0] == obj):
+				if (i[1][0][1] == self.cName.get()) or (i[1][1][1] == self.cName.get()):
+					if (i[1][0][1] == self.cName.get()):
+						self.c.insert("", "end", values=(i[0], i[1][1][0], i[1][1][1]))
 					else:
-						self.c.insert("", "end", values=(i[0][0], i[0][1]))
+						self.c.insert("", "end", values=(i[0], i[1][0][0], i[1][0][1]))
 					
 					#print(i)
 		pass
@@ -54,7 +56,8 @@ class connector_points(Tk.Frame):
 		self.cName.trace('w', self.connector_selector)
 		
 		Tk.Label(self, text="Connection").grid()
-		self.c = ttk.Treeview(self, columns=("DevIn", "ConnIn"), show="headings")
+		self.c = ttk.Treeview(self, columns=("Id", "DevIn", "ConnIn"), show="headings")
+		self.c.heading("Id", text="Connection Id")
 		self.c.heading("DevIn", text="Input Device")
 		self.c.heading("ConnIn", text="Input Connector")
 		#tree.pack(fill=tk.BOTH, expand=True)
