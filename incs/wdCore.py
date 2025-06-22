@@ -8,8 +8,11 @@ class wdCore():
 		self.dia = diagram()
 		self.struct = None #diagramStructure()
 
+		self.waypointing = True
+		self.wp_labelling = False
+		
 	def check_current_version(self):
-		return 1
+		return 2
 		
 	def open_file(self, file):
 		f = diagramStructure(file)
@@ -43,9 +46,19 @@ class wdCore():
 				pass
 				
 		for i in resource.cur.execute("select * from wire"):
-			self.dia.addConnection(
-				(i["devOut"], i["ConnOut"]),
-				(i["devIn"], i["ConnIn"])
+			self.dia.addConnection(i["id"],
+				(i["devIn"], i["ConnIn"]),
+				(i["devOut"], i["ConnOut"])
+			)
+			
+		for i in resource.cur.execute("select * from waypoints"):
+			self.dia.addWaypoint(i["id"], i["name"],
+				(i["x"], i["y"])
+				#(i["devIn"], i["ConnIn"])
+			)
+		for i in resource.cur.execute("select * from wp_ls"):
+			self.dia.addConnectionWaypoint(
+				i["wire_id"], i["wp_id"], i["ord"]
 			)
 		pass
 		
@@ -89,8 +102,8 @@ class wdCore():
 	def addWire(self, devIn, conIn, devOut, conOut):
 		self.struct.cur.execute("insert into wire (devIn,connIn,devOut,connOut) values (?,?,?,?)",
 			(devIn, conIn, devOut, conOut))
-			
-		self.dia.addConnection(
+		print(self.struct.cur.lastrowid)
+		self.dia.addConnection(self.struct.cur.lastrowid, 
 			(devIn, conIn),
 			(devOut, conOut)
 		)
@@ -103,4 +116,22 @@ class wdCore():
 			(obj, conn))
 			
 		self.dia.deleteConnection((obj, conn))
+		self.struct.set_changed()
+		
+	def addWaypoint(self, hName, coords = (50,50)):
+		self.struct.cur.execute("insert into waypoints (name, x, y) values(?,?,?)", 
+			(hName, *coords))
+		self.struct.set_changed()
+		k = self.struct.cur.lastrowid
+		self.dia.addWaypoint(k, hName, coords)
+		#if (i["left"] is not None):
+		#self.dia.locateDevice(mName, (coords[0],coords[1]),(coords[2], coords[3]))
+
+	def deleteWaypoint(self,wid):
+		for i,j in self.dia.wp.items():
+			if (j['name'] == wid):
+				a = i
+				
+		del self.dia.wp[a]
+		self.struct.cur.execute("delete from waypoints where name = ?", (wid,))
 		self.struct.set_changed()

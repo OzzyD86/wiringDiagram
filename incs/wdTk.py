@@ -64,17 +64,34 @@ class wdTk():
 		add.add_separator()
 		add.add_command(label="Plug", command=self.connAddWin)
 		add.add_command(label="Connection", command=self.wireAddWin)
-
+		add.add_command(label="Waypoint", command = self.waypointAddWin)
+		add.add_command(label="Waypoint Connector", command=self.routeAddWin)
+	
 		edit = self.menu["edit"]
 		edit.add_command(label="Device", command=self.devEditWin)
 		edit.add_command(label="Plug", state=Tk.DISABLED)
 		edit.add_command(label="Connection", state=Tk.DISABLED)
-
+		edit.add_command(label="Waypoint", command=self.waypointEditWin)
+		edit.add_command(label="Waypoint Connector", state=Tk.DISABLED)
+	
 		delete = self.menu["delete"]
 		delete.add_command(label="Device", command=self.devDelWin)
-		delete.add_command(label="Plug", state=Tk.DISABLED)
+		delete.add_command(label="Plug", command=self.connDelWin)
 		delete.add_command(label="Connection", command=self.wireDelWin)
-
+		delete.add_command(label="Waypoint", command= self.waypointDelWin)
+		delete.add_command(label="Waypoint Connector", command=self.routeDelWin)
+	
+		self.waypointing = Tk.BooleanVar()
+		self.waypointing.set(True)
+		self.waypointing.trace('w', self.set_export_vars)
+		self.wp_labels = Tk.BooleanVar()
+		self.wp_labels.set(False)
+		self.wp_labels.trace('w', self.set_export_vars)
+		
+		#self.wp_labelling = False
+		self.menu["export"].add_checkbutton(label="Honour waypoints", onvalue=True, offvalue=False, variable=self.waypointing)
+		self.menu["export"].add_checkbutton(label="Show waypoint labels", onvalue=True, offvalue=False, variable=self.wp_labels)
+		self.menu["export"].add_separator()
 		self.menu["export"].add_command(label="PNG", command=self.export_png)
 
 		y = self.menu["root"]
@@ -85,11 +102,19 @@ class wdTk():
 		y.add_cascade(label="Export", menu=self.menu["export"])
 
 		self.window.config(menu=self.menu["root"])
+	
+	def set_export_vars(self, *args, **kwargs):
+		self.core.dia.waypointing = self.waypointing
+		self.core.dia.wp_labelling = self.wp_labels
+		self.redraw()
+	#	print(self.wp_labels.get())
+		pass
 		
 	def open_file(self, file):
 		self.core.open_file(file)
 		self._open_file = file
 		self.canvas.config(scrollregion=(self.core.dia.bounds))
+		self.set_export_vars()
 		self.updateWindowTitle()
 		
 	def quit(self):
@@ -144,14 +169,13 @@ class wdTk():
 		KEYS, VALUES = self.getKeys()
 		obj = KEYS[VALUES.index(self.dName.get())]
 		
-		
 		if (self.mName.get() in self.core.dia.listDevices()):
 			tkinter.messagebox.showerror(title="Cannot add device", message="The name of the device is already in use.")
 			return False
 		
 		d = self.core.dia.getDevice(obj)
 		s = self.core.dia.locs[obj]
-		print(s)
+	#	print(s)
 		
 		self.core.addDevice(
 			self.mName.get(), self.hName.get(),
@@ -318,6 +342,44 @@ class wdTk():
 		self.redraw()
 		self.aw.destroy()
 		
+	# == Connection Deleting
+	
+	def connDelWin(self):
+		self.aw = Tk.Tk()
+		KEYS, VALUES = self.getKeys()
+	
+		#self.indName = Tk.StringVar(self.aw)
+		#self.incName = Tk.StringVar(self.aw)
+		self.outdName = Tk.StringVar(self.aw)
+		self.outcName = Tk.StringVar(self.aw)
+		Tk.Label(self.aw, text="Machine Name").grid()
+		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.outdName, values=VALUES).grid()
+		
+		Tk.Label(self.aw, text="Connection Name").grid()
+		self.b = ttk.Combobox(self.aw, state='disabled', textvariable= self.outcName)
+		self.b.grid()
+		
+		Tk.Button(self.aw, text="Delete", command=self.connDelComplete).grid()
+		self.outdName.trace('w', lambda *a, b = self.b: self.setM(i = self.outdName.get(), o = b)) #self.setOutC)
+		#self.indName.trace('w', lambda *a, b = self.e: self.setM(i = self.indName.get(), o = b))#self.setInC)
+	
+	def connDelComplete(self):
+		KEYS, VALUES = self.getKeys()
+			
+		#print(self.indName.get(), self.incName.get(),
+		#	self.outdName.get(), self.outcName.get())
+		objIn = KEYS[VALUES.index(self.outdName.get())]
+
+		self.core.dia.getDevice(objIn).delConnector(self.outcName.get())
+		self.core.struct.cur.execute("delete from conns where dName = ? and cName = ?", 
+			(objIn, self.outcName.get())
+		)
+		#self.core.addWire(objOut, self.outcName.get(), objIn, self.incName.get())
+		self.updateWindowTitle()
+		
+		self.redraw()
+		self.aw.destroy()
+		
 	## === Do Wire Management
 	
 	# == Wire Adding
@@ -354,7 +416,7 @@ class wdTk():
 		objIn = KEYS[VALUES.index(self.indName.get())]
 		objOut = KEYS[VALUES.index(self.outdName.get())]
 
-		self.core.addWire(objIn, self.incName.get(), objOut, self.outcName.get())
+		self.core.addWire(objOut, self.outcName.get(), objIn, self.incName.get())
 		self.updateWindowTitle()
 
 		self.redraw()
@@ -383,42 +445,308 @@ class wdTk():
 		self.redraw()
 		self.aw.destroy()
 		pass
-		
-	# == Drawing management ==
-	def redraw(self):
-		d = self.core.dia
-		
-		self.canvas.delete("all")
-		for i in d.listDevices():
-			if (i in d.locs):
-				aa = objMk(self.canvas, d.getDevice(i), d.locs[i])
-				d.getDevice(i).drwConnPos = aa
+	
+	## === Waypoint management
+	
+	# == Adding
+	
+	def waypointAddWin(self):
+		self.aw = Tk.Tk()
+		self.wName = Tk.StringVar(self.aw)
+		self.top = Tk.IntVar(self.aw)
+		self.left = Tk.IntVar(self.aw)
+		Tk.Label(self.aw, text="Waypoint Name").grid()
+		Tk.Entry(self.aw, textvariable= self.wName).grid()
+		Tk.Label(self.aw, text="Top position").grid()
+		Tk.Entry(self.aw, textvariable= self.top).grid()
+		Tk.Label(self.aw, text="Left position").grid()
+		Tk.Entry(self.aw, textvariable= self.left).grid()
+		Tk.Button(self.aw, text="Add", command=self.waypointAddComplete).grid()
 
-		for i in d.conns:
-			p =0
-			pin = None
-			pout = None
-			if (d.getDevice(i[0][0]) is not None):
-				pin = d.getDevice(i[0][0]).connectors[i[0][1]]["direction"]
-			else:
-				p+=1
-			
-			if (d.getDevice(i[1][0]) is not None):
-				pout = d.getDevice(i[1][0]).connectors[i[1][1]]["direction"]
-			else:
-				p+=1
-			
-			if (pin == pout):
-				if (pin is not None):
-					print("Plugged " + str(pin) + " into " + str(pout) + " with", i)
+	def waypointAddComplete(self):
+		#if (self.mName.get() in self.core.dia.listDevices()):
+		#	tkinter.messagebox.showerror(title="Cannot add device", message="The name of the device is already in use.")
+		#	return False
 		
-			if (p == 0):
-				st = d.getDevice(i[0][0]).drwConnPos[i[0][1]]
-				fn =  d.getDevice(i[1][0]).drwConnPos[i[1][1]]
-				#dr.line((st,fn), fill=(0,0,0))
-				r = self.canvas.create_line(st,fn, fill="black")
-			#else:
-			#print(pin, pout)
+		self.core.addWaypoint(
+			self.wName.get(),
+			(self.left.get(),self.top.get()))
+		
+		self.updateWindowTitle()		
+		self.aw.destroy()
+		self.redraw()
+	
+	# == Editing
+	
+	def setwName(self, *nope):
+		#VALUES = []
+		#self.aw = Tk.Tk()
+		#for i,j in self.core.dia.wp.items():
+		#	VALUES.append(j["name"])
+		
+		obj = self.wName.get()
+		print(obj)
+		for i,j in self.core.dia.wp.items():
+			if (j["name"] == obj):
+				print(obj, j["name"], i)
+				o = i
+		d = self.core.dia.wp[o]
+		print(d)
+		self.top.set(d["loc"][1])
+		self.left.set(d["loc"][0])
+		#self.width.set(width)
+		#self.height.set(height)
+		#print(d.locs)
+		
+	def waypointEditWin(self):
+		#if (len(self.core.dia.listDevices())== 0):
+		#	tkinter.messagebox.showerror(title="No devices", message="There are no devices to edit.")
+		#	return False
+		VALUES = []
+		self.aw = Tk.Tk()
+		for i,j in self.core.dia.wp.items():
+			VALUES.append(j["name"])
+	
+		self.top = Tk.StringVar(self.aw)
+		self.left = Tk.StringVar(self.aw)
+		#self.width = Tk.StringVar(self.aw)
+		#self.height = Tk.StringVar(self.aw)
+		self.wName = Tk.StringVar(self.aw)
+		Tk.Label(self.aw, text="Edit Waypoint").grid()
+		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.wName, values=VALUES).grid()
+		
+		Tk.Label(self.aw, text="Top").grid()
+		Tk.Entry(self.aw, textvariable= self.top).grid()
+		Tk.Label(self.aw, text="Left").grid()
+		Tk.Entry(self.aw, textvariable= self.left).grid()
+		self.wName.trace('w',self.setwName)
+		Tk.Button(self.aw, text="Edit", command=self.waypointEditComplete).grid()
+
+	def waypointEditComplete(self):
+		obj = self.wName.get()
+		print(obj)
+		for i,j in self.core.dia.wp.items():
+			if (j["name"] == obj):
+				print(obj, j["name"], i)
+				o = i
+		d = self.core.dia.wp[o]
+		
+		self.core.dia.wp[o]['loc'] = (self.left.get(), self.top.get())
+		'''KEYS, VALUES = self.getKeys()
+		obj = KEYS[VALUES.index(self.mName.get())]
+		
+		self.core.updateDevice(obj,
+			(int(self.left.get()),
+			int(self.top.get()), 
+			int(self.width.get()), 
+			int(self.height.get()))
+		)'''
+		self.core.struct.cur.execute("update waypoints set x = ?, y = ? where id = ?",
+			(self.left.get(), self.top.get(), o)
+		)
+		self.canvas.config(scrollregion=(self.core.dia.bounds))
+		self.updateWindowTitle()
+
+		self.aw.destroy()
+		self.redraw()
+	# == Deleting
+	
+	def waypointDelWin(self):
+		#if (len(self.core.dia.listDevices())== 0):
+		#	tkinter.messagebox.showerror(title="No devices", message="There are no devices to delete.")
+		#	return False
+		VALUES = []
+		self.aw = Tk.Tk()
+		for i,j in self.core.dia.wp.items():
+			VALUES.append(j["name"])
+			#print(i)
+
+		#self.mName = Tk.StringVar(self.aw)
+		self.wpName = Tk.StringVar(self.aw)
+		Tk.Label(self.aw, text="Waypoint Name").grid()
+		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.wpName, values=VALUES)
+		a.grid()
+		
+		var = Tk.IntVar()
+		Tk.Checkbutton(self.aw, text="Delete associated paths", variable=var, 
+			onvalue=1, offvalue=0, state=Tk.DISABLED).grid()
+		#Tk.Label(self.aw, text="Human Name").grid()
+		#Tk.Entry(self.aw, textvariable= self.hName).grid()
+		Tk.Button(self.aw, text="Delete", command=self.waypointDelComplete).grid()
+
+	def waypointDelComplete(self):
+		
+		# Load the objects
+		#KEYS, VALUES = self.getKeys()
+		
+		# Find the object
+		#if not self.dhName.get() in VALUES:
+		#	tkinter.messagebox.showerror(title="No device", message="No.")
+		#	return False
+			
+		obj = self.wpName.get()
+		
+		self.core.deleteWaypoint(obj)
+		self.updateWindowTitle()
+
+		self.redraw()
+		self.aw.destroy()
+		pass
+	
+	## === Routing management
+	
+	# == Add Route
+	def setRoute(self, *args, **kwargs):
+		#print(self.core.dia.cwps)
+		p = {0: "Insert at beginning" }
+		if (int(self.wire.get()) in self.core.dia.cwps):
+			for i in self.core.dia.cwps[int(self.wire.get())]:
+				p[i["order"]] = "Insert after " + str(i["wpid"])
+		else:
+			print("Blank")
+		self.b['state']='readonly'
+		self.b["values"] = list(p.values())
+		
+	def routeAddWin(self):
+		self.aw = Tk.Tk()
+		VALUES = []
+		for i,j in self.core.dia.conns.items():
+			#print(i,j)
+			VALUES.append(i)
+		#KEYS, VALUES = self.getKeys()
+	
+		self.wire = Tk.StringVar(self.aw)
+		self.pos = Tk.StringVar(self.aw)
+		self.wpn = Tk.StringVar(self.aw)
+		#self.outcName = Tk.StringVar(self.aw)
+		Tk.Label(self.aw, text="select wire id").grid()
+		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.wire, values=VALUES).grid()
+		p = []
+		for i,j in self.core.dia.wp.items():
+			p.append(j)
+			#print(i,j)
+		Tk.Label(self.aw, text="select waypoint").grid()
+		c = ttk.Combobox(self.aw, state='readonly', textvariable= self.wpn, values=p).grid()
+		
+		#Tk.Label(self.aw, text="Position").grid()
+		#self.b = ttk.Combobox(self.aw, state='disabled', textvariable= self.pos)
+		#self.b.grid()
+			
+		'''Tk.Label(self.aw, text="Input Connection Name").grid()
+		self.e = ttk.Combobox(self.aw, state='disabled', textvariable= self.pos)
+		self.e.grid()'''
+		Tk.Button(self.aw, text="Add", command=self.routeAddComplete).grid()
+		#self.outdName.trace('w', lambda *a, b = self.b: self.setM(i = self.outdName.get(), o = b)) #self.setOutC)'''
+		#self.wire.trace('w', self.setRoute)
+	
+	def routeAddComplete(self):
+		print(self.wpn.get())
+		for i,j in self.core.dia.wp.items():
+			if (self.wpn.get() == str(j)):
+				wpn = i
+				print("i:",i)
+			else:
+				print(i,j)
+		q = self.core.struct.cur.execute(
+			"select max(ord) as o from wp_ls where wire_id = ?",
+			(self.wire.get(),)
+		)
+		r = q.fetchone()
+		s = dict(r)
+		if (s["o"] is None):
+			ord = 1
+		else:
+			ord = s["o"] + 1
+		self.core.dia.addConnectionWaypoint(
+			int(self.wire.get()),
+			wpn,
+			ord
+		)
+		self.core.struct.cur.execute("insert into wp_ls (wire_id, wp_id, ord) values (?,?,?)",
+			(int(self.wire.get()), wpn, ord)
+		)
+		pass
+		
+		'''KEYS, VALUES = self.getKeys()
+			
+		#print(self.indName.get(), self.incName.get(),
+		#	self.outdName.get(), self.outcName.get())
+		objIn = KEYS[VALUES.index(self.indName.get())]
+		objOut = KEYS[VALUES.index(self.outdName.get())]
+
+		self.core.addWire(objIn, self.incName.get(), objOut, self.outcName.get())'''
+		self.updateWindowTitle()
+		self.core.struct.set_changed()
+		self.redraw()
+		self.aw.destroy()
+	
+	def getRoutes(self):
+		p = {}
+		for i,j in self.core.dia.cwps.items():
+			for k in j:
+				p[i,k["wpid"], k["order"]] = str((i,k["wpid"]))
+		return p
+	
+	def routeDelWin(self):
+		self.aw = Tk.Tk()
+		
+		VALUES = list(self.getRoutes().values())
+		print(self.getRoutes().values())
+		#KEYS, VALUES = self.getKeys()
+	
+		'''self.wire = Tk.StringVar(self.aw)
+		self.pos = Tk.StringVar(self.aw)
+		self.wpn = Tk.StringVar(self.aw)'''
+		self.rName = Tk.StringVar(self.aw)
+		Tk.Label(self.aw, text="select wire id").grid()
+		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.rName, values=VALUES).grid()
+
+		'''Tk.Label(self.aw, text="select waypoint").grid()
+		c = ttk.Combobox(self.aw, state='readonly', textvariable= self.wpn, values=p).grid()
+		
+		#Tk.Label(self.aw, text="Position").grid()
+		#self.b = ttk.Combobox(self.aw, state='disabled', textvariable= self.pos)
+		#self.b.grid()
+			
+		'#''Tk.Label(self.aw, text="Input Connection Name").grid()
+		self.e = ttk.Combobox(self.aw, state='disabled', textvariable= self.pos)
+		self.e.grid()'''
+		Tk.Button(self.aw, text="Delete", command=self.routeDelComplete).grid()
+		#self.outdName.trace('w', lambda *a, b = self.b: self.setM(i = self.outdName.get(), o = b)) #self.setOutC)''#'
+		#self.wire.trace('w', self.setRoute)'''
+	
+	def routeDelComplete(self):
+		q = self.getRoutes()
+		KEYS = list(q.keys())
+		VALUES = list(q.values())
+		#print(list(q.values()))
+		p = KEYS[VALUES.index(self.rName.get())]
+		print(p)
+		
+		if (int(p[0]) in self.core.dia.cwps.keys()):
+			q = self.core.dia.cwps[int(p[0])]
+			r = []
+			for i in q:
+				#print(i)
+				if (i["wpid"] != int(p[1])):
+					print("added",i)
+					r.append(i)
+				else:
+					print("skipped",i)
+			self.core.dia.cwps[int(p[0])] = r
+		else:
+			print("no",self.core.dia.cwps)
+			
+		self.core.struct.cur.execute("delete from wp_ls where wire_id = ? and wp_id =?",
+			(p[0],p[1])
+		)
+
+		#self.core.addWire(objIn, self.incName.get(), objOut, self.outcName.get())''#'
+		self.core.struct.set_changed()
+		self.updateWindowTitle()
+		self.redraw()
+		self.aw.destroy()
+	# == Drawing management ==
 
 	def setM(self, *what, **kwargs):
 		#print(what)
@@ -433,14 +761,16 @@ class wdTk():
 				
 	def redraw(self):
 		d = self.core.dia
-		
+		a = d.buildWaypointLists()
+		#print(a)
+		olines = {}
 		self.canvas.delete("all")
 		for i in d.listDevices():
 			if (i in d.locs):
 				aa = d.objMk(self.canvas, d.getDevice(i), d.locs[i])
 				d.getDevice(i).drwConnPos = aa
 
-		for i in d.conns:
+		for k,i in d.conns.items():
 			p =0
 			pin = None
 			pout = None
@@ -459,10 +789,49 @@ class wdTk():
 					print("Plugged " + str(pin) + " into " + str(pout) + " with", i)
 		
 			if (p == 0):
+				n = []
+				cs = []
 				st = d.getDevice(i[0][0]).drwConnPos[i[0][1]]
 				fn =  d.getDevice(i[1][0]).drwConnPos[i[1][1]]
-				r = self.canvas.create_line(st,fn, fill="black")
-		
+				if (k in d.cwps):
+					for l in d.cwps[k]:
+						#print(l)
+						if (l["wpid"] in d.wp):
+							n += d.wp[l["wpid"]]["loc"]
+							cs.append(l["wpid"])
+							#print(d.wp[l["wpid"]]["loc"])
+				#print(n)
+			
+				if (self.waypointing.get()):
+					if (len(cs) > 1):
+						print(cs)
+						r = self.canvas.create_line(st,n[0:2], fill="black")
+						r = self.canvas.create_line(n[-2:] ,fn, fill="black")
+	
+						for m in range(len(cs)-1):
+							q = (cs[m], cs[m+1])
+							#print(q)
+							if ((cs[m], cs[m+1]) in olines):
+								olines[cs[m], cs[m+1]] += 1
+							else:
+								olines[cs[m], cs[m+1]] = 1
+					else:
+						r = self.canvas.create_line(st,n,fn, fill="black")
+				else:
+					r = self.canvas.create_line(st,fn, fill="black")
+
+
+		if (self.waypointing.get()):
+			for m,n in olines.items():
+				self.canvas.create_line(d.wp[m[0]]["loc"], d.wp[m[1]]["loc"], width=n, fill="black")
+			#print(m,n)
+			
+		if (self.wp_labels.get()):
+			for i,j in d.wp.items():
+				self.canvas.create_text(j["loc"][0],j["loc"][1],text=j["name"],font=('Arial',4))
+
+		#	print(i,j)
+			
 	def export_png(self):
 		files = [#('All Files', '*.*'), 
 			 ('Portable Network Graphics', '*.png')]

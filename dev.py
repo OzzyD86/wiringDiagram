@@ -9,4 +9,11 @@ class device():
 			"direction": direction,
 			"connected": None
 		}
+		
+	def delConnector(self, key):
+		if (key in self.connectors):
+			del self.connectors[key]
+			return True
+		return False
+		
 		pass

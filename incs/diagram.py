@@ -6,9 +6,34 @@ class diagram():
 	def __init__(self):
 		self.bounds = [0,0,0,0]
 		self.dev = {}
-		self.conns = []
+		self.conns = {}
 		self.locs = {}
+		self.wp = {}
+		self.cwps = {}
+		self.wp_labelling = Tk.BooleanVar()
+		self.wp_labelling.set(False)
+		
+	def addWaypoint(self, key, name, loc):
+		self.wp[key] = { "name" : name, "loc" : loc }
+		pass
 	
+	def addConnectionWaypoint(self, conn, wpid, order):
+		if (conn in self.cwps):
+			self.cwps[conn].append({ "wpid" : wpid, "order": order})
+		else:
+			self.cwps[conn] = [{ "wpid" : wpid, "order": order}]
+		pass
+		
+	def buildWaypointLists(self):
+		p = {}
+		for i, j in self.conns.items():
+			p[i] = { "out": j[0], "in": j[1], "proc" : [] }
+			if (i in self.cwps):
+				for k in sorted(self.cwps[i], key=lambda kk: kk['order']):
+					p[i]["proc"].append(k["wpid"])
+					#print(k)
+		return p
+		
 	def clear(self):
 		self.__init__() # Just makes sense
 		
@@ -40,15 +65,15 @@ class diagram():
 			return None
 	
 	def deleteConnection(self, a):
-		_tmp = []
-		for i in self.conns:
+		_tmp = {}
+		for j,i in self.conns.items():
 			if not (a == i[0] or a == i[1]):
-				_tmp.append(i)
+				_tmp[j] = i
 			else:
 				print("Deleted", i)
 		self.conns = _tmp
 	
-	def addConnection(self, a, b):
+	def addConnection(self, id, a, b):
 		if (a[0] not in self.dev):
 			return False
 		
@@ -67,7 +92,7 @@ class diagram():
 		_out.connectors[a[1]]["connected"] = b
 		_in.connectors[b[1]]["connected"] = a
 		
-		self.conns.append((a,b))
+		self.conns[id] = ((a,b))
 	
 	def bbox(self, p):
 		pass
@@ -173,19 +198,90 @@ class diagram():
 		return outmap
 		
 	def exportPng(self):
-	
-		print(self.bounds)
+		olines = {}
+		a = self.buildWaypointLists()
+		#print(a)
 		w = int(self.bounds[2] - self.bounds[0])
 		h = int(self.bounds[3] - self.bounds[1])
 		im = Image.new("RGB", (w,h), (255,255,255))
-		#f = ImageFont.load_default_imagefont()
+		f = ImageFont.load_default_imagefont()
 		dr = ImageDraw.Draw(im)
 		for i in self.listDevices():
 			if (i in self.locs):
 				aa = self.objMk(dr, self.getDevice(i), self.locs[i], offset = (-self.bounds[0], -self.bounds[1]))
 			self.getDevice(i).drwConnPos = aa
 	
-		for i in self.conns:
+		d = self
+		for k,i in self.conns.items():
+			p =0
+			pin = None
+			pout = None
+			if (self.getDevice(i[0][0]) is not None):
+				pin = self.getDevice(i[0][0]).connectors[i[0][1]]["direction"]
+			else:
+				p+=1
+			
+			if (self.getDevice(i[1][0]) is not None):
+				pout = self.getDevice(i[1][0]).connectors[i[1][1]]["direction"]
+			else:
+				p+=1
+			
+			if (pin == pout):
+				if (pin is not None):
+					print("Plugged " + str(pin) + " into " + str(pout) + " with", i)
+		
+			if (p == 0):
+				n = []
+				cs = []
+				st = self.getDevice(i[0][0]).drwConnPos[i[0][1]]
+				fn =  self.getDevice(i[1][0]).drwConnPos[i[1][1]]
+				if (k in self.cwps):
+					#print(k)
+					for l in self.cwps[k]:
+						#print(l)
+						if (l["wpid"] in self.wp):
+							n += self.wp[l["wpid"]]["loc"]
+							cs.append(l["wpid"])
+							#print(d.wp[l["wpid"]]["loc"])
+				#print(n)
+
+				if (self.waypointing.get()):
+					if (len(cs) > 1):
+						#print(cs)
+						dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],n[0]-self.bounds[0],n[1]-self.bounds[1]), fill=(0,0,0))
+						dr.line((n[-2]-self.bounds[0], n[-1] ,fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill=(0,0,0))
+	
+						for m in range(len(cs)-1):
+							q = (cs[m], cs[m+1])
+							#print(q)
+							if ((cs[m], cs[m+1]) in olines):
+								olines[cs[m], cs[m+1]] += 1
+							else:
+								olines[cs[m], cs[m+1]] = 1
+					else:
+						#print(st,fn)
+						#print("n:",n)
+						if (len(n) == 0):
+							dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill=(0,0,0))
+						else:
+							dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],n[0]-self.bounds[0],n[1]-self.bounds[1]), fill="black")
+							dr.line((n[0]-self.bounds[0], n[1]-self.bounds[1],fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill="black")
+				else:
+					dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill=(0,0,0))
+		
+		if (self.waypointing.get()):
+			for m,n in olines.items():
+				dr.line((self.wp[m[0]]["loc"][0]-self.bounds[0],
+					self.wp[m[0]]["loc"][1]-self.bounds[1], 
+					self.wp[m[1]]["loc"][0]-self.bounds[0],
+					self.wp[m[1]]["loc"][1]-self.bounds[1]), width=n, fill=(0,0,0))
+		
+		if (self.wp_labelling.get()):
+			for i,j in self.wp.items():
+				dr.text((j["loc"][0]-self.bounds[0],j["loc"][1]+self.bounds[1]), j["name"],font=f,fill=(0,0,0))
+
+		#print(m,n)
+		'''for i in self.conns.values():
 			pin = self.getDevice(i[0][0]).connectors[i[0][1]]["direction"]
 			pout = self.getDevice(i[1][0]).connectors[i[1][1]]["direction"]
 
@@ -195,5 +291,5 @@ class diagram():
 			
 			st = self.getDevice(i[0][0]).drwConnPos[i[0][1]]
 			fn =  self.getDevice(i[1][0]).drwConnPos[i[1][1]]
-			dr.line((st[0] - self.bounds[0], st[1] - self.bounds[1] ,fn[0] - self.bounds[0], fn[1] - self.bounds[1]), fill=(0,0,0))
+			dr.line((st[0] - self.bounds[0], st[1] - self.bounds[1] ,fn[0] - self.bounds[0], fn[1] - self.bounds[1]), fill=(0,0,0))'''
 		return im
