@@ -70,7 +70,7 @@ class wdTk():
 		edit.add_command(label="Device", command=self.devEditWin)
 		edit.add_command(label="Plug", state=Tk.DISABLED)
 		edit.add_command(label="Connection", state=Tk.DISABLED)
-		edit.add_command(label="Waypoint", state=Tk.DISABLED)
+		edit.add_command(label="Waypoint", command=self.waypointEditWin)
 		edit.add_command(label="Waypoint Connector", state=Tk.DISABLED)
 	
 		delete = self.menu["delete"]
@@ -482,6 +482,77 @@ class wdTk():
 	
 	# == Editing
 	
+	def setwName(self, *nope):
+		#VALUES = []
+		#self.aw = Tk.Tk()
+		#for i,j in self.core.dia.wp.items():
+		#	VALUES.append(j["name"])
+		
+		obj = self.wName.get()
+		print(obj)
+		for i,j in self.core.dia.wp.items():
+			if (j["name"] == obj):
+				print(obj, j["name"], i)
+				o = i
+		d = self.core.dia.wp[o]
+		print(d)
+		self.top.set(d["loc"][1])
+		self.left.set(d["loc"][0])
+		#self.width.set(width)
+		#self.height.set(height)
+		#print(d.locs)
+		
+	def waypointEditWin(self):
+		#if (len(self.core.dia.listDevices())== 0):
+		#	tkinter.messagebox.showerror(title="No devices", message="There are no devices to edit.")
+		#	return False
+		VALUES = []
+		self.aw = Tk.Tk()
+		for i,j in self.core.dia.wp.items():
+			VALUES.append(j["name"])
+	
+		self.top = Tk.StringVar(self.aw)
+		self.left = Tk.StringVar(self.aw)
+		#self.width = Tk.StringVar(self.aw)
+		#self.height = Tk.StringVar(self.aw)
+		self.wName = Tk.StringVar(self.aw)
+		Tk.Label(self.aw, text="Edit Waypoint").grid()
+		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.wName, values=VALUES).grid()
+		
+		Tk.Label(self.aw, text="Top").grid()
+		Tk.Entry(self.aw, textvariable= self.top).grid()
+		Tk.Label(self.aw, text="Left").grid()
+		Tk.Entry(self.aw, textvariable= self.left).grid()
+		self.wName.trace('w',self.setwName)
+		Tk.Button(self.aw, text="Edit", command=self.waypointEditComplete).grid()
+
+	def waypointEditComplete(self):
+		obj = self.wName.get()
+		print(obj)
+		for i,j in self.core.dia.wp.items():
+			if (j["name"] == obj):
+				print(obj, j["name"], i)
+				o = i
+		d = self.core.dia.wp[o]
+		
+		self.core.dia.wp[o]['loc'] = (self.left.get(), self.top.get())
+		'''KEYS, VALUES = self.getKeys()
+		obj = KEYS[VALUES.index(self.mName.get())]
+		
+		self.core.updateDevice(obj,
+			(int(self.left.get()),
+			int(self.top.get()), 
+			int(self.width.get()), 
+			int(self.height.get()))
+		)'''
+		self.core.struct.cur.execute("update waypoints set x = ?, y = ? where id = ?",
+			(self.left.get(), self.top.get(), o)
+		)
+		self.canvas.config(scrollregion=(self.core.dia.bounds))
+		self.updateWindowTitle()
+
+		self.aw.destroy()
+		self.redraw()
 	# == Deleting
 	
 	def waypointDelWin(self):
@@ -492,7 +563,7 @@ class wdTk():
 		self.aw = Tk.Tk()
 		for i,j in self.core.dia.wp.items():
 			VALUES.append(j["name"])
-			print(i)
+			#print(i)
 
 		#self.mName = Tk.StringVar(self.aw)
 		self.wpName = Tk.StringVar(self.aw)
