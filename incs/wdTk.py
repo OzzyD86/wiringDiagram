@@ -1,6 +1,7 @@
 import tkinter as Tk
 import tkinter.ttk as ttk
 from incs.wdCore import wdCore
+from widgets.connector_points import connector_points
 
 class wdTk():
 	def resize_canvas(self, event):
@@ -186,7 +187,7 @@ class wdTk():
 		self.updateWindowTitle()		
 		self.aw.destroy()
 		self.redraw()
-		
+
 	def devAddWin(self):
 		self.aw = Tk.Tk()
 		self.mName = Tk.StringVar(self.aw)
@@ -427,24 +428,19 @@ class wdTk():
 		self.aw = Tk.Tk()
 		KEYS, VALUES = self.getKeys()
 		
-		self.cName = Tk.StringVar(self.aw)
-		self.mName = Tk.StringVar(self.aw)
-		Tk.Label(self.aw, text="Machine Name").grid()
-		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.cName, values=VALUES).grid()
+		self.a = connector_points(self.aw, self.core.dia)
+		self.a.pass_machines(self.getKeys()).go().grid()
 		
-		Tk.Label(self.aw, text="Connection Point").grid()
-		self.b = ttk.Combobox(self.aw, state='disabled', textvariable= self.mName, values=VALUES)
-		self.b.grid()
-		self.cName.trace('w', lambda *a, b = self.b: self.setM(i = self.cName.get(), o = b))
 		#self.mName.trace('w', self.setM2)
 		Tk.Button(self.aw, text="Delete", command=self.wireDelComplete).grid()
 
 	def wireDelComplete(self):
 		KEYS, VALUES = self.getKeys()
-			
-		obj = KEYS[VALUES.index(self.cName.get())]
+		
+		o = self.a.get()
+		obj = KEYS[VALUES.index(o[0].get())]
 
-		self.core.deleteWire(obj, self.mName.get())
+		self.core.deleteWire(obj, o[1].get())
 		self.updateWindowTitle()
 		self.redraw()
 		self.aw.destroy()
