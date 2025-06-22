@@ -263,7 +263,7 @@ class wdTk():
 		KEYS, VALUES = self.getKeys()
 
 		self.dhName = Tk.StringVar(self.aw)
-		ComboEntryWidget(self.aw, text="Machine Name", variable=self.dName, values=VALUES).grid()		
+		ComboEntryWidget(self.aw, text="Machine Name", variable=self.dhName, values=VALUES).grid()		
 
 		#Tk.Label(self.aw, text="Human Name").grid()
 		#Tk.Entry(self.aw, textvariable= self.hName).grid()
@@ -400,32 +400,16 @@ class wdTk():
 
 		ComboEntryWidget(self.aw, text="Output Machine Name", variable=self.outdName, values=VALUES, 
 			command = lambda *a, b = aa.box: self.setM(i = self.outdName.get(), o = b)).grid()
-
 		aa.grid()
-		#Tk.Label(self.aw, text="Output Machine Name").grid()
-		#a = ttk.Combobox(self.aw, state='readonly', textvariable= self.outdName, values=VALUES).grid()
-		
-		#Tk.Label(self.aw, text="Output Connection Name").grid()
-		#self.b = ttk.Combobox(self.aw, state='disabled', textvariable= self.outcName)
-		#self.b.grid()
+
 
 		bb = ComboEntryWidget(self.aw, text="Output Machine Name", state='disabled', variable=self.incName)
 
 		ComboEntryWidget(self.aw, text="Input Machine Name", variable=self.indName, values=VALUES, 
-			command = lambda *a, b = bb.box: self.setM(i = self.indName.get(), o = b)).grid()
-			
+			command = lambda *a, b = bb.box: self.setM(i = self.indName.get(), o = b)).grid()			
 		bb.grid()
-		
-		#Tk.Label(self.aw, text="Input Machine Name").grid()
-		#c = ttk.Combobox(self.aw, state='readonly', textvariable= self.indName, values=VALUES).grid()
-		
-		#Tk.Label(self.aw, text="Input Connection Name").grid()
-		#self.e = ttk.Combobox(self.aw, state='disabled', textvariable= self.incName)
-		#self.e.grid()
-		
+				
 		Tk.Button(self.aw, text="Add", command=self.wireAddComplete).grid()
-		#self.outdName.trace('w', ) #self.setOutC)
-		#self.indName.trace('w', )#self.setInC)
 	
 	def wireAddComplete(self):
 		KEYS, VALUES = self.getKeys()
@@ -529,13 +513,17 @@ class wdTk():
 		#self.width = Tk.StringVar(self.aw)
 		#self.height = Tk.StringVar(self.aw)
 		self.wName = Tk.StringVar(self.aw)
-		Tk.Label(self.aw, text="Edit Waypoint").grid()
-		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.wName, values=VALUES).grid()
+		
+		ComboEntryWidget(self.aw, text="Edit Waypoint", variable=self.wName, values=VALUES, 
+			command = self.setwName).grid()
+
+		#Tk.Label(self.aw, text="Edit Waypoint").grid()
+		#a = ttk.Combobox(self.aw, state='readonly', textvariable= self.wName, values=VALUES).grid()
 		
 		EntryWidget(self.aw, text="Top position", variable=self.top).grid()
 		EntryWidget(self.aw, text="Left position", variable=self.left).grid()
 
-		self.wName.trace('w',self.setwName)
+		#self.wName.trace('w',self.setwName)
 		Tk.Button(self.aw, text="Edit", command=self.waypointEditComplete).grid()
 
 	def waypointEditComplete(self):
@@ -579,9 +567,12 @@ class wdTk():
 
 		#self.mName = Tk.StringVar(self.aw)
 		self.wpName = Tk.StringVar(self.aw)
-		Tk.Label(self.aw, text="Waypoint Name").grid()
-		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.wpName, values=VALUES)
-		a.grid()
+
+		ComboEntryWidget(self.aw, text="Waypoint Name", variable=self.wpName, values=VALUES).grid()
+
+		#Tk.Label(self.aw, text="Waypoint Name").grid()
+		#a = ttk.Combobox(self.aw, state='readonly', textvariable= self.wpName, values=VALUES)
+		#a.grid()
 		
 		var = Tk.IntVar()
 		Tk.Checkbutton(self.aw, text="Delete associated paths", variable=var, 
@@ -635,26 +626,19 @@ class wdTk():
 		self.pos = Tk.StringVar(self.aw)
 		self.wpn = Tk.StringVar(self.aw)
 		#self.outcName = Tk.StringVar(self.aw)
-		Tk.Label(self.aw, text="select wire id").grid()
-		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.wire, values=VALUES).grid()
+
+		ComboEntryWidget(self.aw, text="Select Wire Id", variable=self.wire, values=VALUES).grid()
+
 		p = []
 		for i,j in self.core.dia.wp.items():
 			p.append(j)
 			#print(i,j)
-		Tk.Label(self.aw, text="select waypoint").grid()
-		c = ttk.Combobox(self.aw, state='readonly', textvariable= self.wpn, values=p).grid()
+
+		ComboEntryWidget(self.aw, text="Select Waypoint", variable=self.wpn, values=p).grid()
+		#c = ttk.Combobox(self.aw, state='readonly', textvariable= self.wpn, values=p).grid()
 		
-		#Tk.Label(self.aw, text="Position").grid()
-		#self.b = ttk.Combobox(self.aw, state='disabled', textvariable= self.pos)
-		#self.b.grid()
-			
-		'''Tk.Label(self.aw, text="Input Connection Name").grid()
-		self.e = ttk.Combobox(self.aw, state='disabled', textvariable= self.pos)
-		self.e.grid()'''
 		Tk.Button(self.aw, text="Add", command=self.routeAddComplete).grid()
-		#self.outdName.trace('w', lambda *a, b = self.b: self.setM(i = self.outdName.get(), o = b)) #self.setOutC)'''
-		#self.wire.trace('w', self.setRoute)
-	
+		
 	def routeAddComplete(self):
 		print(self.wpn.get())
 		for i,j in self.core.dia.wp.items():
@@ -710,26 +694,14 @@ class wdTk():
 		print(self.getRoutes().values())
 		#KEYS, VALUES = self.getKeys()
 	
-		'''self.wire = Tk.StringVar(self.aw)
-		self.pos = Tk.StringVar(self.aw)
-		self.wpn = Tk.StringVar(self.aw)'''
 		self.rName = Tk.StringVar(self.aw)
-		Tk.Label(self.aw, text="select wire id").grid()
-		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.rName, values=VALUES).grid()
 
-		'''Tk.Label(self.aw, text="select waypoint").grid()
-		c = ttk.Combobox(self.aw, state='readonly', textvariable= self.wpn, values=p).grid()
+		ComboEntryWidget(self.aw, text="Select Wire Id", variable=self.rName, values=VALUES).grid()
 		
-		#Tk.Label(self.aw, text="Position").grid()
-		#self.b = ttk.Combobox(self.aw, state='disabled', textvariable= self.pos)
-		#self.b.grid()
-			
-		'#''Tk.Label(self.aw, text="Input Connection Name").grid()
-		self.e = ttk.Combobox(self.aw, state='disabled', textvariable= self.pos)
-		self.e.grid()'''
+		#Tk.Label(self.aw, text="select wire id").grid()
+		#a = ttk.Combobox(self.aw, state='readonly', textvariable= self.rName, values=VALUES).grid()
+
 		Tk.Button(self.aw, text="Delete", command=self.routeDelComplete).grid()
-		#self.outdName.trace('w', lambda *a, b = self.b: self.setM(i = self.outdName.get(), o = b)) #self.setOutC)''#'
-		#self.wire.trace('w', self.setRoute)'''
 	
 	def routeDelComplete(self):
 		q = self.getRoutes()
