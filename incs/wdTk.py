@@ -2,7 +2,7 @@ import tkinter as Tk
 import tkinter.ttk as ttk
 from incs.wdCore import wdCore
 from widgets.connector_points import connector_points
-from widgets.EntryWidget import EntryWidget
+from widgets.EntryWidget import EntryWidget, ComboEntryWidget
 
 class wdTk():
 	def resize_canvas(self, event):
@@ -157,8 +157,9 @@ class wdTk():
 		self.mName = Tk.StringVar(self.aw)
 		self.hName = Tk.StringVar(self.aw)
 	
-		Tk.Label(self.aw, text="Existing machine to duplicate").grid()
-		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.dName, values=VALUES).grid()
+		ComboEntryWidget(self.aw, text="Existing machine to duplicate", variable=self.dName, values=VALUES).grid()
+		#Tk.Label(self.aw, text="Existing machine to duplicate").grid()
+		#a = ttk.Combobox(self.aw, state='readonly', textvariable= self.dName, values=VALUES).grid()
 
 		EntryWidget(self.aw, text="New Machine Name", variable=self.mName).grid()
 		EntryWidget(self.aw, text="Human Name", variable=self.hName).grid()
@@ -224,15 +225,15 @@ class wdTk():
 		self.width = Tk.StringVar(self.aw)
 		self.height = Tk.StringVar(self.aw)
 		self.mName = Tk.StringVar(self.aw)
-		Tk.Label(self.aw, text="Edit Machine").grid()
-		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.mName, values=VALUES).grid()
-		
+		#Tk.Label(self.aw, text="Edit Machine").grid()
+		#a = ttk.Combobox(self.aw, state='readonly', textvariable= self.mName, values=VALUES).grid()
+
+		ComboEntryWidget(self.aw, text="Edit Machine", variable=self.mName, values=VALUES, command= self.setmName).grid()		
 		EntryWidget(self.aw, text="Top", variable=self.top).grid()
 		EntryWidget(self.aw, text="Left", variable=self.left).grid()
 		EntryWidget(self.aw, text="Width", variable=self.width).grid()
 		EntryWidget(self.aw, text="Height", variable=self.height).grid()
 
-		self.mName.trace('w',self.setmName)
 		Tk.Button(self.aw, text="Add", command=self.devEditComplete).grid()
 
 	def devEditComplete(self):
@@ -261,11 +262,9 @@ class wdTk():
 		self.aw = Tk.Tk()
 		KEYS, VALUES = self.getKeys()
 
-		#self.mName = Tk.StringVar(self.aw)
 		self.dhName = Tk.StringVar(self.aw)
-		Tk.Label(self.aw, text="Machine Name").grid()
-		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.dhName, values=VALUES)
-		a.grid()
+		ComboEntryWidget(self.aw, text="Machine Name", variable=self.dName, values=VALUES).grid()		
+
 		#Tk.Label(self.aw, text="Human Name").grid()
 		#Tk.Entry(self.aw, textvariable= self.hName).grid()
 		Tk.Button(self.aw, text="Delete", command=self.devDelComplete).grid()
@@ -301,14 +300,18 @@ class wdTk():
 		self.mhName = Tk.StringVar(self.aw)
 		self.ddName = Tk.StringVar(self.aw)
 		self.ddName.set("None")
-		Tk.Label(self.aw, text="Machine Name").grid()
-		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.mhName, values=VALUES)
-		a.grid()
+		
+		ComboEntryWidget(self.aw, text="Machine Name", variable=self.mhName, values=VALUES).grid()		
+
+#		Tk.Label(self.aw, text="Machine Name").grid()
+#		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.mhName, values=VALUES).grid()
 
 		EntryWidget(self.aw, text="Connection Name", variable=self.cName).grid()
+
+		ComboEntryWidget(self.aw, text="Data Direction", variable=self.ddName, values=["In", "Out", "Both", "None"]).grid()		
 		
-		Tk.Label(self.aw, text="Data Direction").grid()
-		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.ddName, values=["In", "Out", "Both", "None"]).grid()
+		#Tk.Label(self.aw, text="Data Direction").grid()
+		#a = ttk.Combobox(self.aw, state='readonly', textvariable= self.ddName, values=["In", "Out", "Both", "None"]).grid()
 
 		Tk.Label(self.aw, text="Quantity").grid()
 		Tk.Spinbox(self.aw, from_=1, to=32, textvariable=self.val).grid()
@@ -346,15 +349,21 @@ class wdTk():
 	
 		self.outdName = Tk.StringVar(self.aw)
 		self.outcName = Tk.StringVar(self.aw)
-		Tk.Label(self.aw, text="Machine Name").grid()
-		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.outdName, values=VALUES).grid()
+
+		self.b = ComboEntryWidget(self.aw, text="Connection Name", variable=self.outcName)#.grid()	# I have to set it up first because it's called, but drawn later!
+
+		ComboEntryWidget(self.aw, text="Machine Name", variable=self.outdName, values=VALUES, command= lambda *a, b = self.b.box: self.setM(i = self.outdName.get(), o = b)).grid()
 		
-		Tk.Label(self.aw, text="Connection Name").grid()
-		self.b = ttk.Combobox(self.aw, state='disabled', textvariable= self.outcName)
+		#Tk.Label(self.aw, text="Machine Name").grid()
+		#a = ttk.Combobox(self.aw, state='readonly', textvariable= self.outdName, values=VALUES).grid()
+		
+		
+		#Tk.Label(self.aw, text="Connection Name").grid()
+		#self.b = ttk.Combobox(self.aw, state='disabled', textvariable= self.outcName)
 		self.b.grid()
 		
 		Tk.Button(self.aw, text="Delete", command=self.connDelComplete).grid()
-		self.outdName.trace('w', lambda *a, b = self.b: self.setM(i = self.outdName.get(), o = b)) #self.setOutC)
+		#self.outdName.trace('w', lambda *a, b = self.b: self.setM(i = self.outdName.get(), o = b)) #self.setOutC)
 		#self.indName.trace('w', lambda *a, b = self.e: self.setM(i = self.indName.get(), o = b))#self.setInC)
 	
 	def connDelComplete(self):
@@ -386,21 +395,37 @@ class wdTk():
 		self.incName = Tk.StringVar(self.aw)
 		self.outdName = Tk.StringVar(self.aw)
 		self.outcName = Tk.StringVar(self.aw)
-		Tk.Label(self.aw, text="Output Machine Name").grid()
-		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.outdName, values=VALUES).grid()
+
+		aa = ComboEntryWidget(self.aw, text="Output Connection Name", state='disabled', variable=self.outcName)
+
+		ComboEntryWidget(self.aw, text="Output Machine Name", variable=self.outdName, values=VALUES, 
+			command = lambda *a, b = aa.box: self.setM(i = self.outdName.get(), o = b)).grid()
+
+		aa.grid()
+		#Tk.Label(self.aw, text="Output Machine Name").grid()
+		#a = ttk.Combobox(self.aw, state='readonly', textvariable= self.outdName, values=VALUES).grid()
 		
-		Tk.Label(self.aw, text="Output Connection Name").grid()
-		self.b = ttk.Combobox(self.aw, state='disabled', textvariable= self.outcName)
-		self.b.grid()
+		#Tk.Label(self.aw, text="Output Connection Name").grid()
+		#self.b = ttk.Combobox(self.aw, state='disabled', textvariable= self.outcName)
+		#self.b.grid()
+
+		bb = ComboEntryWidget(self.aw, text="Output Machine Name", state='disabled', variable=self.incName)
+
+		ComboEntryWidget(self.aw, text="Input Machine Name", variable=self.indName, values=VALUES, 
+			command = lambda *a, b = bb.box: self.setM(i = self.indName.get(), o = b)).grid()
 			
-		Tk.Label(self.aw, text="Input Machine Name").grid()
-		c = ttk.Combobox(self.aw, state='readonly', textvariable= self.indName, values=VALUES).grid()
-		Tk.Label(self.aw, text="Input Connection Name").grid()
-		self.e = ttk.Combobox(self.aw, state='disabled', textvariable= self.incName)
-		self.e.grid()
+		bb.grid()
+		
+		#Tk.Label(self.aw, text="Input Machine Name").grid()
+		#c = ttk.Combobox(self.aw, state='readonly', textvariable= self.indName, values=VALUES).grid()
+		
+		#Tk.Label(self.aw, text="Input Connection Name").grid()
+		#self.e = ttk.Combobox(self.aw, state='disabled', textvariable= self.incName)
+		#self.e.grid()
+		
 		Tk.Button(self.aw, text="Add", command=self.wireAddComplete).grid()
-		self.outdName.trace('w', lambda *a, b = self.b: self.setM(i = self.outdName.get(), o = b)) #self.setOutC)
-		self.indName.trace('w', lambda *a, b = self.e: self.setM(i = self.indName.get(), o = b))#self.setInC)
+		#self.outdName.trace('w', ) #self.setOutC)
+		#self.indName.trace('w', )#self.setInC)
 	
 	def wireAddComplete(self):
 		KEYS, VALUES = self.getKeys()
@@ -742,13 +767,20 @@ class wdTk():
 	def setM(self, *what, **kwargs):
 		#print(what)
 		#print(kwargs)
-		kwargs['o']["state"]='readonly'
 		
 		KEYS, VALUES = self.getKeys()
 		obj = KEYS[VALUES.index(kwargs['i'])]
 		ii = self.core.dia.getDevice(obj).connectors.keys()
-		
-		kwargs['o']["values"]=list(ii)
+
+		print(kwargs['o'])
+		if (kwargs['o']["state"] is None):
+			# Oh! Then try this:
+			kwargs['o'].setState("readonly")
+			kwargs['o'].setValues(list(ii))
+			print(kwargs['o'])
+		else:
+			kwargs['o']["state"]='readonly'
+			kwargs['o']["values"]=list(ii)
 				
 	def redraw(self):
 		d = self.core.dia
