@@ -369,7 +369,10 @@ class wdTk():
 		#	self.outdName.get(), self.outcName.get())
 		objIn = KEYS[VALUES.index(self.outdName.get())]
 
-		del self.core.dia.dev[objIn].connectors[self.outcName.get()]
+		self.core.dia.getDevice(objIn).delConnector(self.outcName.get())
+		self.core.struct.cur.execute("delete from conns where dName = ? and cName = ?", 
+			(objIn, self.outcName.get())
+		)
 		#self.core.addWire(objOut, self.outcName.get(), objIn, self.incName.get())
 		self.updateWindowTitle()
 		
