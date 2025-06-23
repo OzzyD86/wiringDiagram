@@ -31,12 +31,25 @@ class diagramStructure():
 		
 		self.cur.execute('''
 			CREate table if not exists `wire`
-				(devOut TEXT NOT NULL,
+				(id integer primary key autoincrement,
+				devOut TEXT NOT NULL,
 				connOut TEXT NOT NULL,
 				devIn TEXT NULL,
 				connIn TEXT NULL)
 		''')
-		
+		self.store.execute('''create table if not exists waypoints
+				(id integer primary key autoincrement,
+				`name` text not null,
+				x integer not null,
+				y integer not null
+				)
+			''')
+		self.store.execute('''create table if not exists wp_ls
+				(wire_id integer not null,
+				wp_id integer not null,
+				`ord` integer not null,
+				primary key (wire_id,ord))
+			''')
 		self.store.execute('''
 			create table if not exists config
 				(key text unique not null,
@@ -45,7 +58,7 @@ class diagramStructure():
 		try:
 			self.store.execute('''insert into config
 					(key, value) VALUES (?,?)
-				''', ("version", 1))
+				''', ("version", 2))
 		except:
 			pass
 		self.store.commit()
@@ -120,7 +133,7 @@ class diagramStructure():
 			self.store.execute("drop TABLE tmp")
 		
 			self.store.execute("update config set value = 2 where key = 'version'")
-		
+			self.store.commit()
 			print("Draw position for connectors")
 
 		pass
