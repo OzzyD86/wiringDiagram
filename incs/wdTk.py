@@ -88,10 +88,16 @@ class wdTk():
 		self.wp_labels = Tk.BooleanVar()
 		self.wp_labels.set(False)
 		self.wp_labels.trace('w', self.set_export_vars)
+		self.conn_labelling = Tk.BooleanVar()
+		self.conn_labelling.set(False)
+		self.conn_labelling.trace('w', self.set_export_vars)
+		self.core.dia.conn_labelling.trace('w', self.set_export_vars)
 		
 		#self.wp_labelling = False
 		self.menu["export"].add_checkbutton(label="Honour waypoints", onvalue=True, offvalue=False, variable=self.waypointing)
 		self.menu["export"].add_checkbutton(label="Show waypoint labels", onvalue=True, offvalue=False, variable=self.wp_labels)
+		self.menu["export"].add_checkbutton(label="Show connector labels", onvalue=True, offvalue=False, variable=self.conn_labelling)
+	
 		self.menu["export"].add_separator()
 		self.menu["export"].add_command(label="PNG", command=self.export_png)
 
@@ -107,6 +113,7 @@ class wdTk():
 	def set_export_vars(self, *args, **kwargs):
 		self.core.dia.waypointing = self.waypointing
 		self.core.dia.wp_labelling = self.wp_labels
+		self.core.dia.conn_labelling = self.conn_labelling
 		self.redraw()
 	#	print(self.wp_labels.get())
 		pass

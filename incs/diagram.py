@@ -13,6 +13,9 @@ class diagram():
 		self.wp_labelling = Tk.BooleanVar()
 		self.wp_labelling.set(False)
 		
+		self.conn_labelling = Tk.BooleanVar()
+		self.conn_labelling.set(True)
+		
 	def addWaypoint(self, key, name, loc):
 		self.wp[key] = { "name" : name, "loc" : loc }
 		pass
@@ -143,22 +146,33 @@ class diagram():
 		outmap = {}
 	
 		for fa, fb in poss.items():
+			an = Tk.E#CENTER
 			tt = (0,0)
 			ln = len(fb)
 			ct = 0
 			if (fa in ["left", "top"]):
+				if (fa in ["left"]):
+					an = Tk.E
+					to = (-5,0)
+				else:
+					an = Tk.S
 				os = (- (dms[2]/2)-2.5, - (dms[3]/2)-2.5)
 			elif (fa in ["right"]):
+				an = Tk.W
+				to = (5,0)
 				os = ((dms[2]/2)+2.5, - (dms[3]/2))
 			elif (fa in ["bottom"]):
+				
 				os = (-(dms[2]/2), (dms[3]/2)+2.5)
 			else:
 				os = (0,0)
 			
 			for fc in fb:
 				if (fa in ["left", "right"]):
+					ro = 0
 					os = (os[0], (-dms[3] /2) + ((ct+1) / (ln+1) * dms[3]))
 				if (fa in ["top", "bottom"]):
+					ro=90
 					os = ((-dms[2] /2) + ((ct+1) / (ln+1) * dms[2]), os[1])
 				lf = dms[0] + os[0]
 				tp = dms[1] + os[1]
@@ -168,10 +182,12 @@ class diagram():
 				if (a==1):
 					dr.rectangle((lf-2.5+offset[0], tp-2.5+offset[1], lf + 2.5+offset[0], tp+2.5+offset[1]), outline=c)
 				elif (a==2):
-					op = dr.create_rectangle(lf-2.5, tp-2.5, lf + 2.5, tp+2.5, outline=c)
+					op = dr.create_rectangle(lf-2.5, tp-2.5, lf + 2.5, tp+2.5)
 					dr.addtag_withtag("_conn", op)
 					dr.addtag_withtag(fc, op)
-				#print(p)
+					if (self.conn_labelling.get()):
+						dr.create_text(lf+to[0],tp+to[1],text=fc,font=('Arial',2),angle=ro,anchor=an)
+				#print(fc)
 				ct += 1
 				outmap[fc] = (lf,tp)
 
