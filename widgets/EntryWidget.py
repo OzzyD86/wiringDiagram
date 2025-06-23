@@ -7,7 +7,6 @@ class EntryWidget(Tk.Frame):
 		
 		Tk.Label(self, text=text).grid()
 		Tk.Entry(self, textvariable= variable).grid()
-
 		
 	pass
 	
@@ -26,3 +25,10 @@ class ComboEntryWidget(Tk.Frame):
 	
 	def setValues(self, values = []):
 		self.box['values'] = values
+		
+class SpinEntryWidget(Tk.Frame):
+	def __init__(self, master = None, text="", variable=None, min=0, max=100, command=None, *args, **kwargs):
+		super().__init__(master, *args, **kwargs)
+		Tk.Label(self, text=text).grid()
+		Tk.Spinbox(self, from_=min, to=max, textvariable=variable).grid()
+		
