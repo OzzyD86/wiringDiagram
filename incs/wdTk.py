@@ -2,7 +2,7 @@ import tkinter as Tk
 import tkinter.ttk as ttk
 from incs.wdCore import wdCore
 from widgets.connector_points import connector_points
-from widgets.EntryWidget import EntryWidget, ComboEntryWidget
+from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
 
 class wdTk():
 	def resize_canvas(self, event):
@@ -313,8 +313,9 @@ class wdTk():
 		#Tk.Label(self.aw, text="Data Direction").grid()
 		#a = ttk.Combobox(self.aw, state='readonly', textvariable= self.ddName, values=["In", "Out", "Both", "None"]).grid()
 
-		Tk.Label(self.aw, text="Quantity").grid()
-		Tk.Spinbox(self.aw, from_=1, to=32, textvariable=self.val).grid()
+		SpinEntryWidget(self.aw, text="Quantity", min=1, max=32, variable=self.val).grid()
+		#Tk.Label(self.aw, text="Quantity").grid()
+		#Tk.Spinbox(self.aw, from_=1, to=32, textvariable=self.val).grid()
 		
 		Tk.Button(self.aw, text="Add", command=self.connAddComplete).grid()
 
