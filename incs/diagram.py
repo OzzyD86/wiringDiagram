@@ -182,7 +182,7 @@ class diagram():
 				if (a==1):
 					dr.rectangle((lf-2.5+offset[0], tp-2.5+offset[1], lf + 2.5+offset[0], tp+2.5+offset[1]), outline=c)
 				elif (a==2):
-					op = dr.create_rectangle(lf-2.5, tp-2.5, lf + 2.5, tp+2.5)
+					op = dr.create_rectangle(lf-2.5, tp-2.5, lf + 2.5, tp+2.5, outline=c)
 					dr.addtag_withtag("_conn", op)
 					dr.addtag_withtag(fc, op)
 					if (self.conn_labelling.get()):
