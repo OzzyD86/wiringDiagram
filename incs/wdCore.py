@@ -126,7 +126,26 @@ class wdCore():
 		self.dia.addWaypoint(k, hName, coords)
 		#if (i["left"] is not None):
 		#self.dia.locateDevice(mName, (coords[0],coords[1]),(coords[2], coords[3]))
-
+	
+	def updateWaypoint(self,wid,loc):
+		
+		for i,j in self.dia.wp.items():
+			if (j["name"] == wid):
+				#print(obj, j["name"], i)
+				o = i
+				
+		if (o not in self.dia.wp):
+			return False
+			
+		d = self.dia.wp[o]
+		d['loc'] = (loc)
+	
+		self.struct.cur.execute("update waypoints set x = ?, y = ? where id = ?",
+			(loc[0], loc[1], o)
+		)
+		
+		return True
+		
 	def deleteWaypoint(self,wid):
 		for i,j in self.dia.wp.items():
 			if (j['name'] == wid):

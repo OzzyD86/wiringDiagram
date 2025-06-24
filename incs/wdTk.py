@@ -3,6 +3,7 @@ import tkinter.ttk as ttk
 from incs.wdCore import wdCore
 from widgets.connector_points import connector_points
 from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
+import tkinter.messagebox
 
 class wdTk():
 	def resize_canvas(self, event):
@@ -424,6 +425,14 @@ class wdTk():
 			
 		#print(self.indName.get(), self.incName.get(),
 		#	self.outdName.get(), self.outcName.get())
+		if (self.indName.get() not in VALUES):
+			tkinter.messagebox.showwarning(title="Cannot select device", message="Please select a valid output device.")
+			return
+			
+		if (self.outdName.get() not in VALUES):
+			tkinter.messagebox.showwarning(title="Cannot select device", message="Please select a valid input device.")
+			return
+			
 		objIn = KEYS[VALUES.index(self.indName.get())]
 		objOut = KEYS[VALUES.index(self.outdName.get())]
 
@@ -518,8 +527,6 @@ class wdTk():
 	
 		self.top = Tk.StringVar(self.aw)
 		self.left = Tk.StringVar(self.aw)
-		#self.width = Tk.StringVar(self.aw)
-		#self.height = Tk.StringVar(self.aw)
 		self.wName = Tk.StringVar(self.aw)
 		
 		ComboEntryWidget(self.aw, text="Edit Waypoint", variable=self.wName, values=VALUES, 
@@ -536,26 +543,10 @@ class wdTk():
 
 	def waypointEditComplete(self):
 		obj = self.wName.get()
-		print(obj)
-		for i,j in self.core.dia.wp.items():
-			if (j["name"] == obj):
-				print(obj, j["name"], i)
-				o = i
-		d = self.core.dia.wp[o]
+		#print(obj)
+	
+		print(self.core.updateWaypoint(obj, (self.left.get(), self.top.get())))
 		
-		self.core.dia.wp[o]['loc'] = (self.left.get(), self.top.get())
-		'''KEYS, VALUES = self.getKeys()
-		obj = KEYS[VALUES.index(self.mName.get())]
-		
-		self.core.updateDevice(obj,
-			(int(self.left.get()),
-			int(self.top.get()), 
-			int(self.width.get()), 
-			int(self.height.get()))
-		)'''
-		self.core.struct.cur.execute("update waypoints set x = ?, y = ? where id = ?",
-			(self.left.get(), self.top.get(), o)
-		)
 		self.canvas.config(scrollregion=(self.core.dia.bounds))
 		self.updateWindowTitle()
 
