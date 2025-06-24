@@ -382,10 +382,8 @@ class wdTk():
 		#	self.outdName.get(), self.outcName.get())
 		objIn = KEYS[VALUES.index(self.outdName.get())]
 
-		self.core.dia.getDevice(objIn).delConnector(self.outcName.get())
-		self.core.struct.cur.execute("delete from conns where dName = ? and cName = ?", 
-			(objIn, self.outcName.get())
-		)
+		self.core.deleteConnector(objIn, self.outcName.get())
+		
 		#self.core.addWire(objOut, self.outcName.get(), objIn, self.incName.get())
 		self.updateWindowTitle()
 		
@@ -410,7 +408,6 @@ class wdTk():
 		ComboEntryWidget(self.aw, text="Output Machine Name", variable=self.outdName, values=VALUES, 
 			command = lambda *a, b = aa.box: self.setM(i = self.outdName.get(), o = b)).grid()
 		aa.grid()
-
 
 		bb = ComboEntryWidget(self.aw, text="Output Machine Name", state='disabled', variable=self.incName)
 
@@ -497,24 +494,17 @@ class wdTk():
 	# == Editing
 	
 	def setwName(self, *nope):
-		#VALUES = []
-		#self.aw = Tk.Tk()
-		#for i,j in self.core.dia.wp.items():
-		#	VALUES.append(j["name"])
 		
 		obj = self.wName.get()
-		print(obj)
+		#print(obj)
 		for i,j in self.core.dia.wp.items():
 			if (j["name"] == obj):
-				print(obj, j["name"], i)
+				#print(obj, j["name"], i)
 				o = i
 		d = self.core.dia.wp[o]
 		#print(d)
 		self.top.set(d["loc"][1])
 		self.left.set(d["loc"][0])
-		#self.width.set(width)
-		#self.height.set(height)
-		#print(d.locs)
 		
 	def waypointEditWin(self):
 		#if (len(self.core.dia.listDevices())== 0):
