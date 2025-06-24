@@ -121,7 +121,7 @@ class wdTk():
 	def quit(self):
 		#print("Closing:", self.core.struct.is_changed())
 		if (self.core.struct.is_changed()):
-			a = Tk.messagebox.askyesnocancel(title="Unsaved Changed", message="There are unsaved changes. Save before closing?")
+			a = Tk.messagebox.askyesnocancel(title="Unsaved Changes", message="There are unsaved changes. Save before closing?")
 			#print(a)
 			if (a is None):
 				return None
@@ -171,7 +171,7 @@ class wdTk():
 		obj = KEYS[VALUES.index(self.dName.get())]
 		
 		if (self.mName.get() in self.core.dia.listDevices()):
-			tkinter.messagebox.showerror(title="Cannot add device", message="The name of the device is already in use.")
+			Tk.messagebox.showerror(title="Cannot add device", message="The name of the device is already in use.")
 			return False
 		
 		d = self.core.dia.getDevice(obj)
@@ -193,9 +193,9 @@ class wdTk():
 		self.aw = Tk.Tk()
 		self.mName = Tk.StringVar(self.aw)
 		self.hName = Tk.StringVar(self.aw)
-		EntryWidget(self.aw, text="New Machine Name", variable=self.mName).grid()
-		EntryWidget(self.aw, text="Human Name", variable=self.hName).grid()
-		Tk.Button(self.aw, text="Add", command=self.devAddComplete).grid()
+		EntryWidget(self.aw, text="New Machine Name", variable=self.mName).grid(padx=5, pady=(5,0))
+		EntryWidget(self.aw, text="Human Name", variable=self.hName).grid(padx=5, pady=(5,0))
+		Tk.Button(self.aw, text="Add", command=self.devAddComplete).grid(padx=5, pady=(5,0))
 
 	def devAddComplete(self):
 		if (self.mName.get() in self.core.dia.listDevices()):
@@ -214,7 +214,7 @@ class wdTk():
 	
 	def devEditWin(self):
 		if (len(self.core.dia.listDevices())== 0):
-			tkinter.messagebox.showerror(title="No devices", message="There are no devices to edit.")
+			Tk.messagebox.showerror(title="No devices", message="There are no devices to edit.")
 			return False
 			
 		self.aw = Tk.Tk()
@@ -238,6 +238,10 @@ class wdTk():
 
 	def devEditComplete(self):
 		KEYS, VALUES = self.getKeys()
+		if (self.mName.get() not in VALUES):
+			Tk.messagebox.showerror(title="Device not found", message="There is no device to edit.")
+			return False
+
 		obj = KEYS[VALUES.index(self.mName.get())]
 		
 		self.core.updateDevice(obj,
