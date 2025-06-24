@@ -19,6 +19,10 @@ class wdTk():
 		self._open_file = None
 		
 		self.window = Tk.Tk()
+		
+		s = ttk.Style()
+		s.configure('Treeview', rowheight=56)
+
 		self.window.title(self.app_name)
 		self.core = wdCore(self.window)
 		self.window.protocol('WM_DELETE_WINDOW', self.quit)
@@ -273,10 +277,14 @@ class wdTk():
 		self.dhName = Tk.StringVar(self.aw)
 		ComboEntryWidget(self.aw, text="Machine Name", variable=self.dhName, values=VALUES).grid()		
 
-		#Tk.Label(self.aw, text="Human Name").grid()
-		#Tk.Entry(self.aw, textvariable= self.hName).grid()
 		Tk.Button(self.aw, text="Delete", command=self.devDelComplete).grid()
 
+	def file_save(self):
+		self.core.struct.store.commit() # That needs moving
+		self.core.struct.clear_changed()
+		self.updateWindowTitle()
+		pass
+		
 	def devDelComplete(self):
 		
 		# Load the objects
@@ -284,7 +292,7 @@ class wdTk():
 		
 		# Find the object
 		if not self.dhName.get() in VALUES:
-			tkinter.messagebox.showerror(title="No device", message="No.")
+			Tk.messagebox.showerror(title="No device", message="No.")
 			return False
 			
 		obj = KEYS[VALUES.index(self.dhName.get())]
@@ -329,7 +337,10 @@ class wdTk():
 
 	def connAddComplete(self):
 		KEYS, VALUES = self.getKeys()
-	
+		if not self.mhName.get() in VALUES:
+			Tk.messagebox.showerror(title="No device", message="No.")
+			return False
+			
 		obj = KEYS[VALUES.index(self.mhName.get())]
 		if (self.cName.get() in self.core.dia.getDevice(obj).connectors.keys()):
 			Tk.messagebox.showerror(title="Cannot add plug", message="The name of the plug is already in use for this device.")
@@ -479,9 +490,10 @@ class wdTk():
 		Tk.Button(self.aw, text="Add", command=self.waypointAddComplete).grid()
 
 	def waypointAddComplete(self):
-		#if (self.mName.get() in self.core.dia.listDevices()):
-		#	tkinter.messagebox.showerror(title="Cannot add device", message="The name of the device is already in use.")
-		#	return False
+		for i in self.core.dia.wp.values():
+			if (self.wName.get() == i["name"]):
+				tkinter.messagebox.showerror(title="Cannot add waypoint", message="The name of the waypoint is already in use.")
+				return False
 		
 		self.core.addWaypoint(
 			self.wName.get(),
