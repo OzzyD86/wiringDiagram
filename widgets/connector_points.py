@@ -1,6 +1,6 @@
 import tkinter as Tk
 import tkinter.ttk as ttk
-
+	
 class connector_points(Tk.Frame):
 
 	def setM(self, *what, **kwargs): # This is used a lot, can it be stored elsewhere and imported(?)
@@ -39,6 +39,9 @@ class connector_points(Tk.Frame):
 		
 	def __init__(self, master, diagram, **kwargs):
 		super().__init__(master, **kwargs)
+		s = ttk.Style(self)
+		s.configure('Treeview', rowheight=56)
+
 		self.cName = Tk.StringVar(self)
 		self.mName = Tk.StringVar(self)
 		self.diagram = diagram
