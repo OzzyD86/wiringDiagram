@@ -20,9 +20,6 @@ class wdTk():
 		
 		self.window = Tk.Tk()
 		
-		s = ttk.Style()
-		s.configure('Treeview', rowheight=56)
-
 		self.window.title(self.app_name)
 		self.core = wdCore(self.window)
 		self.window.protocol('WM_DELETE_WINDOW', self.quit)
