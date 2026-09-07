@@ -97,8 +97,43 @@ class diagram():
 		
 		self.conns[id] = ((a,b))
 	
-	def bbox(self, p):
-		pass
+	def bbox(self):
+		bbox = [0,0,0,0]
+		for i in self.locs.items():
+			#print(i[1])
+			e = i[1]
+			if (e[0] < bbox[0]):
+				bbox[0] = e[0]
+				
+			if (e[2] > bbox[2]):
+				bbox[2] = e[2]
+				
+			if (e[1] < bbox[1]):
+				bbox[1] = e[1]
+				
+			if (e[3] > bbox[3]):
+				bbox[3] = e[3]
+			#pass
+		
+		for i in self.wp.items():
+			e =(i[1]["loc"])
+			#e = i[1]
+			if (e[0] < bbox[0]):
+				bbox[0] = e[0]
+				
+			if (e[0] > bbox[2]):
+				bbox[2] = e[0]
+				
+			if (e[1] < bbox[1]):
+				bbox[1] = e[1]
+				
+			if (e[1] > bbox[3]):
+				bbox[3] = e[1]
+			#pass
+			
+		#for i in bbox:
+		#	i = i * 
+		return bbox
 		
 	def objMk(self, dr, p, dms = (0,0,1,1), _type = 1, honour_db = False, offset = (0,0)):
 		try:
