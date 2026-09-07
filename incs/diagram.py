@@ -2,6 +2,10 @@ from colours import colourDirection
 from PIL import Image, ImageDraw, ImageFont
 import tkinter as Tk
 
+i18n = {
+	"font_small" : ('Arial', 2),
+	"font_large" : ('Arial', 4)
+}
 class diagram():
 	def __init__(self):
 		self.bounds = [0,0,0,0]
@@ -221,7 +225,7 @@ class diagram():
 					dr.addtag_withtag("_conn", op)
 					dr.addtag_withtag(fc, op)
 					if (self.conn_labelling.get()):
-						dr.create_text(lf+to[0],tp+to[1],text=fc,font=('Arial',2),angle=ro,anchor=an)
+						dr.create_text(lf+to[0],tp+to[1],text=fc,font=i18n["font_small"],angle=ro,anchor=an)
 				#print(fc)
 				ct += 1
 				outmap[fc] = (lf,tp)
@@ -242,7 +246,7 @@ class diagram():
 			)
 			dr.addtag_withtag(p.name, rct)
 			dr.addtag_withtag("_dev", rct)
-			dr.create_text(dms[0],dms[1],text=p.name,font=('Arial',4))
+			dr.create_text(dms[0],dms[1],text=p.name,font=i18n["font_large"])
 		#dr.tag_bind(rct, "<Button-1>", drag_start)
 		#dr.tag_bind(rct, "<B1-Motion>", drag_motion)
 
