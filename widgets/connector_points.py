@@ -26,7 +26,7 @@ class connector_points(Tk.Frame):
 			self.c.delete(i)
 			
 		for i in self.diagram.conns.items():
-			print(i[1])
+			#print(i[1])
 			if (i[1][0][0] == obj) or (i[1][1][0] == obj):
 				if (i[1][0][1] == self.cName.get()) or (i[1][1][1] == self.cName.get()):
 					if (i[1][0][1] == self.cName.get()):
@@ -37,7 +37,7 @@ class connector_points(Tk.Frame):
 					#print(i)
 		pass
 		
-	def __init__(self, master, diagram, **kwargs):
+	def __init__(self, master, diagram, variable=None, **kwargs):
 		super().__init__(master, **kwargs)
 		s = ttk.Style(self)
 		s.configure('Treeview', rowheight=56)
@@ -65,9 +65,10 @@ class connector_points(Tk.Frame):
 		self.c.heading("ConnIn", text="Input Connector")
 		#tree.pack(fill=tk.BOTH, expand=True)
 		self.c.grid()
+		self.c.bind('<Button-1>', self.get)
 		return self
 		
-	def get(self):
-		return (self.mName, self.cName)
+	def get(self, *args):
+		print (self.mName.get(), self.cName.get(), self.c.item(self.c.focus()))
 		
 	pass
