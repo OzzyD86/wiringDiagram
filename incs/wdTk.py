@@ -5,6 +5,10 @@ from widgets.connector_points import connector_points
 from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
 import tkinter.messagebox
 
+class device():
+	#def createNewWithWindow(self, 
+	pass
+
 class wdTk():
 	def resize_canvas(self, event):
    
@@ -14,6 +18,9 @@ class wdTk():
 		# Update the canvas size
 		self.canvas.config(width=new_width, height=new_height)
 
+	def click_call(self, event):
+		pass
+		
 	def __init__(self):
 		self.app_name = "WiringDiagram"
 		self._open_file = None
@@ -38,7 +45,7 @@ class wdTk():
 		self.hscroll.config( command = self.canvas.xview )
 		self.window.rowconfigure(0, weight=1)
 		self.window.columnconfigure(0, weight=1)
-		#self.canvas.bind("<Button-1>", self.click_call)
+		self.canvas.bind("<Button-3>", self.click_call)
 		#self.window.bind('<Configure>', self.resize_canvas)
 	
 		self.menu = {
@@ -204,12 +211,20 @@ class wdTk():
 		self.aw.destroy()
 		self.redraw()
 
-	def devAddWin(self):
-		self.aw = Tk.Tk()
+	def devAddWin(self, event = None):
+		print(event)
+		self.aw = Tk.Toplevel()
 		self.mName = Tk.StringVar(self.aw)
 		self.hName = Tk.StringVar(self.aw)
+		self.x = Tk.StringVar(self.aw)
+		self.y = Tk.StringVar(self.aw)
+		if (event is not None):
+			self.x.set(event.x)
+			self.y.set(event.y)
 		EntryWidget(self.aw, text="New Machine Name", variable=self.mName).grid(padx=5, pady=(5,0))
 		EntryWidget(self.aw, text="Human Name", variable=self.hName).grid(padx=5, pady=(5,0))
+		EntryWidget(self.aw, text="X position", variable=self.x).grid(padx=5, pady=(5,0))
+		EntryWidget(self.aw, text="Y position", variable=self.y).grid(padx=5, pady=(5,0))
 		Tk.Button(self.aw, text="Add", command=self.devAddComplete).grid(padx=5, pady=(5,0))
 
 	def devAddComplete(self):
@@ -219,7 +234,7 @@ class wdTk():
 		
 		self.core.addDevice(
 			self.mName.get(), self.hName.get(),
-			(400,300,50,50))
+			(int(self.x.get()),int(self.y.get()),50,50))
 		
 		self.updateWindowTitle()		
 		self.aw.destroy()

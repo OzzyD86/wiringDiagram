@@ -59,7 +59,9 @@ class wdTk(incs.wdTk.wdTk):
 		#print(self.canvas.find_closest(event.x,event.y))
 		#print(event)
 		d = Tk.Menu()
-		d.add_command(label="Hello")
+		d.add_command(label="Create Device here", command= lambda event=event: self.devAddWin(event))
+		d.add_separator()
+		d.add_command(label="Hello", state="disabled")
 		d.add_command(label=str(self.canvas.find_closest(event.x,event.y)))
 		d.add_separator()
 		for i in self.canvas.gettags(self.canvas.find_closest(event.x,event.y)):
