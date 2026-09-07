@@ -49,7 +49,8 @@ class wdTk():
 			"delete": Tk.Menu(),
 			"export": Tk.Menu()
 		}
-	
+		self.sc = Tk.IntVar()
+		self.sc.set(1)
 		mf = self.menu["file"]
 		mf.add_command(label="New", command= self.file_new)
 		mf.add_separator()
@@ -95,11 +96,16 @@ class wdTk():
 		self.conn_labelling.trace('w', self.set_export_vars)
 		self.core.dia.conn_labelling.trace('w', self.set_export_vars)
 		
+		self.scale = Tk.Menu()
+		self.scale.add_checkbutton(label="1x", onvalue=1,variable=self.sc)
+		self.scale.add_checkbutton(label="2x", onvalue=2,variable=self.sc)
+		self.sc.trace('w', self.set_export_vars)
+		
 		#self.wp_labelling = False
 		self.menu["export"].add_checkbutton(label="Honour waypoints", onvalue=True, offvalue=False, variable=self.waypointing)
 		self.menu["export"].add_checkbutton(label="Show waypoint labels", onvalue=True, offvalue=False, variable=self.wp_labels)
 		self.menu["export"].add_checkbutton(label="Show connector labels", onvalue=True, offvalue=False, variable=self.conn_labelling)
-	
+		self.menu["export"].add_cascade(label="Scale...", menu= self.scale)
 		self.menu["export"].add_separator()
 		self.menu["export"].add_command(label="PNG", command=self.export_png)
 
@@ -754,6 +760,17 @@ class wdTk():
 				
 	def redraw(self):
 		d = self.core.dia
+		q = d.bbox()
+		q2 = []
+		t= 0
+		for i in q:
+			if (t in [0, 1]):
+				a = -10
+			else:
+				a = 10
+			q2.append((i * self.sc.get()) + a)
+		
+		#q2 = [q2[1], q2[0], q2[3], q2[2]]
 		a = d.buildWaypointLists()
 		#print(a)
 		olines = {}
@@ -824,7 +841,9 @@ class wdTk():
 				self.canvas.create_text(j["loc"][0],j["loc"][1],text=j["name"],font=('Arial',4))
 
 		#	print(i,j)
-			
+		self.canvas.scale("all", 0,0, self.sc.get(), self.sc.get())
+		self.canvas.config(scrollregion=(q2))
+		
 	def export_png(self):
 		files = [#('All Files', '*.*'), 
 			 ('Portable Network Graphics', '*.png')]
