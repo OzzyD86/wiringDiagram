@@ -66,12 +66,6 @@ class wdTk(incs.wdTk.wdTk):
 			d.add_command(label=i)
 		d.tk_popup(self.canvas.winfo_rootx()+event.x, self.canvas.winfo_rooty()+event.y)
 		pass
-			
-	def file_save(self):
-		self.core.struct.store.commit() # That needs moving
-		self.core.struct.clear_changed()
-		self.updateWindowTitle()
-		pass
 	
 	def setmName(self, *nope):
 		KEYS, VALUES = self.getKeys()
