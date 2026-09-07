@@ -13,6 +13,9 @@ class diagram():
 		self.wp_labelling = Tk.BooleanVar()
 		self.wp_labelling.set(False)
 		
+		self.conn_labelling = Tk.BooleanVar()
+		self.conn_labelling.set(True)
+		
 	def addWaypoint(self, key, name, loc):
 		self.wp[key] = { "name" : name, "loc" : loc }
 		pass
@@ -94,8 +97,43 @@ class diagram():
 		
 		self.conns[id] = ((a,b))
 	
-	def bbox(self, p):
-		pass
+	def bbox(self):
+		bbox = [0,0,0,0]
+		for i in self.locs.items():
+			#print(i[1])
+			e = i[1]
+			if (e[0] < bbox[0]):
+				bbox[0] = e[0]
+				
+			if (e[2] > bbox[2]):
+				bbox[2] = e[2]
+				
+			if (e[1] < bbox[1]):
+				bbox[1] = e[1]
+				
+			if (e[3] > bbox[3]):
+				bbox[3] = e[3]
+			#pass
+		
+		for i in self.wp.items():
+			e =(i[1]["loc"])
+			#e = i[1]
+			if (e[0] < bbox[0]):
+				bbox[0] = e[0]
+				
+			if (e[0] > bbox[2]):
+				bbox[2] = e[0]
+				
+			if (e[1] < bbox[1]):
+				bbox[1] = e[1]
+				
+			if (e[1] > bbox[3]):
+				bbox[3] = e[1]
+			#pass
+			
+		#for i in bbox:
+		#	i = i * 
+		return bbox
 		
 	def objMk(self, dr, p, dms = (0,0,1,1), _type = 1, honour_db = False, offset = (0,0)):
 		try:
@@ -143,22 +181,33 @@ class diagram():
 		outmap = {}
 	
 		for fa, fb in poss.items():
+			an = Tk.E#CENTER
 			tt = (0,0)
 			ln = len(fb)
 			ct = 0
 			if (fa in ["left", "top"]):
+				if (fa in ["left"]):
+					an = Tk.E
+					to = (-5,0)
+				else:
+					an = Tk.S
 				os = (- (dms[2]/2)-2.5, - (dms[3]/2)-2.5)
 			elif (fa in ["right"]):
+				an = Tk.W
+				to = (5,0)
 				os = ((dms[2]/2)+2.5, - (dms[3]/2))
 			elif (fa in ["bottom"]):
+				
 				os = (-(dms[2]/2), (dms[3]/2)+2.5)
 			else:
 				os = (0,0)
 			
 			for fc in fb:
 				if (fa in ["left", "right"]):
+					ro = 0
 					os = (os[0], (-dms[3] /2) + ((ct+1) / (ln+1) * dms[3]))
 				if (fa in ["top", "bottom"]):
+					ro=90
 					os = ((-dms[2] /2) + ((ct+1) / (ln+1) * dms[2]), os[1])
 				lf = dms[0] + os[0]
 				tp = dms[1] + os[1]
@@ -171,7 +220,9 @@ class diagram():
 					op = dr.create_rectangle(lf-2.5, tp-2.5, lf + 2.5, tp+2.5, outline=c)
 					dr.addtag_withtag("_conn", op)
 					dr.addtag_withtag(fc, op)
-				#print(p)
+					if (self.conn_labelling.get()):
+						dr.create_text(lf+to[0],tp+to[1],text=fc,font=('Arial',2),angle=ro,anchor=an)
+				#print(fc)
 				ct += 1
 				outmap[fc] = (lf,tp)
 
