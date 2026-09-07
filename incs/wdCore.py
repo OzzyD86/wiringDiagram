@@ -99,11 +99,6 @@ class wdCore():
 		self.dia.getDevice(obj).addConnector(cName, proto, dir)
 		self.struct.set_changed()
 
-	def deleteConnector(self, dev, conn):
-		self.dia.getDevice(dev).delConnector(conn)
-		self.struct.cur.execute("delete from conns where dName = ? and cName = ?", 
-			(dev, conn))
-			
 	def addWire(self, devIn, conIn, devOut, conOut):
 		self.struct.cur.execute("insert into wire (devIn,connIn,devOut,connOut) values (?,?,?,?)",
 			(devIn, conIn, devOut, conOut))
@@ -129,26 +124,9 @@ class wdCore():
 		self.struct.set_changed()
 		k = self.struct.cur.lastrowid
 		self.dia.addWaypoint(k, hName, coords)
-		return True
-		
-	def updateWaypoint(self,wid,loc):
-		
-		for i,j in self.dia.wp.items():
-			if (j["name"] == wid):
-				#print(obj, j["name"], i)
-				o = i
-				
-		if (o not in self.dia.wp):
-			return False
-			
-		d = self.dia.wp[o]
-		d['loc'] = (loc)
-	
-		self.struct.cur.execute("update waypoints set x = ?, y = ? where id = ?",
-			(loc[0], loc[1], o)
-		)
-		return True
-		
+		#if (i["left"] is not None):
+		#self.dia.locateDevice(mName, (coords[0],coords[1]),(coords[2], coords[3]))
+
 	def deleteWaypoint(self,wid):
 		for i,j in self.dia.wp.items():
 			if (j['name'] == wid):
@@ -157,4 +135,3 @@ class wdCore():
 		del self.dia.wp[a]
 		self.struct.cur.execute("delete from waypoints where name = ?", (wid,))
 		self.struct.set_changed()
-		return True

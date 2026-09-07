@@ -3,7 +3,6 @@ import tkinter.ttk as ttk
 from incs.wdCore import wdCore
 from widgets.connector_points import connector_points
 from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
-import tkinter.messagebox
 
 class wdTk():
 	def resize_canvas(self, event):
@@ -19,7 +18,6 @@ class wdTk():
 		self._open_file = None
 		
 		self.window = Tk.Tk()
-		
 		self.window.title(self.app_name)
 		self.core = wdCore(self.window)
 		self.window.protocol('WM_DELETE_WINDOW', self.quit)
@@ -49,8 +47,7 @@ class wdTk():
 			"delete": Tk.Menu(),
 			"export": Tk.Menu()
 		}
-		self.sc = Tk.IntVar()
-		self.sc.set(1)
+	
 		mf = self.menu["file"]
 		mf.add_command(label="New", command= self.file_new)
 		mf.add_separator()
@@ -91,21 +88,10 @@ class wdTk():
 		self.wp_labels = Tk.BooleanVar()
 		self.wp_labels.set(False)
 		self.wp_labels.trace('w', self.set_export_vars)
-		self.conn_labelling = Tk.BooleanVar()
-		self.conn_labelling.set(False)
-		self.conn_labelling.trace('w', self.set_export_vars)
-		self.core.dia.conn_labelling.trace('w', self.set_export_vars)
-		
-		self.scale = Tk.Menu()
-		self.scale.add_checkbutton(label="1x", onvalue=1,variable=self.sc)
-		self.scale.add_checkbutton(label="2x", onvalue=2,variable=self.sc)
-		self.sc.trace('w', self.set_export_vars)
 		
 		#self.wp_labelling = False
 		self.menu["export"].add_checkbutton(label="Honour waypoints", onvalue=True, offvalue=False, variable=self.waypointing)
 		self.menu["export"].add_checkbutton(label="Show waypoint labels", onvalue=True, offvalue=False, variable=self.wp_labels)
-		self.menu["export"].add_checkbutton(label="Show connector labels", onvalue=True, offvalue=False, variable=self.conn_labelling)
-		self.menu["export"].add_cascade(label="Scale...", menu= self.scale)
 		self.menu["export"].add_separator()
 		self.menu["export"].add_command(label="PNG", command=self.export_png)
 
@@ -121,7 +107,6 @@ class wdTk():
 	def set_export_vars(self, *args, **kwargs):
 		self.core.dia.waypointing = self.waypointing
 		self.core.dia.wp_labelling = self.wp_labels
-		self.core.dia.conn_labelling = self.conn_labelling
 		self.redraw()
 	#	print(self.wp_labels.get())
 		pass
@@ -284,14 +269,10 @@ class wdTk():
 		self.dhName = Tk.StringVar(self.aw)
 		ComboEntryWidget(self.aw, text="Machine Name", variable=self.dhName, values=VALUES).grid()		
 
+		#Tk.Label(self.aw, text="Human Name").grid()
+		#Tk.Entry(self.aw, textvariable= self.hName).grid()
 		Tk.Button(self.aw, text="Delete", command=self.devDelComplete).grid()
 
-	def file_save(self):
-		self.core.struct.store.commit() # That needs moving
-		self.core.struct.clear_changed()
-		self.updateWindowTitle()
-		pass
-		
 	def devDelComplete(self):
 		
 		# Load the objects
@@ -299,7 +280,7 @@ class wdTk():
 		
 		# Find the object
 		if not self.dhName.get() in VALUES:
-			Tk.messagebox.showerror(title="No device", message="No.")
+			tkinter.messagebox.showerror(title="No device", message="No.")
 			return False
 			
 		obj = KEYS[VALUES.index(self.dhName.get())]
@@ -344,10 +325,7 @@ class wdTk():
 
 	def connAddComplete(self):
 		KEYS, VALUES = self.getKeys()
-		if not self.mhName.get() in VALUES:
-			Tk.messagebox.showerror(title="No device", message="No.")
-			return False
-			
+	
 		obj = KEYS[VALUES.index(self.mhName.get())]
 		if (self.cName.get() in self.core.dia.getDevice(obj).connectors.keys()):
 			Tk.messagebox.showerror(title="Cannot add plug", message="The name of the plug is already in use for this device.")
@@ -400,8 +378,10 @@ class wdTk():
 		#	self.outdName.get(), self.outcName.get())
 		objIn = KEYS[VALUES.index(self.outdName.get())]
 
-		self.core.deleteConnector(objIn, self.outcName.get())
-		
+		self.core.dia.getDevice(objIn).delConnector(self.outcName.get())
+		self.core.struct.cur.execute("delete from conns where dName = ? and cName = ?", 
+			(objIn, self.outcName.get())
+		)
 		#self.core.addWire(objOut, self.outcName.get(), objIn, self.incName.get())
 		self.updateWindowTitle()
 		
@@ -427,6 +407,7 @@ class wdTk():
 			command = lambda *a, b = aa.box: self.setM(i = self.outdName.get(), o = b)).grid()
 		aa.grid()
 
+
 		bb = ComboEntryWidget(self.aw, text="Output Machine Name", state='disabled', variable=self.incName)
 
 		ComboEntryWidget(self.aw, text="Input Machine Name", variable=self.indName, values=VALUES, 
@@ -440,14 +421,6 @@ class wdTk():
 			
 		#print(self.indName.get(), self.incName.get(),
 		#	self.outdName.get(), self.outcName.get())
-		if (self.indName.get() not in VALUES):
-			tkinter.messagebox.showwarning(title="Cannot select device", message="Please select a valid output device.")
-			return
-			
-		if (self.outdName.get() not in VALUES):
-			tkinter.messagebox.showwarning(title="Cannot select device", message="Please select a valid input device.")
-			return
-			
 		objIn = KEYS[VALUES.index(self.indName.get())]
 		objOut = KEYS[VALUES.index(self.outdName.get())]
 
@@ -497,10 +470,9 @@ class wdTk():
 		Tk.Button(self.aw, text="Add", command=self.waypointAddComplete).grid()
 
 	def waypointAddComplete(self):
-		for i in self.core.dia.wp.values():
-			if (self.wName.get() == i["name"]):
-				tkinter.messagebox.showerror(title="Cannot add waypoint", message="The name of the waypoint is already in use.")
-				return False
+		#if (self.mName.get() in self.core.dia.listDevices()):
+		#	tkinter.messagebox.showerror(title="Cannot add device", message="The name of the device is already in use.")
+		#	return False
 		
 		self.core.addWaypoint(
 			self.wName.get(),
@@ -513,17 +485,24 @@ class wdTk():
 	# == Editing
 	
 	def setwName(self, *nope):
+		#VALUES = []
+		#self.aw = Tk.Tk()
+		#for i,j in self.core.dia.wp.items():
+		#	VALUES.append(j["name"])
 		
 		obj = self.wName.get()
-		#print(obj)
+		print(obj)
 		for i,j in self.core.dia.wp.items():
 			if (j["name"] == obj):
-				#print(obj, j["name"], i)
+				print(obj, j["name"], i)
 				o = i
 		d = self.core.dia.wp[o]
 		#print(d)
 		self.top.set(d["loc"][1])
 		self.left.set(d["loc"][0])
+		#self.width.set(width)
+		#self.height.set(height)
+		#print(d.locs)
 		
 	def waypointEditWin(self):
 		#if (len(self.core.dia.listDevices())== 0):
@@ -536,6 +515,8 @@ class wdTk():
 	
 		self.top = Tk.StringVar(self.aw)
 		self.left = Tk.StringVar(self.aw)
+		#self.width = Tk.StringVar(self.aw)
+		#self.height = Tk.StringVar(self.aw)
 		self.wName = Tk.StringVar(self.aw)
 		
 		ComboEntryWidget(self.aw, text="Edit Waypoint", variable=self.wName, values=VALUES, 
@@ -552,10 +533,26 @@ class wdTk():
 
 	def waypointEditComplete(self):
 		obj = self.wName.get()
-		#print(obj)
-	
-		print(self.core.updateWaypoint(obj, (self.left.get(), self.top.get())))
+		print(obj)
+		for i,j in self.core.dia.wp.items():
+			if (j["name"] == obj):
+				print(obj, j["name"], i)
+				o = i
+		d = self.core.dia.wp[o]
 		
+		self.core.dia.wp[o]['loc'] = (self.left.get(), self.top.get())
+		'''KEYS, VALUES = self.getKeys()
+		obj = KEYS[VALUES.index(self.mName.get())]
+		
+		self.core.updateDevice(obj,
+			(int(self.left.get()),
+			int(self.top.get()), 
+			int(self.width.get()), 
+			int(self.height.get()))
+		)'''
+		self.core.struct.cur.execute("update waypoints set x = ?, y = ? where id = ?",
+			(self.left.get(), self.top.get(), o)
+		)
 		self.canvas.config(scrollregion=(self.core.dia.bounds))
 		self.updateWindowTitle()
 
@@ -764,17 +761,6 @@ class wdTk():
 				
 	def redraw(self):
 		d = self.core.dia
-		q = d.bbox()
-		q2 = []
-		t= 0
-		for i in q:
-			if (t in [0, 1]):
-				a = -10
-			else:
-				a = 10
-			q2.append((i * self.sc.get()) + a)
-		
-		#q2 = [q2[1], q2[0], q2[3], q2[2]]
 		a = d.buildWaypointLists()
 		#print(a)
 		olines = {}
@@ -845,9 +831,7 @@ class wdTk():
 				self.canvas.create_text(j["loc"][0],j["loc"][1],text=j["name"],font=('Arial',4))
 
 		#	print(i,j)
-		self.canvas.scale("all", 0,0, self.sc.get(), self.sc.get())
-		self.canvas.config(scrollregion=(q2))
-		
+			
 	def export_png(self):
 		files = [#('All Files', '*.*'), 
 			 ('Portable Network Graphics', '*.png')]
