@@ -9,6 +9,13 @@ class device():
 	#def createNewWithWindow(self, 
 	pass
 
+class inputDialog(Tk.Toplevel):
+	def __init__(self, master, data={}, **kwargs):
+		self.vars = {}
+		super().__init__(master, **kwargs)
+		for i, j in data.items():
+			self.vars[i] = Tk.StringVar(self)
+			
 class wdTk():
 	def resize_canvas(self, event):
    
@@ -171,7 +178,7 @@ class wdTk():
 	# == Device Adding
 
 	def dupDevAddWin(self):
-		self.aw = Tk.Tk()
+		self.aw = Tk.Toplevel()
 
 		KEYS, VALUES = self.getKeys()
 
@@ -212,8 +219,12 @@ class wdTk():
 		self.redraw()
 
 	def devAddWin(self, event = None):
-		print(event)
-		self.aw = Tk.Toplevel()
+		self.aw = inputDialog(self.window, data={
+			"mName": {
+			},
+		})
+		#print(event)
+		#self.aw = Tk.Toplevel()
 		self.mName = Tk.StringVar(self.aw)
 		self.hName = Tk.StringVar(self.aw)
 		self.x = Tk.StringVar(self.aw)
@@ -638,7 +649,7 @@ class wdTk():
 		self.b["values"] = list(p.values())
 		
 	def routeAddWin(self):
-		self.aw = Tk.Tk()
+		self.aw = Tk.Toplevel()
 		VALUES = []
 		for i,j in self.core.dia.conns.items():
 			#print(i,j)
