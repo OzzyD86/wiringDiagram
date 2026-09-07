@@ -2,6 +2,8 @@ from incs.diagram import diagram
 from dev import device
 from incs.diagramStructure import diagramStructure
 
+from incs.wire import wire
+
 class wdCore():
 	
 	def __init__(self, x = None):
@@ -15,6 +17,7 @@ class wdCore():
 		return 2
 		
 	def open_file(self, file):
+		
 		f = diagramStructure(file)
 		f.build()
 		if (f.check_version() < self.check_current_version()):
