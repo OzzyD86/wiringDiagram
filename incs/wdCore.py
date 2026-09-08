@@ -2,6 +2,8 @@ from incs.diagram import diagram
 from dev import device
 from incs.diagramStructure import diagramStructure
 
+from incs.wire import wire
+
 class wdCore():
 	
 	def __init__(self, x = None):
@@ -15,6 +17,7 @@ class wdCore():
 		return 2
 		
 	def open_file(self, file):
+		
 		f = diagramStructure(file)
 		f.build()
 		if (f.check_version() < self.check_current_version()):
@@ -115,6 +118,17 @@ class wdCore():
 		)
 		self.struct.set_changed()
 
+	def deleteWireByID(self, id):
+		raise Exception("Not working yet")
+		self.struct.cur.execute("delete from wire where id = ?",
+			(id))
+			
+		#self.struct.cur.execute("delete from wire where DevIn = ? and ConnIn = ?",
+		#	(obj, conn))
+			
+		self.dia.deleteConnectionByID(int(a))
+		self.struct.set_changed()
+		
 	def deleteWire(self, obj, conn):
 		self.struct.cur.execute("delete from wire where DevOut = ? and ConnOut = ?",
 			(obj, conn))

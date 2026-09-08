@@ -9,6 +9,19 @@ class device():
 	#def createNewWithWindow(self, 
 	pass
 
+class inputDialog(Tk.Toplevel):
+	def __init__(self, master, data={}, **kwargs):
+		self.vars = {}
+		super().__init__(master, **kwargs)
+		for i, j in data.items():
+			self.vars[i] = Tk.StringVar(self)
+			if ("value" in j):
+				self.vars[i].set(j["value"])
+			if (j["type"] in ["Entry"]):
+				EntryWidget(self, text=j["name"], variable=self.vars[i]).grid(padx=5, pady=(5,0))
+			elif (j["type"] in ["Combo"]):
+				ComboEntryWidget(self, text=j["name"], variable=self.vars[i], values=j['values'], command= j["onUpdate"]).grid()		
+	
 class wdTk():
 	def resize_canvas(self, event):
    
@@ -162,8 +175,9 @@ class wdTk():
 		VALUES = []
 		#self.core.dia = d # WTF 
 		for i in self.core.dia.listDevices():
+			q = self.core.dia.dev[i].name
 			KEYS.append(i)
-			VALUES.append(i + " (" + i + ")")
+			VALUES.append(q + " (" + i + ")")
 		return (KEYS, VALUES)
 	
 	## === Do Device Management
@@ -171,7 +185,7 @@ class wdTk():
 	# == Device Adding
 
 	def dupDevAddWin(self):
-		self.aw = Tk.Tk()
+		self.aw = Tk.Toplevel()
 
 		KEYS, VALUES = self.getKeys()
 
@@ -212,19 +226,30 @@ class wdTk():
 		self.redraw()
 
 	def devAddWin(self, event = None):
-		print(event)
-		self.aw = Tk.Toplevel()
-		self.mName = Tk.StringVar(self.aw)
-		self.hName = Tk.StringVar(self.aw)
-		self.x = Tk.StringVar(self.aw)
-		self.y = Tk.StringVar(self.aw)
+		self.aw = inputDialog(self.window, data={
+			"mName": {
+				"type" : "Entry",
+				"name" : "New Machine Name",
+			},
+			"hName": {
+				"type" : "Entry",
+				"name" : "Human Name",
+			},
+			"x": {
+				"type" : "Entry",
+				"name" : "X Position",
+			},
+			"y": {
+				"type" : "Entry",
+				"name" : "Y Position",
+			},
+		})
+	
+		for i in list(self.aw.vars.keys()):
+			setattr(self, i, self.aw.vars[i])
 		if (event is not None):
 			self.x.set(event.x)
 			self.y.set(event.y)
-		EntryWidget(self.aw, text="New Machine Name", variable=self.mName).grid(padx=5, pady=(5,0))
-		EntryWidget(self.aw, text="Human Name", variable=self.hName).grid(padx=5, pady=(5,0))
-		EntryWidget(self.aw, text="X position", variable=self.x).grid(padx=5, pady=(5,0))
-		EntryWidget(self.aw, text="Y position", variable=self.y).grid(padx=5, pady=(5,0))
 		Tk.Button(self.aw, text="Add", command=self.devAddComplete).grid(padx=5, pady=(5,0))
 
 	def devAddComplete(self):
@@ -247,22 +272,34 @@ class wdTk():
 			Tk.messagebox.showerror(title="No devices", message="There are no devices to edit.")
 			return False
 			
-		self.aw = Tk.Tk()
 		KEYS, VALUES = self.getKeys()
-	
-		self.top = Tk.StringVar(self.aw)
-		self.left = Tk.StringVar(self.aw)
-		self.width = Tk.StringVar(self.aw)
-		self.height = Tk.StringVar(self.aw)
-		self.mName = Tk.StringVar(self.aw)
-		#Tk.Label(self.aw, text="Edit Machine").grid()
-		#a = ttk.Combobox(self.aw, state='readonly', textvariable= self.mName, values=VALUES).grid()
-
-		ComboEntryWidget(self.aw, text="Edit Machine", variable=self.mName, values=VALUES, command= self.setmName).grid()		
-		EntryWidget(self.aw, text="Top", variable=self.top).grid()
-		EntryWidget(self.aw, text="Left", variable=self.left).grid()
-		EntryWidget(self.aw, text="Width", variable=self.width).grid()
-		EntryWidget(self.aw, text="Height", variable=self.height).grid()
+		
+		self.aw = inputDialog(self.window, data={
+			"mName":{
+				"type" : "Combo",
+				"name": "Edit Machine",
+				"values": VALUES,
+				"onUpdate": self.setmName
+			},
+			"top": {
+				"type": "Entry",
+				"name": "Top"
+			},
+			"left": {
+				"type": "Entry",
+				"name": "Left"
+			},
+			"width": {
+				"type": "Entry",
+				"name": "Width"
+			},
+			"height": {
+				"type": "Entry",
+				"name": "Height"
+			}
+		})
+		for i in list(self.aw.vars.keys()):
+			setattr(self, i, self.aw.vars[i])
 
 		Tk.Button(self.aw, text="Add", command=self.devEditComplete).grid()
 
@@ -399,7 +436,6 @@ class wdTk():
 		#Tk.Label(self.aw, text="Machine Name").grid()
 		#a = ttk.Combobox(self.aw, state='readonly', textvariable= self.outdName, values=VALUES).grid()
 		
-		
 		#Tk.Label(self.aw, text="Connection Name").grid()
 		#self.b = ttk.Combobox(self.aw, state='disabled', textvariable= self.outcName)
 		self.b.grid()
@@ -475,12 +511,12 @@ class wdTk():
 	# = Wire Deleting
 	
 	def wireDelWin(self):
-		self.aw = Tk.Tk()
+		self.aw = Tk.Toplevel()
 		KEYS, VALUES = self.getKeys()
 		
 		self.a = connector_points(self.aw, self.core.dia)
-		self.a.pass_machines(self.getKeys()).go().grid()
-		
+		self.a.pass_machines(self.getKeys()).go().grid(sticky="news")
+		self.aw.columnconfigure(0, weight=1)
 		#self.mName.trace('w', self.setM2)
 		Tk.Button(self.aw, text="Delete", command=self.wireDelComplete).grid()
 
@@ -488,9 +524,13 @@ class wdTk():
 		KEYS, VALUES = self.getKeys()
 		
 		o = self.a.get()
-		obj = KEYS[VALUES.index(o[0].get())]
+		#Tk.messagebox.showerror("", o[2]["values"][0])
 
-		self.core.deleteWire(obj, o[1].get())
+		obj = KEYS[VALUES.index(o[0])]
+		#Tk.messagebox.showerror("Yes", "Yes")
+
+		self.core.deleteWire(obj, o[1])
+		#self.core.deleteWireByID(int(o[2]["values"][0]))
 		self.updateWindowTitle()
 		self.redraw()
 		self.aw.destroy()
@@ -638,7 +678,7 @@ class wdTk():
 		self.b["values"] = list(p.values())
 		
 	def routeAddWin(self):
-		self.aw = Tk.Tk()
+		self.aw = Tk.Toplevel()
 		VALUES = []
 		for i,j in self.core.dia.conns.items():
 			#print(i,j)
@@ -659,6 +699,7 @@ class wdTk():
 
 		ComboEntryWidget(self.aw, text="Select Waypoint", variable=self.wpn, values=p).grid()
 		#c = ttk.Combobox(self.aw, state='readonly', textvariable= self.wpn, values=p).grid()
+		
 		
 		Tk.Button(self.aw, text="Add", command=self.routeAddComplete).grid()
 		
