@@ -685,7 +685,7 @@ class wdTk():
 		out = {}
 		#print(args, kwargs)
 		#print(self.core.dia.cwps)
-		p = int(args[1].get().strip("(").split(")")[0])	# Oh this is just horrible!!
+		p = self.w.get_key_of_value(args[1].get()) # int(args[1].get().strip("(").split(")")[0])	# Oh this is just horrible!!
 		if (p in self.core.dia.cwps):
 			for i in self.core.dia.cwps[p]:
 				#print("(" + str(stpos) + ") - " + str(st) + " -> " + str(i))
@@ -702,11 +702,11 @@ class wdTk():
 		
 	def routeAddWin(self):
 		self.aw = Tk.Toplevel(self.window)
-		VALUES = []
+		VALUES = {}
 		
 		for i,j in self.core.dia.conns.items():
 			print(i,j)
-			VALUES.append("(" + str(i) + "), Connecting " + j[0][0] + " via " + j[0][1] + " to " + j[1][0] + " via " + j[1][1])
+			VALUES[i] = "(" + str(i) + "), Connecting " + j[0][0] + " via " + j[0][1] + " to " + j[1][0] + " via " + j[1][1]
 		#KEYS, VALUES = self.getKeys()
 	
 		self.wire = Tk.StringVar(self.aw)
@@ -716,8 +716,9 @@ class wdTk():
 
 		self.cb_pos = ComboEntryWidget(self.aw, text="Position", state='disabled', variable=self.pos)
 
-		ComboEntryWidget(self.aw, text="Select Wire Id", variable=self.wire, values=VALUES,
-			command = lambda *a : self.help("update", self.wire)).grid(sticky='news', padx =5)
+		self.w = ComboEntryWidget(self.aw, text="Select Wire Id", variable=self.wire, values=VALUES,
+			command = lambda *a : self.help("update", self.wire))
+		self.w.grid(sticky='news', padx =5)
 		self.aw.columnconfigure(0, weight = 1)
 
 		p = []
