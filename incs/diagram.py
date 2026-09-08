@@ -125,6 +125,8 @@ class diagram():
 		
 		for i in self.wp.items():
 			e =(i[1]["loc"])
+			#print(e)
+			#print(bbox)
 			#e = i[1]
 			if (e[0] < bbox[0]):
 				bbox[0] = e[0]

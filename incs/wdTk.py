@@ -609,7 +609,7 @@ class wdTk():
 	def waypointEditComplete(self):
 		obj = self.wName.get()
 
-		print(self.core.updateWaypoint(obj, (self.left.get(), self.top.get())))
+		#print(self.core.updateWaypoint(obj, (int(self.left.get()), int(self.top.get()))))
 		
 		self.canvas.config(scrollregion=(self.core.dia.bounds))
 		self.updateWindowTitle()
