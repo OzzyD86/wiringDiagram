@@ -175,8 +175,9 @@ class wdTk():
 		VALUES = []
 		#self.core.dia = d # WTF 
 		for i in self.core.dia.listDevices():
+			q = self.core.dia.dev[i].name
 			KEYS.append(i)
-			VALUES.append(i + " (" + i + ")")
+			VALUES.append(q + " (" + i + ")")
 		return (KEYS, VALUES)
 	
 	## === Do Device Management
@@ -510,12 +511,12 @@ class wdTk():
 	# = Wire Deleting
 	
 	def wireDelWin(self):
-		self.aw = Tk.Tk()
+		self.aw = Tk.Toplevel()
 		KEYS, VALUES = self.getKeys()
 		
 		self.a = connector_points(self.aw, self.core.dia)
-		self.a.pass_machines(self.getKeys()).go().grid()
-		
+		self.a.pass_machines(self.getKeys()).go().grid(sticky="news")
+		self.aw.columnconfigure(0, weight=1)
 		#self.mName.trace('w', self.setM2)
 		Tk.Button(self.aw, text="Delete", command=self.wireDelComplete).grid()
 
