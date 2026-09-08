@@ -517,9 +517,9 @@ class wdTk():
 		
 		self.a = connector_points(self.aw, self.core.dia)
 		self.a.pass_machines(self.getKeys()).go().grid(sticky="news")
+		Tk.Button(self.aw, text="Delete", command=self.wireDelComplete).grid(sticky='swen')
 		self.aw.columnconfigure(0, weight=1)
 		#self.mName.trace('w', self.setM2)
-		Tk.Button(self.aw, text="Delete", command=self.wireDelComplete).grid()
 
 	def wireDelComplete(self):
 		KEYS, VALUES = self.getKeys()
@@ -530,8 +530,8 @@ class wdTk():
 		obj = KEYS[VALUES.index(o[0])]
 		#Tk.messagebox.showerror("Yes", "Yes")
 
-		self.core.deleteWire(obj, o[1])
-		#self.core.deleteWireByID(int(o[2]["values"][0]))
+		#self.core.deleteWire(obj, o[1])
+		self.core.deleteWireByID(int(o[2]["values"][0]))
 		self.updateWindowTitle()
 		self.redraw()
 		self.aw.destroy()
@@ -608,8 +608,7 @@ class wdTk():
 
 	def waypointEditComplete(self):
 		obj = self.wName.get()
-		#print(obj)
-	
+
 		print(self.core.updateWaypoint(obj, (self.left.get(), self.top.get())))
 		
 		self.canvas.config(scrollregion=(self.core.dia.bounds))
@@ -683,17 +682,14 @@ class wdTk():
 		en = "END"
 		stpos = 1
 		out = {}
-		#print(args, kwargs)
-		#print(self.core.dia.cwps)
-		p = self.w.get_key_of_value(args[1].get()) # int(args[1].get().strip("(").split(")")[0])	# Oh this is just horrible!!
+		
+		p = self.w.get_key_of_value(args[1].get()) # That's prettier
 		if (p in self.core.dia.cwps):
 			for i in self.core.dia.cwps[p]:
-				#print("(" + str(stpos) + ") - " + str(st) + " -> " + str(i))
 				out[stpos] = "(" + str(stpos) + ") " + str(st) + " -> " + str(i)
 				st = i
 				stpos += 1
-				#print(i)
-		#print("(" + str(stpos) + ") - " + str(st) + " -> " + en)
+
 		out[stpos] = "(" + str(stpos) + ") " + str(st) + " -> " + str(en)
 		print(list(out.values()))
 		self.cb_pos.setValues(list(out.values()))
@@ -712,7 +708,6 @@ class wdTk():
 		self.wire = Tk.StringVar(self.aw)
 		self.pos = Tk.StringVar(self.aw)
 		self.wpn = Tk.StringVar(self.aw)
-		#self.outcName = Tk.StringVar(self.aw)
 
 		self.cb_pos = ComboEntryWidget(self.aw, text="Position", state='disabled', variable=self.pos)
 
@@ -728,12 +723,6 @@ class wdTk():
 		ComboEntryWidget(self.aw, text="Select Waypoint", variable=self.wpn, values=p).grid(sticky='news', padx=5)
 		
 		self.cb_pos.grid(sticky='swen')
-		#ComboEntryWidget(self.aw, text="Output Machine Name", variable=self.outdName, values=VALUES, 
-		#	command = lambda *a, b = aa.box: self.setM(i = self.outdName.get(), o = b)).grid()
-		#aa.grid()
-
-		#c = ttk.Combobox(self.aw, state='readonly', textvariable= self.wpn, values=p).grid()
-		
 		
 		Tk.Button(self.aw, text="Add", command=self.routeAddComplete).grid()
 		
@@ -755,11 +744,8 @@ class wdTk():
 		r = q.fetchone()
 		s = dict(r)
 		
-		ord = int(self.pos.get().strip("(").split(")")[0])
-		#if (s["o"] is None):
-		#	ord = 1
-		#else:
-		#	ord = s["o"] + 1
+		ord = int(self.pos.get().strip("(").split(")")[0]) # Update with prettier way>
+
 		self.core.dia.addConnectionWaypoint(
 			wire,
 			wpn,
@@ -1016,5 +1002,3 @@ class wdTk():
 			self.updateWindowTitle()
 			self.core.struct.clear_changed()
 			
-			#print("Yes")
-		#print(type(a), a)

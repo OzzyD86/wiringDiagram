@@ -111,7 +111,7 @@ class wdCore():
 	def addWire(self, devIn, conIn, devOut, conOut):
 		self.struct.cur.execute("insert into wire (devIn,connIn,devOut,connOut) values (?,?,?,?)",
 			(devIn, conIn, devOut, conOut))
-		print(self.struct.cur.lastrowid)
+		#print(self.struct.cur.lastrowid)
 		self.dia.addConnection(self.struct.cur.lastrowid, 
 			(devIn, conIn),
 			(devOut, conOut)
@@ -119,14 +119,15 @@ class wdCore():
 		self.struct.set_changed()
 
 	def deleteWireByID(self, id):
-		raise Exception("Not working yet")
+		#raise Exception("Not working yet")
+		print(id)
 		self.struct.cur.execute("delete from wire where id = ?",
-			(id))
+			(id,))
 			
 		#self.struct.cur.execute("delete from wire where DevIn = ? and ConnIn = ?",
 		#	(obj, conn))
 			
-		self.dia.deleteConnectionByID(int(a))
+		self.dia.deleteConnectionByID(int(id))
 		self.struct.set_changed()
 		
 	def deleteWire(self, obj, conn):
