@@ -60,7 +60,7 @@ class wdCore():
 				(i["x"], i["y"])
 				#(i["devIn"], i["ConnIn"])
 			)
-		for i in resource.cur.execute("select * from wp_ls"):
+		for i in resource.cur.execute("select * from wp_ls order by wire_id asc, `ord` asc"):
 			self.dia.addConnectionWaypoint(
 				i["wire_id"], i["wp_id"], i["ord"]
 			)

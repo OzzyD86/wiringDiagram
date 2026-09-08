@@ -3,8 +3,8 @@ from PIL import Image, ImageDraw, ImageFont
 import tkinter as Tk
 
 i18n = {
-	"font_small" : ('Arial', 2),
-	"font_large" : ('Arial', 4)
+	"font_small" : ('Arial', 6),
+	"font_large" : ('Arial', 8)
 }
 class diagram():
 	def __init__(self):
@@ -25,6 +25,7 @@ class diagram():
 		pass
 	
 	def addConnectionWaypoint(self, conn, wpid, order):
+		# THIS WILL NOT WORK! If any values have an order >= order above, then they'll need shifting!
 		if (conn in self.cwps):
 			self.cwps[conn].append({ "wpid" : wpid, "order": order})
 		else:

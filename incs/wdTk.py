@@ -18,10 +18,11 @@ class inputDialog(Tk.Toplevel):
 			if ("value" in j):
 				self.vars[i].set(j["value"])
 			if (j["type"] in ["Entry"]):
-				EntryWidget(self, text=j["name"], variable=self.vars[i]).grid(padx=5, pady=(5,0))
+				EntryWidget(self, text=j["name"], variable=self.vars[i]).grid(padx=5, pady=(5,0), sticky='nsew')
 			elif (j["type"] in ["Combo"]):
-				ComboEntryWidget(self, text=j["name"], variable=self.vars[i], values=j['values'], command= j["onUpdate"]).grid()		
-	
+				ComboEntryWidget(self, text=j["name"], variable=self.vars[i], values=j['values'], command= j["onUpdate"]).grid(sticky='nsew')		
+		self.columnconfigure(0, weight=0)
+		
 class wdTk():
 	def resize_canvas(self, event):
    
@@ -250,7 +251,7 @@ class wdTk():
 		if (event is not None):
 			self.x.set(event.x)
 			self.y.set(event.y)
-		Tk.Button(self.aw, text="Add", command=self.devAddComplete).grid(padx=5, pady=(5,0))
+		Tk.Button(self.aw, text="Add", command=self.devAddComplete).grid(padx=5, pady=(5,0), sticky='nsew')
 
 	def devAddComplete(self):
 		if (self.mName.get() in self.core.dia.listDevices()):
@@ -676,13 +677,36 @@ class wdTk():
 			print("Blank")
 		self.b['state']='readonly'
 		self.b["values"] = list(p.values())
+	
+	def help(self, *args, **kwargs):
+		st = "START"
+		en = "END"
+		stpos = 1
+		out = {}
+		#print(args, kwargs)
+		#print(self.core.dia.cwps)
+		p = int(args[1].get().strip("(").split(")")[0])	# Oh this is just horrible!!
+		if (p in self.core.dia.cwps):
+			for i in self.core.dia.cwps[p]:
+				#print("(" + str(stpos) + ") - " + str(st) + " -> " + str(i))
+				out[stpos] = "(" + str(stpos) + ") " + str(st) + " -> " + str(i)
+				st = i
+				stpos += 1
+				#print(i)
+		#print("(" + str(stpos) + ") - " + str(st) + " -> " + en)
+		out[stpos] = "(" + str(stpos) + ") " + str(st) + " -> " + str(en)
+		print(list(out.values()))
+		self.cb_pos.setValues(list(out.values()))
+		#print("I run here?")
+		self.cb_pos.setState("readonly")
 		
 	def routeAddWin(self):
-		self.aw = Tk.Toplevel()
+		self.aw = Tk.Toplevel(self.window)
 		VALUES = []
+		
 		for i,j in self.core.dia.conns.items():
-			#print(i,j)
-			VALUES.append(i)
+			print(i,j)
+			VALUES.append("(" + str(i) + "), Connecting " + j[0][0] + " via " + j[0][1] + " to " + j[1][0] + " via " + j[1][1])
 		#KEYS, VALUES = self.getKeys()
 	
 		self.wire = Tk.StringVar(self.aw)
@@ -690,14 +714,23 @@ class wdTk():
 		self.wpn = Tk.StringVar(self.aw)
 		#self.outcName = Tk.StringVar(self.aw)
 
-		ComboEntryWidget(self.aw, text="Select Wire Id", variable=self.wire, values=VALUES).grid()
+		self.cb_pos = ComboEntryWidget(self.aw, text="Position", state='disabled', variable=self.pos)
+
+		ComboEntryWidget(self.aw, text="Select Wire Id", variable=self.wire, values=VALUES,
+			command = lambda *a : self.help("update", self.wire)).grid(sticky='news', padx =5)
+		self.aw.columnconfigure(0, weight = 1)
 
 		p = []
 		for i,j in self.core.dia.wp.items():
 			p.append(j)
-			#print(i,j)
 
-		ComboEntryWidget(self.aw, text="Select Waypoint", variable=self.wpn, values=p).grid()
+		ComboEntryWidget(self.aw, text="Select Waypoint", variable=self.wpn, values=p).grid(sticky='news', padx=5)
+		
+		self.cb_pos.grid(sticky='swen')
+		#ComboEntryWidget(self.aw, text="Output Machine Name", variable=self.outdName, values=VALUES, 
+		#	command = lambda *a, b = aa.box: self.setM(i = self.outdName.get(), o = b)).grid()
+		#aa.grid()
+
 		#c = ttk.Combobox(self.aw, state='readonly', textvariable= self.wpn, values=p).grid()
 		
 		
@@ -705,6 +738,9 @@ class wdTk():
 		
 	def routeAddComplete(self):
 		print(self.wpn.get())
+		
+		wire = int(self.wire.get().strip("(").split(")")[0]) # We NEED a prettier way of doing this!
+#		print("wp:",wp)
 		for i,j in self.core.dia.wp.items():
 			if (self.wpn.get() == str(j)):
 				wpn = i
@@ -713,21 +749,27 @@ class wdTk():
 				print(i,j)
 		q = self.core.struct.cur.execute(
 			"select max(ord) as o from wp_ls where wire_id = ?",
-			(self.wire.get(),)
+			(wire,)
 		)
 		r = q.fetchone()
 		s = dict(r)
-		if (s["o"] is None):
-			ord = 1
-		else:
-			ord = s["o"] + 1
+		
+		ord = int(self.pos.get().strip("(").split(")")[0])
+		#if (s["o"] is None):
+		#	ord = 1
+		#else:
+		#	ord = s["o"] + 1
 		self.core.dia.addConnectionWaypoint(
-			int(self.wire.get()),
+			wire,
 			wpn,
 			ord
 		)
+		self.core.struct.cur.execute("update wp_ls set ord = ord + 1 where wire_id = ? and ord >= ?",
+			(wire, ord)
+		)
+
 		self.core.struct.cur.execute("insert into wp_ls (wire_id, wp_id, ord) values (?,?,?)",
-			(int(self.wire.get()), wpn, ord)
+			(wire, wpn, ord)
 		)
 		pass
 		
