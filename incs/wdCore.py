@@ -117,6 +117,17 @@ class wdCore():
 		)
 		self.struct.set_changed()
 
+	def deleteWireByID(self, id):
+		raise Exception("Not working yet")
+		self.struct.cur.execute("delete from wire where id = ?",
+			(id))
+			
+		#self.struct.cur.execute("delete from wire where DevIn = ? and ConnIn = ?",
+		#	(obj, conn))
+			
+		self.dia.deleteConnectionByID(int(a))
+		self.struct.set_changed()
+		
 	def deleteWire(self, obj, conn):
 		self.struct.cur.execute("delete from wire where DevOut = ? and ConnOut = ?",
 			(obj, conn))
