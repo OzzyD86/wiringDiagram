@@ -80,6 +80,9 @@ class diagram():
 				print("Deleted", i)
 		self.conns = _tmp
 	
+	def deleteConnectionByID(self, a):
+		del self.conns[a]
+		
 	def addConnection(self, id, a, b):
 		if (a[0] not in self.dev):
 			return False
