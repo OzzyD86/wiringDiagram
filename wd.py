@@ -64,8 +64,14 @@ class wdTk(incs.wdTk.wdTk):
 		d.add_command(label="Hello", state="disabled")
 		d.add_command(label=str(self.canvas.find_closest(event.x,event.y)))
 		d.add_separator()
+		tags = []
 		for i in self.canvas.gettags(self.canvas.find_closest(event.x,event.y)):
+			tags.append(i)
 			d.add_command(label=i)
+
+		if ("_dev" in tags):
+			d.add_command(label="Edit device " + str(self.canvas.find_closest(event.x,event.y)[0]))
+			pass
 		d.tk_popup(self.canvas.winfo_rootx()+event.x, self.canvas.winfo_rooty()+event.y)
 		pass
 	

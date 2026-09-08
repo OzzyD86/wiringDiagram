@@ -46,6 +46,7 @@ class wdCore():
 				pass
 				
 		for i in resource.cur.execute("select * from wire"):
+			print(list(i))
 			self.dia.addConnection(i["id"],
 				(i["devIn"], i["ConnIn"]),
 				(i["devOut"], i["ConnOut"])
