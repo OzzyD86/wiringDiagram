@@ -70,5 +70,5 @@ class connector_points(Tk.Frame):
 		
 	def get(self, *args):
 		print (self.mName.get(), self.cName.get(), self.c.item(self.c.focus()))
-		
+		return  (self.mName.get(), self.cName.get(), self.c.item(self.c.selection()[0]))
 	pass
