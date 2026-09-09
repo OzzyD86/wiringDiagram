@@ -7,6 +7,7 @@ from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
 
 class inputDialog(Tk.Toplevel):
 	def __init__(self, master, data={}, **kwargs):
+		self.data = data # This will be useful later!
 		self.vars = {}
 		self.funcs = {}
 		super().__init__(master, **kwargs)
@@ -32,6 +33,7 @@ class inputDialog(Tk.Toplevel):
 		#print("Do stuff here") 
 		for i,j in self.vars.items():
 			if (type(j) is Tk.StringVar):
+				print(self.data[i])
 				snd[i] = j.get()
 			else:
 				print("Slight panic:", i, j)

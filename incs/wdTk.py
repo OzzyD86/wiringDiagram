@@ -210,11 +210,15 @@ class wdTk():
 		self.aw.destroy()
 		self.redraw()
 
-	def alert(self, *args, **kwargs):
+	def alert(self, *args, **kwargs): # For inputDialog testing purposes only. Please don't use for else (oh unless you want to print kwargs and print a warning) and remove after
 		Tk.messagebox.showwarning("Button pressed", "Yes. This is triggered")
 		print(args, kwargs)
-		
+	
+	## >> THESE FUNCTIONS ARE LOVELY FUNCTIONS. THEY WORK WITH NEW INPUTDIALOG AND DON'T BREAK
+	
 	def devAddWin(self, event = None):
+		d = getattr(event, "x", 0)
+		print(d)
 		self.aw = inputDialog(self.window, data={
 			"mName": {
 				"type" : "Entry",
@@ -227,21 +231,16 @@ class wdTk():
 			"x": {
 				"type" : "Entry",
 				"name" : "X Position",
+				"value": getattr(event, "x", 300)
 			},
 			"y": {
 				"type" : "Entry",
 				"name" : "Y Position",
+				"value": getattr(event, "y", 300)
 			},
 		})
 		self.aw.addButton("Add", "add")
 		self.aw.passFunc("add", self.devAddComplete)
-		
-		for i in list(self.aw.vars.keys()):
-			setattr(self, i, self.aw.vars[i])
-		if (event is not None):
-			self.x.set(event.x)
-			self.y.set(event.y)
-		#Tk.Button(self.aw, text="Add", command=self.devAddComplete).grid(padx=5, pady=(5,0), sticky='nsew')
 
 	def devAddComplete(self, **kwargs):
 		if (kwargs['mName'] in self.core.dia.listDevices()):
@@ -256,7 +255,9 @@ class wdTk():
 		#self.aw.destroy()
 		self.redraw()
 		return True
-		
+	
+	## << END LOVELY FUNCTIONS ... FOR NOW!
+	
 	# == Device Editing
 	
 	def devEditWin(self):
@@ -286,30 +287,35 @@ class wdTk():
 				"type": "Entry", "name": "Height"
 			}
 		})
+		self.aw.addButton("Edit", "edit")
+		#self.aw.passFunc("edit", self.alert)
+		self.aw.passFunc("edit", self.devEditComplete)
+		
 		for i in list(self.aw.vars.keys()):
 			setattr(self, i, self.aw.vars[i])
 
-		Tk.Button(self.aw, text="Add", command=self.devEditComplete).grid()
+		#Tk.Button(self.aw, text="Add", command=self.devEditComplete).grid()
 
-	def devEditComplete(self):
+	def devEditComplete(self, **kwargs):
 		KEYS, VALUES = self.getKeys()
-		if (self.mName.get() not in VALUES):
+		if (kwargs['mName'] not in VALUES):
 			Tk.messagebox.showerror(title="Device not found", message="There is no device to edit.")
 			return False
 
-		obj = KEYS[VALUES.index(self.mName.get())]
+		obj = KEYS[VALUES.index(kwargs['mName'])]
 		
 		self.core.updateDevice(obj,
-			(int(self.left.get()),
-			int(self.top.get()), 
-			int(self.width.get()), 
-			int(self.height.get()))
+			(int(kwargs['left']),
+			int(kwargs['top']), 
+			int(kwargs['width']), 
+			int(kwargs['height']))
 		)
 		self.canvas.config(scrollregion=(self.core.dia.bounds))
 		self.updateWindowTitle()
 
-		self.aw.destroy()
+		#self.aw.destroy()
 		self.redraw()
+		return True
 		
 	# == Device Deleting
 	
