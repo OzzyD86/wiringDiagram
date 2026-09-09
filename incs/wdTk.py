@@ -5,23 +5,7 @@ from widgets.connector_points import connector_points
 from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
 import tkinter.messagebox
 
-class device():
-	#def createNewWithWindow(self, 
-	pass
-
-class inputDialog(Tk.Toplevel):
-	def __init__(self, master, data={}, **kwargs):
-		self.vars = {}
-		super().__init__(master, **kwargs)
-		for i, j in data.items():
-			self.vars[i] = Tk.StringVar(self)
-			if ("value" in j):
-				self.vars[i].set(j["value"])
-			if (j["type"] in ["Entry"]):
-				EntryWidget(self, text=j["name"], variable=self.vars[i]).grid(padx=5, pady=(5,0), sticky='nsew')
-			elif (j["type"] in ["Combo"]):
-				ComboEntryWidget(self, text=j["name"], variable=self.vars[i], values=j['values'], command= j["onUpdate"]).grid(sticky='nsew')		
-		self.columnconfigure(0, weight=0)
+from widgets.inputDialog import inputDialog
 		
 class wdTk():
 	def resize_canvas(self, event):
@@ -226,6 +210,10 @@ class wdTk():
 		self.aw.destroy()
 		self.redraw()
 
+	def alert(self, *args, **kwargs):
+		Tk.messagebox.showwarning("Button pressed", "Yes. This is triggered")
+		print(args, kwargs)
+		
 	def devAddWin(self, event = None):
 		self.aw = inputDialog(self.window, data={
 			"mName": {
@@ -245,26 +233,29 @@ class wdTk():
 				"name" : "Y Position",
 			},
 		})
-	
+		self.aw.addButton("Add", "add")
+		self.aw.passFunc("add", self.devAddComplete)
+		
 		for i in list(self.aw.vars.keys()):
 			setattr(self, i, self.aw.vars[i])
 		if (event is not None):
 			self.x.set(event.x)
 			self.y.set(event.y)
-		Tk.Button(self.aw, text="Add", command=self.devAddComplete).grid(padx=5, pady=(5,0), sticky='nsew')
+		#Tk.Button(self.aw, text="Add", command=self.devAddComplete).grid(padx=5, pady=(5,0), sticky='nsew')
 
-	def devAddComplete(self):
-		if (self.mName.get() in self.core.dia.listDevices()):
+	def devAddComplete(self, **kwargs):
+		if (kwargs['mName'] in self.core.dia.listDevices()):
 			tkinter.messagebox.showerror(title="Cannot add device", message="The name of the device is already in use.")
 			return False
 		
 		self.core.addDevice(
-			self.mName.get(), self.hName.get(),
-			(int(self.x.get()),int(self.y.get()),50,50))
+			kwargs['mName'], kwargs['hName'],
+			(int(kwargs['x']),int(kwargs['y']),50,50))
 		
 		self.updateWindowTitle()		
-		self.aw.destroy()
+		#self.aw.destroy()
 		self.redraw()
+		return True
 		
 	# == Device Editing
 	
@@ -283,20 +274,16 @@ class wdTk():
 				"onUpdate": self.setmName
 			},
 			"top": {
-				"type": "Entry",
-				"name": "Top"
+				"type": "Entry", "name": "Top"
 			},
 			"left": {
-				"type": "Entry",
-				"name": "Left"
+				"type": "Entry", "name": "Left"
 			},
 			"width": {
-				"type": "Entry",
-				"name": "Width"
+				"type": "Entry", "name": "Width"
 			},
 			"height": {
-				"type": "Entry",
-				"name": "Height"
+				"type": "Entry", "name": "Height"
 			}
 		})
 		for i in list(self.aw.vars.keys()):
