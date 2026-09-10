@@ -48,7 +48,12 @@ class diagram():
 	def addDevice(self, key, dev):
 		self.dev[key] = dev
 		
-	def listDevices(self):
+	def listDevices(self, rel = False):
+		if (rel):
+			x = {}
+			for i,j in self.dev.items():
+				x[i] = j.name
+			return x
 		return list(self.dev.keys())
 	
 	def locateDevice(self, dName, pos = (0,0), sz = (50,50)):
