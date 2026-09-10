@@ -5,7 +5,7 @@ from widgets.connector_points import connector_points
 from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
 import tkinter.messagebox
 
-from widgets.inputDialog import inputDialog
+from widgets.inputDialog import inputDialog, inputDialog2
 		
 class wdTk():
 	def resize_canvas(self, event):
@@ -259,7 +259,9 @@ class wdTk():
 	## << END LOVELY FUNCTIONS ... FOR NOW!
 	
 	# == Device Editing
-	
+	def example(self, win, val, *args, **kwargs):
+		Tk.messagebox.showerror(args, kwargs)
+		
 	def devEditWin(self):
 		if (len(self.core.dia.listDevices())== 0):
 			Tk.messagebox.showerror(title="No devices", message="There are no devices to edit.")
@@ -267,12 +269,13 @@ class wdTk():
 			
 		KEYS, VALUES = self.getKeys()
 		
-		self.aw = inputDialog(self.window, data={
+		self.aw = inputDialog2(self.window, data={
 			"mName":{
 				"type" : "Combo",
 				"name": "Edit Machine",
 				"values": VALUES,
-				"onUpdate": self.setmName
+				"onUpdate": self.example,
+				"updateVars": (self)
 			},
 			"top": {
 				"type": "Entry", "name": "Top"
@@ -372,19 +375,11 @@ class wdTk():
 		
 		ComboEntryWidget(self.aw, text="Machine Name", variable=self.mhName, values=VALUES).grid()		
 
-#		Tk.Label(self.aw, text="Machine Name").grid()
-#		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.mhName, values=VALUES).grid()
-
 		EntryWidget(self.aw, text="Connection Name", variable=self.cName).grid()
 
 		ComboEntryWidget(self.aw, text="Data Direction", variable=self.ddName, values=["In", "Out", "Both", "None"]).grid()		
 		
-		#Tk.Label(self.aw, text="Data Direction").grid()
-		#a = ttk.Combobox(self.aw, state='readonly', textvariable= self.ddName, values=["In", "Out", "Both", "None"]).grid()
-
 		SpinEntryWidget(self.aw, text="Quantity", min=1, max=32, variable=self.val).grid()
-		#Tk.Label(self.aw, text="Quantity").grid()
-		#Tk.Spinbox(self.aw, from_=1, to=32, textvariable=self.val).grid()
 		
 		Tk.Button(self.aw, text="Add", command=self.connAddComplete).grid()
 
@@ -521,7 +516,7 @@ class wdTk():
 		#Tk.messagebox.showerror("", o[2]["values"][0])
 
 		obj = KEYS[VALUES.index(o[0])]
-		#Tk.messagebox.showerror("Yes", "Yes")
+		#Tk.messagebox.showerror("Yes", o)
 
 		#self.core.deleteWire(obj, o[1])
 		self.core.deleteWireByID(int(o[2]["values"][0]))
@@ -974,7 +969,7 @@ class wdTk():
 		
 	def file_new(self):
 		if (self.core.struct.is_changed()):
-			a = Tk.messagebox.askyesnocancel(title="Unsaved Changed", message="There are unsaved changes. Save before clearing?")
+			a = Tk.messagebox.askyesnocancel(title="Unsaved Changes", message="There are unsaved changes. Save before clearing?")
 			#print(a)
 			if (a is None):
 				return None
@@ -994,4 +989,3 @@ class wdTk():
 			self.redraw()
 			self.updateWindowTitle()
 			self.core.struct.clear_changed()
-			
