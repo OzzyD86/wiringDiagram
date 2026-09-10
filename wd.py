@@ -22,6 +22,13 @@ import tkinter as Tk
 import tkinter.ttk as ttk
 import tkinter.filedialog
 
+from tkinter.messagebox import showerror
+
+def report_callback_exception(self, exc, val, tb):
+	showerror("Error", message=str(val))
+
+#Tk.Tk.report_callback_exception = report_callback_exception
+
 #from incs.wdCore omport wdCore
 
 class pjaDialog():
@@ -83,8 +90,18 @@ class wdTk(incs.wdTk.wdTk):
 		self.left.set(left)
 		self.width.set(width)
 		self.height.set(height)
-		#print(d.locs)
-				
+
+	def setmName2(self, w, val, *args):
+		p = w.data['mName']["obj"].get_key_of_value(args[0])
+		#KEYS, VALUES = self.getKeys()
+		#obj = KEYS[VALUES.index(self.mName.get())]
+		#raise Exception(self.core.dia.locs[p])
+		left, top, width, height = self.core.dia.locs[p]
+		w.set("top", top)
+		w.set("left", left)
+		w.set("width", width)
+		w.set("height", height)
+		
 	def setM2(self, *args):
 		pass
 		
