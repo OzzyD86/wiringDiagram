@@ -299,14 +299,19 @@ class wdTk():
 			setattr(self, i, self.aw.vars[i])
 
 		#Tk.Button(self.aw, text="Add", command=self.devEditComplete).grid()
-
+	
 	def devEditComplete(self, **kwargs):
-		KEYS, VALUES = self.getKeys()
-		if (kwargs['mName'] not in VALUES):
+		KEYS = []
+		VALUES = []
+		p = self.core.dia.listDevices(True)
+		#raise Exception(kwargs["mName"] in p.values())
+		ob = list(p.keys())[list(p.values()).index(kwargs["mName"])]
+		
+		if (kwargs['mName'] not in list(p.values())):
 			Tk.messagebox.showerror(title="Device not found", message="There is no device to edit.")
 			return False
-
-		obj = KEYS[VALUES.index(kwargs['mName'])]
+		
+		obj = ob#KEYS[VALUES.index(kwargs['mName'])]
 		
 		self.core.updateDevice(obj,
 			(int(kwargs['left']),
