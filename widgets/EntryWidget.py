@@ -8,6 +8,7 @@ class EntryWidget(Tk.Frame):
 		Tk.Label(self, text=text).grid(sticky='nesw')
 		Tk.Entry(self, textvariable= variable).grid(sticky='nesw')
 		self.columnconfigure(0, weight=1)
+	#	if (command is not None)
 	pass
 	
 class ComboEntryWidget(Tk.Frame):
@@ -27,7 +28,8 @@ class ComboEntryWidget(Tk.Frame):
 		self.box = ttk.Combobox(self, state=state, textvariable= self.choice, values= ls)
 		self.box.grid(sticky='nesw')
 		if (command is not None):
-			variable.trace('w', command)
+			args = (0, variable)
+			self.choice.trace_add('write', lambda *args: command(*args, master, self.choice.get()))
 		self.columnconfigure(0, weight=1)
 
 	def setState(self, state='readonly'):
