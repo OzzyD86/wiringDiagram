@@ -19,11 +19,14 @@ class inputDialog(Tk.Toplevel):
 				EntryWidget(self, text=j["name"], variable=self.vars[i]).grid(padx=5, pady=(5,0), sticky='nsew')
 			elif (j["type"] in ["Combo"]):
 				ComboEntryWidget(self, text=j["name"], variable=self.vars[i], values=j['values'], command= j["onUpdate"]).grid(sticky='nsew')		
-		self.columnconfigure(0, weight=0)
+		self.columnconfigure(0, weight=1)
 		
 	def addButton(self, title, local_action = "add"):
 		self.funcs[local_action] = []
 		Tk.Button(self, text=title, command=lambda: self.button_press(local_action)).grid(padx=5, pady=(5, 0), sticky='swen')
+	
+	def set(self, op, val):
+		self.vars[op] = val
 		
 	def passFunc(self, loc, func):
 		self.funcs[loc].append(func)
@@ -43,3 +46,23 @@ class inputDialog(Tk.Toplevel):
 		
 		if (t):
 			self.destroy()
+
+class inputDialog2(inputDialog):
+	def __init__(self, master, data={}, **kwargs):
+		self.data = data # This will be useful later!
+		self.vars = {}
+		self.funcs = {}
+		super().__init__(master, **kwargs)
+		for i, j in data.items():
+			self.vars[i] = Tk.StringVar(self)
+			if ("onUpdate" in j):
+				c = lambda *a: j["onUpdate"](*a)#(win, data)
+			else:
+				c = None
+			if ("value" in j):
+				self.vars[i].set(j["value"])
+			if (j["type"] in ["Entry"]):
+				EntryWidget(self, text=j["name"], variable=self.vars[i]).grid(padx=5, pady=(5,0), sticky='nsew')
+			elif (j["type"] in ["Combo"]):
+				ComboEntryWidget(self, text=j["name"], variable=self.vars[i], values=j['values'], command= lambda : c(*j["updateVars"])).grid(sticky='nsew')		
+		self.columnconfigure(0, weight=1)
