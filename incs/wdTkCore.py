@@ -138,3 +138,59 @@ class wdTkCore():
 		self.redraw()
 		self.aw.destroy()
 		return True
+
+	## === Plug Management
+	
+	# == Plug Adding
+	
+	def connAddWin(self):
+		self.aw = inputDialog2(self.window, data={
+			"mhName": {
+				"type" : "Combo",
+				"name": "Machine Name",
+				"values": self.core.dia.listDevices(True),
+			},
+			"cName": {
+				"type": "Entry",
+				"name": "Connection Name"
+			},
+			"ddName": {
+				"type": "Combo",
+				"name": "Data Direction",
+				"values": {"None" : "None", "In": "In", "Out":"Out","Both":"Both" },
+			},
+			"val" :{
+				"type":"Spin",
+				"name":"Quantity"
+			}
+		})
+		self.aw.addButton("Add", "add")
+		self.aw.passFunc("add", self.connAddComplete)
+
+	def connAddComplete(self, **kwargs):
+		
+		p = self.core.dia.listDevices(True)
+	
+		if (kwargs['mhName'] not in list(p.values())):
+			Tk.messagebox.showerror(title="Device not found", message="There is no device to edit.")
+			return False
+		
+		obj = list(p.keys())[list(p.values()).index(kwargs["mhName"])]
+
+		if (kwargs['cName'] in self.core.dia.getDevice(obj).connectors.keys()):
+			Tk.messagebox.showerror(title="Cannot add plug", message="The name of the plug is already in use for this device.")
+			return False
+		
+		if (int(kwargs['val']) == 1):
+			self.core.addConnector(obj, kwargs['cName'], dir= kwargs['ddName'])
+		elif (int(kwargs['val']) > 1):
+			for i in range(int(kwargs['val'])):
+				self.core.addConnector(obj, kwargs['cName']+"_"+str(i+1), dir= kwargs['ddName'])
+		else:
+			Tk.messagebox.showerror(title="Cannot add plug", message="Invalid value.")
+			return False
+		
+		self.updateWindowTitle()
+
+		self.redraw()
+		return True

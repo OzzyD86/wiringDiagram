@@ -221,76 +221,7 @@ class wdTk(wdTkCore):
 		pass
 		
 	## === Do Plug Management
-	
-	# == Plug Adding
-	
-	def connAddWin(self):
-		self.aw = inputDialog2(self.window, data={
-			"mhName": {
-				"type" : "Combo",
-				"name": "Machine Name",
-				"values": self.core.dia.listDevices(True),
-			},
-			"cName": {
-				"type": "Entry",
-				"name": "Connection Name"
-			},
-			"ddName": {
-				"type": "Combo",
-				"name": "Data Direction",
-				"values": {"None" : "None", "In": "In", "Out":"Out","Both":"Both" },
-			},
-			"val" :{
-				"type":"Spin",
-				"name":"Quantity"
-			}
-		})
-		self.aw.addButton("Add", "add")
-		self.aw.passFunc("add", self.connAddComplete)
-
-		#KEYS, VALUES = self.getKeys()
-		self.val = Tk.IntVar(self.aw)
-		#self.cName = Tk.StringVar(self.aw)
-		#self.mhName = Tk.StringVar(self.aw)
-		#self.ddName = Tk.StringVar(self.aw)
-		#self.ddName.set("None")
-		
-		#ComboEntryWidget(self.aw, text="Machine Name", variable=self.mhName, values=VALUES).grid()		
-
-		#EntryWidget(self.aw, text="Connection Name", variable=self.cName).grid()
-
-		#ComboEntryWidget(self.aw, text="Data Direction", variable=self.ddName, values=["In", "Out", "Both", "None"]).grid()		
-		
-		#SpinEntryWidget(self.aw, text="Quantity", min=1, max=32, variable=self.val).grid()
-		
-		#Tk.Button(self.aw, text="Add", command=self.connAddComplete).grid()
-
-	def connAddComplete(self):
-		KEYS, VALUES = self.getKeys()
-		if not self.mhName.get() in VALUES:
-			Tk.messagebox.showerror(title="No device", message="No.")
-			return False
 			
-		obj = KEYS[VALUES.index(self.mhName.get())]
-		if (self.cName.get() in self.core.dia.getDevice(obj).connectors.keys()):
-			Tk.messagebox.showerror(title="Cannot add plug", message="The name of the plug is already in use for this device.")
-			return False
-		
-		if (self.val.get() == 1):
-			self.core.addConnector(obj, self.cName.get(), dir= self.ddName.get())
-		elif (self.val.get() > 1):
-			for i in range(self.val.get()):
-				self.core.addConnector(obj, self.cName.get()+"_"+str(i+1), dir= self.ddName.get())
-			pass
-		else:
-			Tk.messagebox.showerror(title="Cannot add plug", message="Invalid value.")
-			return False
-		
-		self.updateWindowTitle()
-
-		self.redraw()
-		self.aw.destroy()
-		
 	# == Connection Deleting
 	
 	def connDelWin(self):
