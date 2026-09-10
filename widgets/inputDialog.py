@@ -77,6 +77,7 @@ class inputDialog2(inputDialog):
 				j["obj"] = ComboEntryWidget(self, text=j["name"], variable=self.vars[i], values=j['values'], command= c, cArgs=(self, cc))#.grid(sticky='nsew')		
 			elif (j["type"] in ["Label", "Text"]):
 				j["obj"] = Tk.Label(self, text= j["text"], wraplength=800) #.grid(padx=5,pady=(5,0), sticky='sewn')
-	
+			elif (j["type"] in ["Spin"]):
+				j["obj"] = SpinEntryWidget(self, text=j["name"], min=1, max=32, variable=self.vars[i])
 			j["obj"].grid(padx=5, pady=(5,0), sticky='nsew')
 		self.columnconfigure(0, weight=1)
