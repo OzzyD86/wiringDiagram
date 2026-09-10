@@ -35,7 +35,7 @@ class ComboEntryWidget(Tk.Frame):
 		if (command is not None):
 			args = (0, variable)
 			#print(command)
-			self.choice.trace_add('write', lambda *args, **kwargs: command(cargs, self.choice.get()))
+			self.choice.trace_add('write', lambda *args, **kwargs: command(*cargs, self.choice.get()))
 		self.columnconfigure(0, weight=1)
 
 	def setState(self, state='readonly'):
