@@ -194,3 +194,53 @@ class wdTkCore():
 
 		self.redraw()
 		return True
+
+	# == Plug Deleting
+	
+	def getPlugs(self, *args, **kwargs):
+	
+		p = self.core.dia.listDevices(True)
+	
+		if (args[2] not in list(p.values())):
+			Tk.messagebox.showerror(title="Device not found", message="There is no device to delete.")
+			return False
+		
+		obj = list(p.keys())[list(p.values()).index(args[2])]
+
+		ii = self.core.dia.getDevice(obj).connectors.keys()
+
+		args[0].data['outcName']['obj'].setValues(list(ii)) # Could be prettier?
+		args[0].data['outcName']['values'] = list(ii)
+		
+	def connDelWin(self):
+		self.aw = inputDialog2(self.window, data= {
+			"outdName": {
+				"type" : "Combo",
+				"name": "Machine Name",
+				"values": self.core.dia.listDevices(True),
+				"onUpdate": self.getPlugs
+			},
+
+			"outcName": {
+				"type" : "Combo",
+				"name": "Connection Name",
+				"values": {},
+			},
+		})
+		self.aw.addButton("Delete", "delete")
+		self.aw.passFunc("delete", self.connDelComplete)		
+	
+	def connDelComplete(self, **kwargs):
+		p = self.core.dia.listDevices(True)
+	
+		if (kwargs['outdName'] not in list(p.values())):
+			Tk.messagebox.showerror(title="Device not found", message="There is no device to delete.")
+			return False
+		
+		objIn= list(p.keys())[list(p.values()).index(kwargs['outdName'])]
+		
+		self.core.deleteConnector(objIn, kwargs['outcName'])
+		
+		self.updateWindowTitle()		
+		self.redraw()
+		return True

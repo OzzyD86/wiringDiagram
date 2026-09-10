@@ -221,46 +221,7 @@ class wdTk(wdTkCore):
 		pass
 		
 	## === Do Plug Management
-			
-	# == Connection Deleting
-	
-	def connDelWin(self):
-		self.aw = Tk.Tk()
-		KEYS, VALUES = self.getKeys()
-	
-		self.outdName = Tk.StringVar(self.aw)
-		self.outcName = Tk.StringVar(self.aw)
-
-		self.b = ComboEntryWidget(self.aw, text="Connection Name", variable=self.outcName)#.grid()	# I have to set it up first because it's called, but drawn later!
-
-		ComboEntryWidget(self.aw, text="Machine Name", variable=self.outdName, values=VALUES, command= lambda *a, b = self.b.box: self.setM(i = self.outdName.get(), o = b)).grid()
-		
-		#Tk.Label(self.aw, text="Machine Name").grid()
-		#a = ttk.Combobox(self.aw, state='readonly', textvariable= self.outdName, values=VALUES).grid()
-		
-		#Tk.Label(self.aw, text="Connection Name").grid()
-		#self.b = ttk.Combobox(self.aw, state='disabled', textvariable= self.outcName)
-		self.b.grid()
-		
-		Tk.Button(self.aw, text="Delete", command=self.connDelComplete).grid()
-		#self.outdName.trace('w', lambda *a, b = self.b: self.setM(i = self.outdName.get(), o = b)) #self.setOutC)
-		#self.indName.trace('w', lambda *a, b = self.e: self.setM(i = self.indName.get(), o = b))#self.setInC)
-	
-	def connDelComplete(self):
-		KEYS, VALUES = self.getKeys()
-			
-		#print(self.indName.get(), self.incName.get(),
-		#	self.outdName.get(), self.outcName.get())
-		objIn = KEYS[VALUES.index(self.outdName.get())]
-
-		self.core.deleteConnector(objIn, self.outcName.get())
-		
-		#self.core.addWire(objOut, self.outcName.get(), objIn, self.incName.get())
-		self.updateWindowTitle()
-		
-		self.redraw()
-		self.aw.destroy()
-		
+						
 	## === Do Wire Management
 	
 	# == Wire Adding
