@@ -13,12 +13,16 @@ class inputDialog(Tk.Toplevel):
 		super().__init__(master, **kwargs)
 		for i, j in data.items():
 			self.vars[i] = Tk.StringVar(self)
+			if ("updateVars" in j.keys()):
+				cc = j["updateVars"]
+			else:
+				cc = None
 			if ("value" in j):
 				self.vars[i].set(j["value"])
 			if (j["type"] in ["Entry"]):
 				EntryWidget(self, text=j["name"], variable=self.vars[i]).grid(padx=5, pady=(5,0), sticky='nsew')
 			elif (j["type"] in ["Combo"]):
-				ComboEntryWidget(self, text=j["name"], variable=self.vars[i], values=j['values'], command= j["onUpdate"]).grid(sticky='nsew')		
+				ComboEntryWidget(self, text=j["name"], variable=self.vars[i], values=j['values'], command= cc).grid(sticky='nsew')		
 		self.columnconfigure(0, weight=1)
 		
 	def addButton(self, title, local_action = "add"):
@@ -27,7 +31,7 @@ class inputDialog(Tk.Toplevel):
 	
 	def set(self, op, val):
 		self.vars[op].set(val)
-		
+
 	def passFunc(self, loc, func):
 		self.funcs[loc].append(func)
 		
@@ -55,17 +59,24 @@ class inputDialog2(inputDialog):
 		self.funcs = {}
 		for i, j in data.items():
 			self.vars[i] = Tk.StringVar(self)
-			print(j)
+			#print(j)
 			if ("onUpdate" in j.keys()):
 				c = j['onUpdate']
 			else:
 				c = None
+			if ("updateVars" in j.keys()):
+				cc = j["updateVars"]
+			else:
+				cc = []
 			if ("value" in j):
 				self.vars[i].set(j["value"])
 				
 			if (j["type"] in ["Entry"]):
 				j["obj"] = EntryWidget(self, text=j["name"], variable=self.vars[i])#.grid(padx=5, pady=(5,0), sticky='nsew')
 			elif (j["type"] in ["Combo"]):
-				j["obj"] = ComboEntryWidget(self, text=j["name"], variable=self.vars[i], values=j['values'], command= c, cArgs=(self,j['updateVars']))#.grid(sticky='nsew')		
+				j["obj"] = ComboEntryWidget(self, text=j["name"], variable=self.vars[i], values=j['values'], command= c, cArgs=(self, cc))#.grid(sticky='nsew')		
+			elif (j["type"] in ["Label", "Text"]):
+				j["obj"] = Tk.Label(self, text= j["text"], wraplength=800) #.grid(padx=5,pady=(5,0), sticky='sewn')
+	
 			j["obj"].grid(padx=5, pady=(5,0), sticky='nsew')
 		self.columnconfigure(0, weight=1)
