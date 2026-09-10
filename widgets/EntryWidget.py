@@ -13,6 +13,11 @@ class EntryWidget(Tk.Frame):
 	
 class ComboEntryWidget(Tk.Frame):
 	def __init__(self, master=None, text="", variable=None, command=None, values = {}, state='readonly', *args, **kwargs):
+		if ("cArgs" in kwargs):
+			cargs = kwargs['cArgs']
+			del kwargs['cArgs']
+		else:
+			cargs = {}
 		super().__init__(master, *args, **kwargs)
 		self.inter_values = values
 		if (variable is None):
@@ -29,7 +34,8 @@ class ComboEntryWidget(Tk.Frame):
 		self.box.grid(sticky='nesw')
 		if (command is not None):
 			args = (0, variable)
-			self.choice.trace_add('write', lambda *args: command(*args, master, self.choice.get()))
+			#print(command)
+			self.choice.trace_add('write', lambda *args, **kwargs: command(cargs, self.choice.get()))
 		self.columnconfigure(0, weight=1)
 
 	def setState(self, state='readonly'):

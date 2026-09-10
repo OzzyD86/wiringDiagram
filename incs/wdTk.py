@@ -260,6 +260,7 @@ class wdTk():
 	
 	# == Device Editing
 	def example(self, win, val, *args, **kwargs):
+		print(win, val, args, kwargs)
 		Tk.messagebox.showerror(args, kwargs)
 		
 	def devEditWin(self):

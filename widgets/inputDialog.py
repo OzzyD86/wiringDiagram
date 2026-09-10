@@ -36,7 +36,7 @@ class inputDialog(Tk.Toplevel):
 		#print("Do stuff here") 
 		for i,j in self.vars.items():
 			if (type(j) is Tk.StringVar):
-				print(self.data[i])
+				#print(self.data[i])
 				snd[i] = j.get()
 			else:
 				print("Slight panic:", i, j)
@@ -49,14 +49,16 @@ class inputDialog(Tk.Toplevel):
 
 class inputDialog2(inputDialog):
 	def __init__(self, master, data={}, **kwargs):
+		super().__init__(master, **kwargs)
 		self.data = data # This will be useful later!
 		self.vars = {}
 		self.funcs = {}
-		super().__init__(master, **kwargs)
 		for i, j in data.items():
 			self.vars[i] = Tk.StringVar(self)
-			if ("onUpdate" in j):
-				c = lambda *a: j["onUpdate"](*a)#(win, data)
+			print(j)
+			if ("onUpdate" in j.keys()):
+				
+				c = j['onUpdate']
 			else:
 				c = None
 			if ("value" in j):
@@ -64,5 +66,5 @@ class inputDialog2(inputDialog):
 			if (j["type"] in ["Entry"]):
 				EntryWidget(self, text=j["name"], variable=self.vars[i]).grid(padx=5, pady=(5,0), sticky='nsew')
 			elif (j["type"] in ["Combo"]):
-				ComboEntryWidget(self, text=j["name"], variable=self.vars[i], values=j['values'], command= lambda : c(*j["updateVars"])).grid(sticky='nsew')		
+				ComboEntryWidget(self, text=j["name"], variable=self.vars[i], values=j['values'], command= c, cArgs=j['updateVars']).grid(sticky='nsew')		
 		self.columnconfigure(0, weight=1)
