@@ -6,8 +6,10 @@ from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
 import tkinter.messagebox
 
 from widgets.inputDialog import inputDialog, inputDialog2
-		
-class wdTk():
+
+from incs.wdTkCore import wdTkCore
+
+class wdTk(wdTkCore):
 	def resize_canvas(self, event):
    
 		new_width = event.width
@@ -128,8 +130,6 @@ class wdTk():
 		self.core.dia.wp_labelling = self.wp_labels
 		self.core.dia.conn_labelling = self.conn_labelling
 		self.redraw()
-	#	print(self.wp_labels.get())
-		pass
 		
 	def open_file(self, file):
 		self.core.open_file(file)
@@ -139,17 +139,14 @@ class wdTk():
 		self.updateWindowTitle()
 		
 	def quit(self):
-		#print("Closing:", self.core.struct.is_changed())
 		if (self.core.struct.is_changed()):
 			a = Tk.messagebox.askyesnocancel(title="Unsaved Changes", message="There are unsaved changes. Save before closing?")
-			#print(a)
 			if (a is None):
 				return None
 			elif (a is False):
 				exit(0)
 			elif (a is True):
 				self.file_save()
-
 				exit(0)
 		else:
 			if (Tk.messagebox.askquestion(title=None, message="Are you sure") == "yes"):
@@ -197,7 +194,6 @@ class wdTk():
 		
 		d = self.core.dia.getDevice(obj)
 		s = self.core.dia.locs[obj]
-	#	print(s)
 		
 		self.core.addDevice(
 			self.mName.get(), self.hName.get(),
@@ -214,132 +210,9 @@ class wdTk():
 		Tk.messagebox.showwarning("Button pressed", "Yes. This is triggered")
 		print(args, kwargs)
 	
-	## >> THESE FUNCTIONS ARE LOVELY FUNCTIONS. THEY WORK WITH NEW INPUTDIALOG AND DON'T BREAK
-	
-	def devAddWin(self, event = None):
-		d = getattr(event, "x", 0)
-		print(d)
-		self.aw = inputDialog(self.window, data={
-			"mName": {
-				"type" : "Entry",
-				"name" : "New Machine Name",
-			},
-			"hName": {
-				"type" : "Entry",
-				"name" : "Human Name",
-			},
-			"x": {
-				"type" : "Entry",
-				"name" : "X Position",
-				"value": getattr(event, "x", 300)
-			},
-			"y": {
-				"type" : "Entry",
-				"name" : "Y Position",
-				"value": getattr(event, "y", 300)
-			},
-		})
-		self.aw.addButton("Add", "add")
-		self.aw.passFunc("add", self.devAddComplete)
-
-	def devAddComplete(self, **kwargs):
-		if (kwargs['mName'] in self.core.dia.listDevices()):
-			tkinter.messagebox.showerror(title="Cannot add device", message="The name of the device is already in use.")
-			return False
-		
-		self.core.addDevice(
-			kwargs['mName'], kwargs['hName'],
-			(int(kwargs['x']),int(kwargs['y']),50,50))
-		
-		self.updateWindowTitle()		
-		#self.aw.destroy()
-		self.redraw()
-		return True
-	
-	## << END LOVELY FUNCTIONS ... FOR NOW!
-	
-	# == Device Editing
 	def example(self, win, val, *args, **kwargs):
 		print(win, val, args, kwargs)
 		Tk.messagebox.showerror(args, kwargs)
-		
-	def devEditWin(self):
-		if (len(self.core.dia.listDevices())== 0):
-			Tk.messagebox.showerror(title="No devices", message="There are no devices to edit.")
-			return False
-			
-		#KEYS, VALUES = self.getKeys()
-		
-		self.aw = inputDialog2(self.window, data={
-			"mName":{
-				"type" : "Combo",
-				"name": "Edit Machine",
-				"values": self.core.dia.listDevices(True),
-				"onUpdate": self.setmName2,
-				"updateVars": (None)
-			},
-			"top": {
-				"type": "Entry", "name": "Top"
-			},
-			"left": {
-				"type": "Entry", "name": "Left"
-			},
-			"width": {
-				"type": "Entry", "name": "Width"
-			},
-			"height": {
-				"type": "Entry", "name": "Height"
-			}
-		})
-		self.aw.addButton("Edit", "edit")
-		#self.aw.passFunc("edit", self.alert)
-		self.aw.passFunc("edit", self.devEditComplete)
-		
-		for i in list(self.aw.vars.keys()):
-			setattr(self, i, self.aw.vars[i])
-
-		#Tk.Button(self.aw, text="Add", command=self.devEditComplete).grid()
-	
-	def devEditComplete(self, **kwargs):
-		KEYS = []
-		VALUES = []
-		p = self.core.dia.listDevices(True)
-		#raise Exception(kwargs["mName"] in p.values())
-		ob = list(p.keys())[list(p.values()).index(kwargs["mName"])]
-		
-		if (kwargs['mName'] not in list(p.values())):
-			Tk.messagebox.showerror(title="Device not found", message="There is no device to edit.")
-			return False
-		
-		obj = ob#KEYS[VALUES.index(kwargs['mName'])]
-		
-		self.core.updateDevice(obj,
-			(int(kwargs['left']),
-			int(kwargs['top']), 
-			int(kwargs['width']), 
-			int(kwargs['height']))
-		)
-		self.canvas.config(scrollregion=(self.core.dia.bounds))
-		self.updateWindowTitle()
-
-		#self.aw.destroy()
-		self.redraw()
-		return True
-		
-	# == Device Deleting
-	
-	def devDelWin(self):
-		if (len(self.core.dia.listDevices())== 0):
-			tkinter.messagebox.showerror(title="No devices", message="There are no devices to delete.")
-			return False
-			
-		self.aw = Tk.Tk()
-		KEYS, VALUES = self.getKeys()
-
-		self.dhName = Tk.StringVar(self.aw)
-		ComboEntryWidget(self.aw, text="Machine Name", variable=self.dhName, values=VALUES).grid()		
-
-		Tk.Button(self.aw, text="Delete", command=self.devDelComplete).grid()
 
 	def file_save(self):
 		self.core.struct.store.commit() # That needs moving
@@ -347,47 +220,50 @@ class wdTk():
 		self.updateWindowTitle()
 		pass
 		
-	def devDelComplete(self):
-		
-		# Load the objects
-		KEYS, VALUES = self.getKeys()
-		
-		# Find the object
-		if not self.dhName.get() in VALUES:
-			Tk.messagebox.showerror(title="No device", message="No.")
-			return False
-			
-		obj = KEYS[VALUES.index(self.dhName.get())]
-		
-		self.core.deleteDevice(obj)
-		self.updateWindowTitle()
-
-		self.redraw()
-		self.aw.destroy()
-		pass
-		
-	## === Do Connector Management
+	## === Do Plug Management
 	
-	# == Connector Adding
+	# == Plug Adding
 	
 	def connAddWin(self):
-		self.aw = Tk.Tk()
-		KEYS, VALUES = self.getKeys()
+		self.aw = inputDialog2(self.window, data={
+			"mhName": {
+				"type" : "Combo",
+				"name": "Machine Name",
+				"values": self.core.dia.listDevices(True),
+			},
+			"cName": {
+				"type": "Entry",
+				"name": "Connection Name"
+			},
+			"ddName": {
+				"type": "Combo",
+				"name": "Data Direction",
+				"values": {"None" : "None", "In": "In", "Out":"Out","Both":"Both" },
+			},
+			"val" :{
+				"type":"Spin",
+				"name":"Quantity"
+			}
+		})
+		self.aw.addButton("Add", "add")
+		self.aw.passFunc("add", self.connAddComplete)
+
+		#KEYS, VALUES = self.getKeys()
 		self.val = Tk.IntVar(self.aw)
-		self.cName = Tk.StringVar(self.aw)
-		self.mhName = Tk.StringVar(self.aw)
-		self.ddName = Tk.StringVar(self.aw)
-		self.ddName.set("None")
+		#self.cName = Tk.StringVar(self.aw)
+		#self.mhName = Tk.StringVar(self.aw)
+		#self.ddName = Tk.StringVar(self.aw)
+		#self.ddName.set("None")
 		
-		ComboEntryWidget(self.aw, text="Machine Name", variable=self.mhName, values=VALUES).grid()		
+		#ComboEntryWidget(self.aw, text="Machine Name", variable=self.mhName, values=VALUES).grid()		
 
-		EntryWidget(self.aw, text="Connection Name", variable=self.cName).grid()
+		#EntryWidget(self.aw, text="Connection Name", variable=self.cName).grid()
 
-		ComboEntryWidget(self.aw, text="Data Direction", variable=self.ddName, values=["In", "Out", "Both", "None"]).grid()		
+		#ComboEntryWidget(self.aw, text="Data Direction", variable=self.ddName, values=["In", "Out", "Both", "None"]).grid()		
 		
-		SpinEntryWidget(self.aw, text="Quantity", min=1, max=32, variable=self.val).grid()
+		#SpinEntryWidget(self.aw, text="Quantity", min=1, max=32, variable=self.val).grid()
 		
-		Tk.Button(self.aw, text="Add", command=self.connAddComplete).grid()
+		#Tk.Button(self.aw, text="Add", command=self.connAddComplete).grid()
 
 	def connAddComplete(self):
 		KEYS, VALUES = self.getKeys()
