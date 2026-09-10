@@ -268,15 +268,15 @@ class wdTk():
 			Tk.messagebox.showerror(title="No devices", message="There are no devices to edit.")
 			return False
 			
-		KEYS, VALUES = self.getKeys()
+		#KEYS, VALUES = self.getKeys()
 		
 		self.aw = inputDialog2(self.window, data={
 			"mName":{
 				"type" : "Combo",
 				"name": "Edit Machine",
-				"values": VALUES,
-				"onUpdate": self.example,
-				"updateVars": (self)
+				"values": self.core.dia.listDevices(True),
+				"onUpdate": self.setmName2,
+				"updateVars": (None)
 			},
 			"top": {
 				"type": "Entry", "name": "Top"
@@ -976,7 +976,6 @@ class wdTk():
 				return None
 			elif (a is True):
 				self.file_save()
-
 
 		files = [#('All Files', '*.*'), 
 			 ('Databases', '*.db')]
