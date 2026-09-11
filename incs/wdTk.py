@@ -212,8 +212,29 @@ class wdTk(wdTkCore):
 	
 	def example(self, win, val, *args, **kwargs):
 		print(win, val, args, kwargs)
-		Tk.messagebox.showerror(args, kwargs)
-
+		rep = val[0]["target"]
+		if (rep == "outcName"):
+			d = win.data["outdName"]["obj"].get_key_of_value(args[0])
+			#win.data["outcName"]["obj"]., 
+			win.data['outcName']['obj'].setValues(list(self.core.dia.getDevice(d).connectors.keys())) # Could be prettier?
+			win.data['outcName']['values'] = list(self.core.dia.getDevice(d).connectors.keys())
+			#Tk.messagebox.showerror(args, d)
+		elif (rep == "incName"):
+			d = win.data["indName"]["obj"].get_key_of_value(args[0])
+			#win.data["outcName"]["obj"]., 
+			win.data['incName']['obj'].setValues(list(self.core.dia.getDevice(d).connectors.keys())) # Could be prettier?
+			win.data['incName']['values'] = list(self.core.dia.getDevice(d).connectors.keys())
+			#Tk.messagebox.showerror(args, d)
+	
+			pass
+		else:
+			Tk.messagebox.showerror(val[0]["target"], args)
+	
+	'''def example(self, win, val, *args, **kwargs):
+		print(win, val, args, kwargs)
+		
+		Tk.messagebox.showerror(val, args)'''
+		
 	def file_save(self):
 		self.core.struct.store.commit() # That needs moving
 		self.core.struct.clear_changed()
@@ -225,51 +246,59 @@ class wdTk(wdTkCore):
 	## === Do Wire Management
 	
 	# == Wire Adding
-	
+
 	def wireAddWin(self):
-		self.aw = Tk.Tk()
+		self.aw = inputDialog3(self.window, data={
+			"outdName" : {
+				"type":"Combo",
+				"name":"Output Device Name",
+				"values": self.core.dia.listDevices(True),
+				"onUpdate": self.example,
+				"updateVars": [{"target" : "outcName"}]
+			},
+			"outcName" : {
+				"type":"Combo",
+				"name":"Output Connector Name",
+				"values": {},
+			},
+			"indName" : {
+				"type":"Combo",
+				"name":"Output Device Name",
+				"values": self.core.dia.listDevices(True),
+				"onUpdate": self.example,
+				"updateVars": [{"target" : "incName"}]
+			},
+			"incName" : {
+				"type":"Combo",
+				"name":"Output Connector Name",
+				"values": {},
+			}
+		})
+		self.aw.addButton("Add", "add")
+		self.aw.passFunc("add", self.wireAddComplete)
+
+	def wireAddComplete(self, **kwargs):
 		KEYS, VALUES = self.getKeys()
-	
-		self.indName = Tk.StringVar(self.aw)
-		self.incName = Tk.StringVar(self.aw)
-		self.outdName = Tk.StringVar(self.aw)
-		self.outcName = Tk.StringVar(self.aw)
-
-		aa = ComboEntryWidget(self.aw, text="Output Connection Name", state='disabled', variable=self.outcName)
-
-		ComboEntryWidget(self.aw, text="Output Machine Name", variable=self.outdName, values=VALUES, 
-			command = lambda *a, b = aa.box: self.setM(i = self.outdName.get(), o = b)).grid()
-		aa.grid()
-
-		bb = ComboEntryWidget(self.aw, text="Output Machine Name", state='disabled', variable=self.incName)
-
-		ComboEntryWidget(self.aw, text="Input Machine Name", variable=self.indName, values=VALUES, 
-			command = lambda *a, b = bb.box: self.setM(i = self.indName.get(), o = b)).grid()			
-		bb.grid()
-				
-		Tk.Button(self.aw, text="Add", command=self.wireAddComplete).grid()
-	
-	def wireAddComplete(self):
-		KEYS, VALUES = self.getKeys()
-			
+		
 		#print(self.indName.get(), self.incName.get(),
 		#	self.outdName.get(), self.outcName.get())
-		if (self.indName.get() not in VALUES):
+		if (kwargs["indName"] not in KEYS):
 			tkinter.messagebox.showwarning(title="Cannot select device", message="Please select a valid output device.")
 			return
-			
-		if (self.outdName.get() not in VALUES):
+
+		if (kwargs["outdName"] not in KEYS):
 			tkinter.messagebox.showwarning(title="Cannot select device", message="Please select a valid input device.")
 			return
-			
-		objIn = KEYS[VALUES.index(self.indName.get())]
-		objOut = KEYS[VALUES.index(self.outdName.get())]
-
-		self.core.addWire(objOut, self.outcName.get(), objIn, self.incName.get())
+		
+		objIn = kwargs["indName"]
+		objOut = kwargs["outdName"]
+		#return False
+		
+		self.core.addWire(objOut, kwargs["outcName"], objIn, kwargs["incName"])
 		self.updateWindowTitle()
 
 		self.redraw()
-		self.aw.destroy()
+		return True
 
 	# = Wire Deleting
 	
