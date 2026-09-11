@@ -91,7 +91,7 @@ class inputDialog3(inputDialog2):
 		#print("Do stuff here") 
 		for i,j in self.vars.items():
 			if (type(j) is Tk.StringVar):
-				if (self.data[i]["type"] in ["Combo"]):
+				if (self.data[i]["type"] in ["Combo"] and type(self.data[i]["values"]) is dict):
 					snd[i] = self.data[i]["obj"].get_key_of_value(j.get())
 				else:
 					snd[i] = j.get()
