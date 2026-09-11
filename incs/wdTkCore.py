@@ -246,6 +246,41 @@ class wdTkCore():
 
 	## === Waypointing
 	
+	# == Delete Waypoint 
+	
+	def waypointDelWin(self):
+		#if (len(self.core.dia.listDevices())== 0):
+		#	tkinter.messagebox.showerror(title="No devices", message="There are no devices to delete.")
+		#	return False
+		VALUES = {}
+		for i,j in self.core.dia.wp.items():
+			VALUES[i] = j["name"]
+			
+		self.aw = inputDialog3(self.window, data={
+			"wpName": {
+				"type":"Combo",
+				"name":"Waypoint Name",
+				"values": VALUES
+			},
+			"delRel": {
+				"type":"Checkbox",
+				"name":"Delete associated paths"
+			}
+		})
+		self.aw.addButton("Delete", "del")
+		self.aw.passFunc("del", self.waypointDelComplete)
+
+	def waypointDelComplete(self, **kwargs):
+		
+		obj = kwargs["wpName"]
+		#Tk.messagebox.showerror(obj, obj)
+		
+		self.core.deleteWaypoint(obj)
+		self.updateWindowTitle()
+
+		self.redraw()
+		return True
+		
 	# == Add wire to waypoint
 	
 	def help(self, *args, **kwargs): #Not a helpful name!!
