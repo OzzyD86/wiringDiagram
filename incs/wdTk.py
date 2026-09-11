@@ -5,7 +5,7 @@ from widgets.connector_points import connector_points
 from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
 import tkinter.messagebox
 
-from widgets.inputDialog import inputDialog, inputDialog2
+from widgets.inputDialog import inputDialog, inputDialog2, inputDialog3
 
 from incs.wdTkCore import wdTkCore
 
@@ -439,102 +439,6 @@ class wdTk(wdTkCore):
 		self.b['state']='readonly'
 		self.b["values"] = list(p.values())
 	
-	def help(self, *args, **kwargs):
-		st = "START"
-		en = "END"
-		stpos = 1
-		out = {}
-		
-		p = self.w.get_key_of_value(args[1].get()) # That's prettier
-		if (p in self.core.dia.cwps):
-			for i in self.core.dia.cwps[p]:
-				out[stpos] = "(" + str(stpos) + ") " + str(st) + " -> " + str(i)
-				st = i
-				stpos += 1
-
-		out[stpos] = "(" + str(stpos) + ") " + str(st) + " -> " + str(en)
-		print(list(out.values()))
-		self.cb_pos.setValues(list(out.values()))
-		#print("I run here?")
-		self.cb_pos.setState("readonly")
-		
-	def routeAddWin(self):
-		self.aw = Tk.Toplevel(self.window)
-		VALUES = {}
-		
-		for i,j in self.core.dia.conns.items():
-			print(i,j)
-			VALUES[i] = "(" + str(i) + "), Connecting " + j[0][0] + " via " + j[0][1] + " to " + j[1][0] + " via " + j[1][1]
-		#KEYS, VALUES = self.getKeys()
-	
-		self.wire = Tk.StringVar(self.aw)
-		self.pos = Tk.StringVar(self.aw)
-		self.wpn = Tk.StringVar(self.aw)
-
-		self.cb_pos = ComboEntryWidget(self.aw, text="Position", state='disabled', variable=self.pos)
-
-		self.w = ComboEntryWidget(self.aw, text="Select Wire Id", variable=self.wire, values=VALUES,
-			command = lambda *a : self.help("update", self.wire))
-		self.w.grid(sticky='news', padx =5)
-		self.aw.columnconfigure(0, weight = 1)
-
-		p = []
-		for i,j in self.core.dia.wp.items():
-			p.append(j)
-
-		ComboEntryWidget(self.aw, text="Select Waypoint", variable=self.wpn, values=p).grid(sticky='news', padx=5)
-		
-		self.cb_pos.grid(sticky='swen')
-		
-		Tk.Button(self.aw, text="Add", command=self.routeAddComplete).grid()
-		
-	def routeAddComplete(self):
-		print(self.wpn.get())
-		
-		wire = int(self.wire.get().strip("(").split(")")[0]) # We NEED a prettier way of doing this!
-#		print("wp:",wp)
-		for i,j in self.core.dia.wp.items():
-			if (self.wpn.get() == str(j)):
-				wpn = i
-				print("i:",i)
-			else:
-				print(i,j)
-		q = self.core.struct.cur.execute(
-			"select max(ord) as o from wp_ls where wire_id = ?",
-			(wire,)
-		)
-		r = q.fetchone()
-		s = dict(r)
-		
-		ord = int(self.pos.get().strip("(").split(")")[0]) # Update with prettier way>
-
-		self.core.dia.addConnectionWaypoint(
-			wire,
-			wpn,
-			ord
-		)
-		self.core.struct.cur.execute("update wp_ls set ord = ord + 1 where wire_id = ? and ord >= ?",
-			(wire, ord)
-		)
-
-		self.core.struct.cur.execute("insert into wp_ls (wire_id, wp_id, ord) values (?,?,?)",
-			(wire, wpn, ord)
-		)
-		pass
-		
-		'''KEYS, VALUES = self.getKeys()
-			
-		#print(self.indName.get(), self.incName.get(),
-		#	self.outdName.get(), self.outcName.get())
-		objIn = KEYS[VALUES.index(self.indName.get())]
-		objOut = KEYS[VALUES.index(self.outdName.get())]
-
-		self.core.addWire(objIn, self.incName.get(), objOut, self.outcName.get())'''
-		self.updateWindowTitle()
-		self.core.struct.set_changed()
-		self.redraw()
-		self.aw.destroy()
-	
 	def getRoutes(self):
 		p = {}
 		for i,j in self.core.dia.cwps.items():
@@ -592,14 +496,11 @@ class wdTk(wdTkCore):
 	# == Drawing management ==
 
 	def setM(self, *what, **kwargs):
-		#print(what)
-		#print(kwargs)
 		
 		KEYS, VALUES = self.getKeys()
 		obj = KEYS[VALUES.index(kwargs['i'])]
 		ii = self.core.dia.getDevice(obj).connectors.keys()
 
-		print(kwargs['o'])
 		if (kwargs['o']["state"] is None):
 			# Oh! Then try this:
 			kwargs['o'].setState("readonly")
@@ -660,8 +561,6 @@ class wdTk(wdTkCore):
 						if (l["wpid"] in d.wp):
 							n += d.wp[l["wpid"]]["loc"]
 							cs.append(l["wpid"])
-							#print(d.wp[l["wpid"]]["loc"])
-				#print(n)
 			
 				if (self.waypointing.get()):
 					if (len(cs) > 1):
@@ -681,17 +580,14 @@ class wdTk(wdTkCore):
 				else:
 					r = self.canvas.create_line(st,fn, fill="black")
 
-
 		if (self.waypointing.get()):
 			for m,n in olines.items():
 				self.canvas.create_line(d.wp[m[0]]["loc"], d.wp[m[1]]["loc"], width=n, fill="black")
-			#print(m,n)
 			
 		if (self.wp_labels.get()):
 			for i,j in d.wp.items():
 				self.canvas.create_text(j["loc"][0],j["loc"][1],text=j["name"],font=('Arial',4))
 
-		#	print(i,j)
 		self.canvas.scale("all", 0,0, self.sc.get(), self.sc.get())
 		self.canvas.config(scrollregion=(q2))
 		
@@ -702,7 +598,6 @@ class wdTk(wdTkCore):
 		
 		if (file is not None):
 			self.core.dia.exportPng().save(file.name)
-		#print(file)
 		
 	def file_load(self):
 		if (self.core.struct.is_changed()):
@@ -712,7 +607,6 @@ class wdTk(wdTkCore):
 				return None
 			elif (a is True):
 				self.file_save()
-
 
 		files = [#('All Files', '*.*'), 
 			 ('Databases', '*.db')]
@@ -729,8 +623,6 @@ class wdTk(wdTkCore):
 			self.core.struct.clear_changed()
 			self.canvas.config(scrollregion=(self.core.dia.bounds))
 			self.updateWindowTitle()
-			
-		pass
 	
 	def updateWindowTitle(self):
 		title = self.app_name
