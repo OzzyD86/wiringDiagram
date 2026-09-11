@@ -54,7 +54,7 @@ class ComboEntryWidget(Tk.Frame):
 		
 	def get_key_of_value(self, value):
 		for key, val in self.inter_values.items():
-			if val == value:
+			if str(val) == str(value):
 				return key
 		return None
 		
