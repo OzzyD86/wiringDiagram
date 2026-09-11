@@ -45,7 +45,8 @@ class wdTkCore():
 		self.core.addDevice(
 			kwargs['mName'], kwargs['hName'],
 			(int(kwargs['x']),int(kwargs['y']),50,50))
-		
+
+		self.core.struct.set_changed()
 		self.updateWindowTitle()		
 		self.redraw()
 		return True
@@ -96,6 +97,7 @@ class wdTkCore():
 			int(kwargs['height']))
 		)
 		self.canvas.config(scrollregion=(self.core.dia.bounds))
+		self.core.struct.set_changed()
 		self.updateWindowTitle()
 
 		self.redraw()
@@ -133,6 +135,7 @@ class wdTkCore():
 		obj = list(p.keys())[list(p.values()).index(kwargs["dhName"])]
 	
 		self.core.deleteDevice(obj)
+		self.core.struct.set_changed()
 		self.updateWindowTitle()
 
 		self.redraw()
@@ -190,6 +193,7 @@ class wdTkCore():
 			return False
 		
 		self.updateWindowTitle()
+		self.core.struct.set_changed()
 
 		self.redraw()
 		return True
@@ -239,7 +243,8 @@ class wdTkCore():
 		objIn= list(p.keys())[list(p.values()).index(kwargs['outdName'])]
 		
 		self.core.deleteConnector(objIn, kwargs['outcName'])
-		
+		self.core.struct.set_changed()
+	
 		self.updateWindowTitle()		
 		self.redraw()
 		return True
@@ -317,6 +322,7 @@ class wdTkCore():
 		
 		self.core.addWire(objOut, kwargs["outcName"], objIn, kwargs["incName"])
 		self.updateWindowTitle()
+		self.core.struct.set_changed()
 
 		self.redraw()
 		return True
@@ -353,6 +359,7 @@ class wdTkCore():
 			kwargs['wName'],
 			(int(kwargs['left']),int(kwargs['top'])))
 		
+		self.core.struct.set_changed()
 		self.updateWindowTitle()		
 		self.redraw()
 		return True
@@ -437,6 +444,8 @@ class wdTkCore():
 		obj = kwargs["wpName"]
 		#Tk.messagebox.showerror(obj, obj)
 		
+		self.core.struct.set_changed()
+
 		self.core.deleteWaypoint(obj)
 		self.updateWindowTitle()
 
