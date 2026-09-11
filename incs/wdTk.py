@@ -5,8 +5,7 @@ from widgets.connector_points import connector_points
 from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
 import tkinter.messagebox
 
-from widgets.inputDialog import inputDialog, inputDialog2, inputDialog3
-
+from widgets.inputDialog import inputDialog
 from incs.wdTkCore import wdTkCore
 
 class wdTk(wdTkCore):
@@ -273,7 +272,7 @@ class wdTk(wdTkCore):
 	# = Wire Deleting
 	
 	def wireDelWin(self):	# I'm not updating this just yet
-		self.aw = inputDialog3(self.window, data={
+		self.aw = inputDialog(self.window, data={
 		
 		})
 

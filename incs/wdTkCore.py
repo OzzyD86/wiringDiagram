@@ -5,7 +5,7 @@ import tkinter as Tk
 #from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
 import tkinter.messagebox
 
-from widgets.inputDialog import inputDialog, inputDialog2, inputDialog3
+from widgets.inputDialog import inputDialog
 
 class wdTkCore():
 	
@@ -14,7 +14,7 @@ class wdTkCore():
 	def devAddWin(self, event = None):
 		d = getattr(event, "x", 0)
 
-		self.aw = inputDialog3(self.window, data={
+		self.aw = inputDialog(self.window, data={
 			"mName": {
 				"type" : "Entry",
 				"name" : "New Machine Name",
@@ -58,7 +58,7 @@ class wdTkCore():
 			Tk.messagebox.showerror(title="No devices", message="There are no devices to edit.")
 			return False
 		
-		self.aw = inputDialog3(self.window, data={
+		self.aw = inputDialog(self.window, data={
 			"mName":{
 				"type" : "Combo",
 				"name": "Edit Machine",
@@ -110,7 +110,7 @@ class wdTkCore():
 			tkinter.messagebox.showerror(title="No devices", message="There are no devices to delete.")
 			return False
 			
-		self.aw = inputDialog3(self.window, data={
+		self.aw = inputDialog(self.window, data={
 			"dhName":{
 				"type" : "Combo",
 				"name": "Edit Machine",
@@ -147,7 +147,7 @@ class wdTkCore():
 	# == Plug Adding
 	
 	def connAddWin(self):
-		self.aw = inputDialog3(self.window, data={
+		self.aw = inputDialog(self.window, data={
 			"mhName": {
 				"type" : "Combo",
 				"name": "Machine Name",
@@ -216,7 +216,7 @@ class wdTkCore():
 		args[0].data['outcName']['values'] = list(ii)
 		
 	def connDelWin(self):
-		self.aw = inputDialog3(self.window, data= {
+		self.aw = inputDialog(self.window, data= {
 			"outdName": {
 				"type" : "Combo",
 				"name": "Machine Name",
@@ -274,7 +274,7 @@ class wdTkCore():
 			Tk.messagebox.showerror(val[0]["target"], args)
 
 	def wireAddWin(self):
-		self.aw = inputDialog3(self.window, data={
+		self.aw = inputDialog(self.window, data={
 			"outdName" : {
 				"type":"Combo",
 				"name":"Output Device Name",
@@ -332,7 +332,7 @@ class wdTkCore():
 	# == Adding
 	
 	def waypointAddWin(self):
-		self.aw = inputDialog3(self.window, data={
+		self.aw = inputDialog(self.window, data={
 			"wName": {
 				"type": "Entry",
 				"name": "Waypoint name"
@@ -384,7 +384,7 @@ class wdTkCore():
 		for i,j in self.core.dia.wp.items():
 			VALUES[i] = j["name"]
 
-		self.aw = inputDialog3(self.window, data={
+		self.aw = inputDialog(self.window, data={
 			"wName": {
 				"type": "Combo",
 				"name": "Edit Waypoint",
@@ -425,7 +425,7 @@ class wdTkCore():
 		for i,j in self.core.dia.wp.items():
 			VALUES[i] = j["name"]
 			
-		self.aw = inputDialog3(self.window, data={
+		self.aw = inputDialog(self.window, data={
 			"wpName": {
 				"type":"Combo",
 				"name":"Waypoint Name",
@@ -479,7 +479,7 @@ class wdTkCore():
 			VALUES[i] = "(" + str(i) + "), Connecting " + j[0][0] + " via " + j[0][1] + " to " + j[1][0] + " via " + j[1][1]
 	
 		#Tk.messagebox.showerror("", self.core.dia.wp)
-		self.aw = inputDialog3(self.window, data={
+		self.aw = inputDialog(self.window, data={
 			"wire": {
 				"type": "Combo",
 				"name": "Select Wire",
@@ -544,7 +544,7 @@ class wdTkCore():
 		for i,j in self.core.dia.conns.items():
 			VALUES[i] = "(" + str(i) + "), Connecting " + j[0][0] + " via " + j[0][1] + " to " + j[1][0] + " via " + j[1][1]
 
-		self.aw = inputDialog3(self.window, data={
+		self.aw = inputDialog(self.window, data={
 			"wire": {
 				"type": "Combo",
 				"name": "Wire",

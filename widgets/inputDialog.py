@@ -5,7 +5,7 @@ import tkinter.ttk as ttk
 from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
 #import tkinter.messagebox
 
-class inputDialog3(Tk.Toplevel):
+class inputDialog(Tk.Toplevel):
 	def __init__(self, master, data={}, **kwargs):
 		super().__init__(master, **kwargs)
 		self.data = data # This will be useful later!
@@ -40,7 +40,6 @@ class inputDialog3(Tk.Toplevel):
 			j["obj"].grid(padx=5, pady=(5,0), sticky='nsew')
 		self.columnconfigure(0, weight=1)
 
-		
 	def addButton(self, title, local_action = "add"):
 		self.funcs[local_action] = []
 		Tk.Button(self, text=title, command=lambda: self.button_press(local_action)).grid(padx=5, pady=(5, 0), sticky='swen')
@@ -68,4 +67,3 @@ class inputDialog3(Tk.Toplevel):
 		
 		if (t):
 			self.destroy()
-
