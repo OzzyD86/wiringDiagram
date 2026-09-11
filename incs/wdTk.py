@@ -18,6 +18,28 @@ class wdTk(wdTkCore):
 		# Update the canvas size
 		self.canvas.config(width=new_width, height=new_height)
 
+	def file_new(self):
+		if (self.core.struct.is_changed()):
+			a = Tk.messagebox.askyesnocancel(title="Unsaved Changes", message="There are unsaved changes. Save before clearing?")
+			#print(a)
+			if (a is None):
+				return None
+			elif (a is True):
+				self.file_save()
+
+		files = [#('All Files', '*.*'), 
+			 ('Databases', '*.db')]
+	
+		a = Tk.filedialog.asksaveasfilename(filetypes = files, defaultextension = files)
+		if (len(a) == 0):
+			print("Cancelled?")
+		else:
+			self._open_file = a
+			self.core.open_file(a)
+			self.redraw()
+			self.updateWindowTitle()
+			self.core.struct.clear_changed()
+
 	def click_call(self, event):
 		pass
 		
@@ -137,6 +159,37 @@ class wdTk(wdTkCore):
 		self.canvas.config(scrollregion=(self.core.dia.bounds))
 		self.set_export_vars()
 		self.updateWindowTitle()
+
+	def file_load(self):
+		if (self.core.struct.is_changed()):
+			a = Tk.messagebox.askyesnocancel(title="Unsaved Changed", message="There are unsaved changes. Save before load?")
+			#print(a)
+			if (a is None):
+				return None
+			elif (a is True):
+				self.file_save()
+
+		files = [#('All Files', '*.*'), 
+			 ('Databases', '*.db')]
+		a = Tk.filedialog.askopenfile(filetypes = files, defaultextension = files)
+	
+		# This is literally the new code
+		if (a is None):
+			print("Cancelled?")
+		else:
+			a = a.name
+			self.core.open_file(a)
+			self.redraw()
+			self._open_file = a
+			self.core.struct.clear_changed()
+			self.canvas.config(scrollregion=(self.core.dia.bounds))
+			self.updateWindowTitle()
+
+	def file_save(self):
+		self.core.struct.store.commit() # That needs moving
+		self.core.struct.clear_changed()
+		self.updateWindowTitle()
+		pass
 		
 	def quit(self):
 		if (self.core.struct.is_changed()):
@@ -214,18 +267,12 @@ class wdTk(wdTkCore):
 		print(win, val, args, kwargs)
 		
 		Tk.messagebox.showerror(val, args)'''
-	
-	def file_save(self):
-		self.core.struct.store.commit() # That needs moving
-		self.core.struct.clear_changed()
-		self.updateWindowTitle()
-		pass
-								
+		
 	## === Do Wire Management
 	
 	# = Wire Deleting
 	
-	def wireDelWin(self):
+	def wireDelWin(self):	# I'm not updating this just yet
 		self.aw = inputDialog3(self.window, data={
 		
 		})
@@ -258,7 +305,7 @@ class wdTk(wdTkCore):
 	## === Routing management
 	
 	# == Add Route
-	def setRoute(self, *args, **kwargs):
+	def setRoute(self, *args, **kwargs):	## Is this function used?
 		#print(self.core.dia.cwps)
 		p = {0: "Insert at beginning" }
 		if (int(self.wire.get()) in self.core.dia.cwps):
@@ -382,31 +429,6 @@ class wdTk(wdTkCore):
 		if (file is not None):
 			self.core.dia.exportPng().save(file.name)
 		
-	def file_load(self):
-		if (self.core.struct.is_changed()):
-			a = Tk.messagebox.askyesnocancel(title="Unsaved Changed", message="There are unsaved changes. Save before load?")
-			#print(a)
-			if (a is None):
-				return None
-			elif (a is True):
-				self.file_save()
-
-		files = [#('All Files', '*.*'), 
-			 ('Databases', '*.db')]
-		a = Tk.filedialog.askopenfile(filetypes = files, defaultextension = files)
-	
-		# This is literally the new code
-		if (a is None):
-			print("Cancelled?")
-		else:
-			a = a.name
-			self.core.open_file(a)
-			self.redraw()
-			self._open_file = a
-			self.core.struct.clear_changed()
-			self.canvas.config(scrollregion=(self.core.dia.bounds))
-			self.updateWindowTitle()
-	
 	def updateWindowTitle(self):
 		title = self.app_name
 		if (self._open_file is not None):
@@ -416,24 +438,3 @@ class wdTk(wdTkCore):
 			title += "]"
 		self.window.title(title)
 		
-	def file_new(self):
-		if (self.core.struct.is_changed()):
-			a = Tk.messagebox.askyesnocancel(title="Unsaved Changes", message="There are unsaved changes. Save before clearing?")
-			#print(a)
-			if (a is None):
-				return None
-			elif (a is True):
-				self.file_save()
-
-		files = [#('All Files', '*.*'), 
-			 ('Databases', '*.db')]
-	
-		a = Tk.filedialog.asksaveasfilename(filetypes = files, defaultextension = files)
-		if (len(a) == 0):
-			print("Cancelled?")
-		else:
-			self._open_file = a
-			self.core.open_file(a)
-			self.redraw()
-			self.updateWindowTitle()
-			self.core.struct.clear_changed()

@@ -1,4 +1,4 @@
-#import tkinter as Tk
+import tkinter as Tk
 #import tkinter.ttk as ttk
 #from incs.wdCore import wdCore
 #from widgets.connector_points import connector_points
@@ -14,7 +14,7 @@ class wdTkCore():
 	def devAddWin(self, event = None):
 		d = getattr(event, "x", 0)
 
-		self.aw = inputDialog(self.window, data={
+		self.aw = inputDialog3(self.window, data={
 			"mName": {
 				"type" : "Entry",
 				"name" : "New Machine Name",
@@ -58,7 +58,7 @@ class wdTkCore():
 			Tk.messagebox.showerror(title="No devices", message="There are no devices to edit.")
 			return False
 		
-		self.aw = inputDialog2(self.window, data={
+		self.aw = inputDialog3(self.window, data={
 			"mName":{
 				"type" : "Combo",
 				"name": "Edit Machine",
@@ -84,11 +84,11 @@ class wdTkCore():
 	def devEditComplete(self, **kwargs):
 		p = self.core.dia.listDevices(True)
 	
-		if (kwargs['mName'] not in list(p.values())):
+		if (kwargs['mName'] not in list(p.keys())):
 			Tk.messagebox.showerror(title="Device not found", message="There is no device to edit.")
 			return False
 		
-		obj = list(p.keys())[list(p.values()).index(kwargs["mName"])]
+		obj = kwargs['mName'] #list(p.keys())[list(p.values()).index(kwargs["mName"])]
 		
 		self.core.updateDevice(obj,
 			(int(kwargs['left']),
@@ -110,7 +110,7 @@ class wdTkCore():
 			tkinter.messagebox.showerror(title="No devices", message="There are no devices to delete.")
 			return False
 			
-		self.aw = inputDialog2(self.window, data={
+		self.aw = inputDialog3(self.window, data={
 			"dhName":{
 				"type" : "Combo",
 				"name": "Edit Machine",
@@ -128,11 +128,11 @@ class wdTkCore():
 	def devDelComplete(self, **kwargs):
 		p = self.core.dia.listDevices(True)
 	
-		if (kwargs['dhName'] not in list(p.values())):
+		if (kwargs['dhName'] not in list(p.keys())):
 			Tk.messagebox.showerror(title="Device not found", message="There is no device to delete.")
 			return False
 		
-		obj = list(p.keys())[list(p.values()).index(kwargs["dhName"])]
+		obj = kwargs['dhName'] #list(p.keys())[list(p.values()).index(kwargs["dhName"])]
 	
 		self.core.deleteDevice(obj)
 		self.core.struct.set_changed()
@@ -147,7 +147,7 @@ class wdTkCore():
 	# == Plug Adding
 	
 	def connAddWin(self):
-		self.aw = inputDialog2(self.window, data={
+		self.aw = inputDialog3(self.window, data={
 			"mhName": {
 				"type" : "Combo",
 				"name": "Machine Name",
@@ -173,11 +173,11 @@ class wdTkCore():
 	def connAddComplete(self, **kwargs):
 		p = self.core.dia.listDevices(True)
 	
-		if (kwargs['mhName'] not in list(p.values())):
+		if (kwargs['mhName'] not in list(p.keys())):
 			Tk.messagebox.showerror(title="Device not found", message="There is no device to edit.")
 			return False
 		
-		obj = list(p.keys())[list(p.values()).index(kwargs["mhName"])]
+		obj = kwargs['mhName'] #list(p.keys())[list(p.values()).index(kwargs["mhName"])]
 
 		if (kwargs['cName'] in self.core.dia.getDevice(obj).connectors.keys()):
 			Tk.messagebox.showerror(title="Cannot add plug", message="The name of the plug is already in use for this device.")
@@ -192,8 +192,8 @@ class wdTkCore():
 			Tk.messagebox.showerror(title="Cannot add plug", message="Invalid value.")
 			return False
 		
-		self.updateWindowTitle()
 		self.core.struct.set_changed()
+		self.updateWindowTitle()
 
 		self.redraw()
 		return True
@@ -216,7 +216,7 @@ class wdTkCore():
 		args[0].data['outcName']['values'] = list(ii)
 		
 	def connDelWin(self):
-		self.aw = inputDialog2(self.window, data= {
+		self.aw = inputDialog3(self.window, data= {
 			"outdName": {
 				"type" : "Combo",
 				"name": "Machine Name",
@@ -235,12 +235,12 @@ class wdTkCore():
 	
 	def connDelComplete(self, **kwargs):
 		p = self.core.dia.listDevices(True)
-	
-		if (kwargs['outdName'] not in list(p.values())):
+		print(kwargs)
+		if (kwargs['outdName'] not in list(p.keys())):
 			Tk.messagebox.showerror(title="Device not found", message="There is no device to delete.")
 			return False
 		
-		objIn= list(p.keys())[list(p.values()).index(kwargs['outdName'])]
+		objIn= kwargs['outdName'] #list(p.keys())[list(p.values()).index(kwargs['outdName'])]
 		
 		self.core.deleteConnector(objIn, kwargs['outcName'])
 		self.core.struct.set_changed()
