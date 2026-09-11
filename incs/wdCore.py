@@ -150,7 +150,7 @@ class wdCore():
 	def updateWaypoint(self,wid,loc):
 		
 		for i,j in self.dia.wp.items():
-			if (j["name"] == wid):
+			if (i == wid):
 				#print(obj, j["name"], i)
 				o = i
 				

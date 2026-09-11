@@ -256,58 +256,7 @@ class wdTk(wdTkCore):
 		pass
 	
 	## === Waypoint management
-		
-	# == Editing
-	
-	def setwName(self, *nope):
-		
-		obj = self.wName.get()
-		#print(obj)
-		for i,j in self.core.dia.wp.items():
-			if (j["name"] == obj):
-				#print(obj, j["name"], i)
-				o = i
-		d = self.core.dia.wp[o]
-		#print(d)
-		self.top.set(d["loc"][1])
-		self.left.set(d["loc"][0])
-		
-	def waypointEditWin(self):
-		#if (len(self.core.dia.listDevices())== 0):
-		#	tkinter.messagebox.showerror(title="No devices", message="There are no devices to edit.")
-		#	return False
-		VALUES = []
-		self.aw = Tk.Tk()
-		for i,j in self.core.dia.wp.items():
-			VALUES.append(j["name"])
-	
-		self.top = Tk.StringVar(self.aw)
-		self.left = Tk.StringVar(self.aw)
-		self.wName = Tk.StringVar(self.aw)
-		
-		ComboEntryWidget(self.aw, text="Edit Waypoint", variable=self.wName, values=VALUES, 
-			command = self.setwName).grid()
-
-		#Tk.Label(self.aw, text="Edit Waypoint").grid()
-		#a = ttk.Combobox(self.aw, state='readonly', textvariable= self.wName, values=VALUES).grid()
-		
-		EntryWidget(self.aw, text="Top position", variable=self.top).grid()
-		EntryWidget(self.aw, text="Left position", variable=self.left).grid()
-
-		#self.wName.trace('w',self.setwName)
-		Tk.Button(self.aw, text="Edit", command=self.waypointEditComplete).grid()
-
-	def waypointEditComplete(self):
-		obj = self.wName.get()
-
-		print(self.core.updateWaypoint(obj, (int(self.left.get()), int(self.top.get()))))
-		
-		self.canvas.config(scrollregion=(self.core.dia.bounds))
-		self.updateWindowTitle()
-
-		self.aw.destroy()
-		self.redraw()
-	
+			
 	## === Routing management
 	
 	# == Add Route

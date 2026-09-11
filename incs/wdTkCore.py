@@ -194,7 +194,6 @@ class wdTkCore():
 		self.redraw()
 		return True
 
-
 	# == Plug Deleting
 	
 	def getPlugs(self, *args, **kwargs):
@@ -357,6 +356,57 @@ class wdTkCore():
 		self.updateWindowTitle()		
 		self.redraw()
 		return True
+
+	# == Editing
+	
+	def setwName(self, win, val, *nope):
+		
+		obj = win.data['wName']['obj'].get_key_of_value(nope[0])
+		
+		d = self.core.dia.wp[obj]
+
+		win.set("top", int(d['loc'][1]))
+		win.set("left", int(d['loc'][0]))
+		
+	def waypointEditWin(self):
+		#if (len(self.core.dia.listDevices())== 0):
+		#	tkinter.messagebox.showerror(title="No devices", message="There are no devices to edit.")
+		#	return False
+		
+		VALUES = {}
+		for i,j in self.core.dia.wp.items():
+			VALUES[i] = j["name"]
+
+		self.aw = inputDialog3(self.window, data={
+			"wName": {
+				"type": "Combo",
+				"name": "Edit Waypoint",
+				"values" : VALUES,
+				"onUpdate": self.setwName
+			},
+			"top": {
+				"type": "Entry",
+				"name" : "Top position",
+			},
+			"left": {
+				"type": "Entry",
+				"name" : "Left position",
+			}
+
+		})
+		self.aw.addButton("Edit", "edit")
+		self.aw.passFunc("edit", self.waypointEditComplete)
+		
+	def waypointEditComplete(self, **kwargs):
+		obj = kwargs['wName']
+
+		print(self.core.updateWaypoint(obj, (int(kwargs['left']), int(kwargs['top']))))
+		
+		self.canvas.config(scrollregion=(self.core.dia.bounds))
+		self.updateWindowTitle()
+
+		self.aw.destroy()
+		self.redraw()
 
 	# == Delete Waypoint 
 	
