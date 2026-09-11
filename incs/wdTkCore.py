@@ -517,7 +517,7 @@ class wdTkCore():
 		self.redraw()
 		return True
 
-		def getWps(self, win, val, *args, **kwargs):
+	def getWps(self, win, val, *args, **kwargs):
 		print(win, val, args, kwargs)
 		o = None
 		for i,j in self.core.dia.conns.items():
