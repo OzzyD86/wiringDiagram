@@ -166,11 +166,11 @@ class wdCore():
 		return True
 		
 	def deleteWaypoint(self,wid):
-		for i,j in self.dia.wp.items():
-			if (j['name'] == wid):
-				a = i
+		#for i,j in self.dia.wp.items():
+		#	if (j['name'] == wid):
+		#		a = i
 				
-		del self.dia.wp[a]
-		self.struct.cur.execute("delete from waypoints where name = ?", (wid,))
+		del self.dia.wp[wid]
+		self.struct.cur.execute("delete from waypoints where id = ?", (wid,))
 		self.struct.set_changed()
 		return True
