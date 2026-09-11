@@ -5,7 +5,7 @@
 #from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
 import tkinter.messagebox
 
-from widgets.inputDialog import inputDialog, inputDialog2
+from widgets.inputDialog import inputDialog, inputDialog2, inputDialog3
 
 class wdTkCore():
 	
@@ -168,7 +168,6 @@ class wdTkCore():
 		self.aw.passFunc("add", self.connAddComplete)
 
 	def connAddComplete(self, **kwargs):
-		
 		p = self.core.dia.listDevices(True)
 	
 		if (kwargs['mhName'] not in list(p.values())):
@@ -242,5 +241,79 @@ class wdTkCore():
 		self.core.deleteConnector(objIn, kwargs['outcName'])
 		
 		self.updateWindowTitle()		
+		self.redraw()
+		return True
+
+	## === Waypointing
+	
+	# == Add wire to waypoint
+	
+	def help(self, *args, **kwargs): #Not a helpful name!!
+		st = "START"
+		en = "END"
+		stpos = 1
+		out = {}
+		p = args[0].data["wire"]["obj"].get_key_of_value(args[2]) # That's prettier
+		if (p in self.core.dia.cwps):
+			for i in self.core.dia.cwps[p]:
+				out[stpos] = "(" + str(stpos) + ") " + str(st) + " -> " + str(i)
+				st = i
+				stpos += 1
+
+		out[stpos] = "(" + str(stpos) + ") " + str(st) + " -> " + str(en)
+		print(list(out.values()))
+		args[0].data["pos"]["obj"].setValues(out)
+		args[0].data["pos"]["values"] = out
+		#print("I run here?")
+		#self.cb_pos.setState("readonly")
+		
+	def routeAddWin(self):
+		VALUES = {}
+		for i,j in self.core.dia.conns.items():
+			VALUES[i] = "(" + str(i) + "), Connecting " + j[0][0] + " via " + j[0][1] + " to " + j[1][0] + " via " + j[1][1]
+	
+		#Tk.messagebox.showerror("", self.core.dia.wp)
+		self.aw = inputDialog3(self.window, data={
+			"wire": {
+				"type": "Combo",
+				"name": "Select Wire",
+				"values": VALUES,
+				"onUpdate": self.help
+			},
+			"wpn": {
+				"type":"Combo",
+				"name":"Select Waypoint",
+				"values": self.core.dia.wp
+			},
+			"pos" : {
+				"type":"Combo",
+				"name":"Position",
+				"values": []
+			},
+		})
+		self.aw.addButton("Add", "add")
+		self.aw.passFunc("add", self.routeAddComplete)
+
+	def routeAddComplete(self, **kwargs):
+		
+		wire = int(kwargs["wire"]) # So much prettier!
+		wpn = str(kwargs["wpn"])
+		ord = int(kwargs["pos"]) # Update with prettier way>
+
+		self.core.dia.addConnectionWaypoint(
+			int(wire),
+			int(wpn),
+			int(ord)
+		)
+		self.core.struct.cur.execute("update wp_ls set ord = ord + 1 where wire_id = ? and ord >= ?",
+			(wire, ord)
+		)
+
+		self.core.struct.cur.execute("insert into wp_ls (wire_id, wp_id, ord) values (?,?,?)",
+			(wire, wpn, ord)
+		)
+		
+		self.updateWindowTitle()
+		self.core.struct.set_changed()
 		self.redraw()
 		return True
