@@ -491,6 +491,8 @@ class wdTkCore():
 		self.aw.addButton("Add", "add")
 		self.aw.passFunc("add", self.routeAddComplete)
 
+	# == Delete waypoint wire mapping
+	
 	def routeAddComplete(self, **kwargs):
 		
 		wire = int(kwargs["wire"]) # So much prettier!
@@ -512,5 +514,67 @@ class wdTkCore():
 		
 		self.updateWindowTitle()
 		self.core.struct.set_changed()
+		self.redraw()
+		return True
+
+		def getWps(self, win, val, *args, **kwargs):
+		print(win, val, args, kwargs)
+		o = None
+		for i,j in self.core.dia.conns.items():
+			if (args[0] == ("(" + str(i) + "), Connecting " + j[0][0] + " via " + j[0][1] + " to " + j[1][0] + " via " + j[1][1])):
+				o = i
+		
+		if (o is not None):
+			win.data['wp']['obj'].setValues(self.core.dia.cwps[o]) # Could be prettier?
+			win.data['wp']['values'] = self.core.dia.cwps[o]
+
+		print(o)
+			
+	def routeDelWin(self):
+		VALUES = {}
+		for i,j in self.core.dia.conns.items():
+			VALUES[i] = "(" + str(i) + "), Connecting " + j[0][0] + " via " + j[0][1] + " to " + j[1][0] + " via " + j[1][1]
+
+		self.aw = inputDialog3(self.window, data={
+			"wire": {
+				"type": "Combo",
+				"name": "Wire",
+				"values": VALUES,
+				"onUpdate" : self.getWps
+			},
+			"wp" : {
+				"type": "Combo",
+				"name": "Waypoint",
+				"values" : {}
+			}
+		})
+		self.aw.addButton("Delete", "del")
+		self.aw.passFunc("del", self.routeDelComplete)
+			
+	def routeDelComplete(self, **kwargs):
+		print(kwargs)
+
+		r = []
+		rem = None
+		
+		for i in self.core.dia.cwps[kwargs['wire']]:
+			if (str(i) == kwargs['wp']):
+				print("added",i)
+				r.append(i)
+			else:
+				rem = i['wpid']
+				print("skipped",i)
+
+		print(r)
+
+		if (rem is not None):
+			self.core.dia.cwps[kwargs['wire']] = r
+				
+			self.core.struct.cur.execute("delete from wp_ls where wire_id = ? and wp_id =?",
+				(kwargs['wire'],rem)
+			)
+
+		self.core.struct.set_changed()
+		self.updateWindowTitle()
 		self.redraw()
 		return True

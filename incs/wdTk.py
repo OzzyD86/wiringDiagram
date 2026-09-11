@@ -220,9 +220,7 @@ class wdTk(wdTkCore):
 		self.core.struct.clear_changed()
 		self.updateWindowTitle()
 		pass
-		
-	## === Do Plug Management
-						
+								
 	## === Do Wire Management
 	
 	# = Wire Deleting
@@ -277,54 +275,7 @@ class wdTk(wdTkCore):
 			for k in j:
 				p[i,k["wpid"], k["order"]] = str((i,k["wpid"]))
 		return p
-	
-	def routeDelWin(self):
-		self.aw = Tk.Tk()
-		
-		VALUES = list(self.getRoutes().values())
-		print(self.getRoutes().values())
-		#KEYS, VALUES = self.getKeys()
-	
-		self.rName = Tk.StringVar(self.aw)
-
-		ComboEntryWidget(self.aw, text="Select Wire Id", variable=self.rName, values=VALUES).grid()
-		
-		#Tk.Label(self.aw, text="select wire id").grid()
-		#a = ttk.Combobox(self.aw, state='readonly', textvariable= self.rName, values=VALUES).grid()
-
-		Tk.Button(self.aw, text="Delete", command=self.routeDelComplete).grid()
-	
-	def routeDelComplete(self):
-		q = self.getRoutes()
-		KEYS = list(q.keys())
-		VALUES = list(q.values())
-		#print(list(q.values()))
-		p = KEYS[VALUES.index(self.rName.get())]
-		print(p)
-		
-		if (int(p[0]) in self.core.dia.cwps.keys()):
-			q = self.core.dia.cwps[int(p[0])]
-			r = []
-			for i in q:
-				#print(i)
-				if (i["wpid"] != int(p[1])):
-					print("added",i)
-					r.append(i)
-				else:
-					print("skipped",i)
-			self.core.dia.cwps[int(p[0])] = r
-		else:
-			print("no",self.core.dia.cwps)
 			
-		self.core.struct.cur.execute("delete from wp_ls where wire_id = ? and wp_id =?",
-			(p[0],p[1])
-		)
-
-		#self.core.addWire(objIn, self.incName.get(), objOut, self.outcName.get())''#'
-		self.core.struct.set_changed()
-		self.updateWindowTitle()
-		self.redraw()
-		self.aw.destroy()
 	# == Drawing management ==
 
 	def setM(self, *what, **kwargs):
