@@ -40,7 +40,6 @@ class inputDialog(Tk.Toplevel):
 		#print("Do stuff here") 
 		for i,j in self.vars.items():
 			if (type(j) is Tk.StringVar):
-				#print(self.data[i])
 				snd[i] = j.get()
 			else:
 				print("Slight panic:", i, j)
@@ -81,3 +80,22 @@ class inputDialog2(inputDialog):
 				j["obj"] = SpinEntryWidget(self, text=j["name"], min=1, max=32, variable=self.vars[i])
 			j["obj"].grid(padx=5, pady=(5,0), sticky='nsew')
 		self.columnconfigure(0, weight=1)
+
+class inputDialog3(inputDialog2):
+	def button_press(self, mode):
+		snd={}
+		#print("Do stuff here") 
+		for i,j in self.vars.items():
+			if (type(j) is Tk.StringVar):
+				if (self.data[i]["type"] in ["Combo"]):
+					snd[i] = self.data[i]["obj"].get_key_of_value(j.get())
+				else:
+					snd[i] = j.get()
+			else:
+				print("Slight panic:", i, j)
+					
+		for i in self.funcs[mode]:
+			t = i(**snd)
+		
+		if (t):
+			self.destroy()
