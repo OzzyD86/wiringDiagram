@@ -209,32 +209,12 @@ class wdTk(wdTkCore):
 	def alert(self, *args, **kwargs): # For inputDialog testing purposes only. Please don't use for else (oh unless you want to print kwargs and print a warning) and remove after
 		Tk.messagebox.showwarning("Button pressed", "Yes. This is triggered")
 		print(args, kwargs)
-	
-	def example(self, win, val, *args, **kwargs):
-		print(win, val, args, kwargs)
-		rep = val[0]["target"]
-		if (rep == "outcName"):
-			d = win.data["outdName"]["obj"].get_key_of_value(args[0])
-			#win.data["outcName"]["obj"]., 
-			win.data['outcName']['obj'].setValues(list(self.core.dia.getDevice(d).connectors.keys())) # Could be prettier?
-			win.data['outcName']['values'] = list(self.core.dia.getDevice(d).connectors.keys())
-			#Tk.messagebox.showerror(args, d)
-		elif (rep == "incName"):
-			d = win.data["indName"]["obj"].get_key_of_value(args[0])
-			#win.data["outcName"]["obj"]., 
-			win.data['incName']['obj'].setValues(list(self.core.dia.getDevice(d).connectors.keys())) # Could be prettier?
-			win.data['incName']['values'] = list(self.core.dia.getDevice(d).connectors.keys())
-			#Tk.messagebox.showerror(args, d)
-	
-			pass
-		else:
-			Tk.messagebox.showerror(val[0]["target"], args)
-	
+
 	'''def example(self, win, val, *args, **kwargs):
 		print(win, val, args, kwargs)
 		
 		Tk.messagebox.showerror(val, args)'''
-		
+	
 	def file_save(self):
 		self.core.struct.store.commit() # That needs moving
 		self.core.struct.clear_changed()
@@ -245,72 +225,19 @@ class wdTk(wdTkCore):
 						
 	## === Do Wire Management
 	
-	# == Wire Adding
-
-	def wireAddWin(self):
-		self.aw = inputDialog3(self.window, data={
-			"outdName" : {
-				"type":"Combo",
-				"name":"Output Device Name",
-				"values": self.core.dia.listDevices(True),
-				"onUpdate": self.example,
-				"updateVars": [{"target" : "outcName"}]
-			},
-			"outcName" : {
-				"type":"Combo",
-				"name":"Output Connector Name",
-				"values": {},
-			},
-			"indName" : {
-				"type":"Combo",
-				"name":"Output Device Name",
-				"values": self.core.dia.listDevices(True),
-				"onUpdate": self.example,
-				"updateVars": [{"target" : "incName"}]
-			},
-			"incName" : {
-				"type":"Combo",
-				"name":"Output Connector Name",
-				"values": {},
-			}
-		})
-		self.aw.addButton("Add", "add")
-		self.aw.passFunc("add", self.wireAddComplete)
-
-	def wireAddComplete(self, **kwargs):
-		KEYS, VALUES = self.getKeys()
-		
-		#print(self.indName.get(), self.incName.get(),
-		#	self.outdName.get(), self.outcName.get())
-		if (kwargs["indName"] not in KEYS):
-			tkinter.messagebox.showwarning(title="Cannot select device", message="Please select a valid output device.")
-			return
-
-		if (kwargs["outdName"] not in KEYS):
-			tkinter.messagebox.showwarning(title="Cannot select device", message="Please select a valid input device.")
-			return
-		
-		objIn = kwargs["indName"]
-		objOut = kwargs["outdName"]
-		#return False
-		
-		self.core.addWire(objOut, kwargs["outcName"], objIn, kwargs["incName"])
-		self.updateWindowTitle()
-
-		self.redraw()
-		return True
-
 	# = Wire Deleting
 	
 	def wireDelWin(self):
-		self.aw = Tk.Toplevel()
+		self.aw = inputDialog3(self.window, data={
+		
+		})
+
 		KEYS, VALUES = self.getKeys()
 		
 		self.a = connector_points(self.aw, self.core.dia)
 		self.a.pass_machines(self.getKeys()).go().grid(sticky="news")
 		Tk.Button(self.aw, text="Delete", command=self.wireDelComplete).grid(sticky='swen')
 		self.aw.columnconfigure(0, weight=1)
-		#self.mName.trace('w', self.setM2)
 
 	def wireDelComplete(self):
 		KEYS, VALUES = self.getKeys()
@@ -329,34 +256,7 @@ class wdTk(wdTkCore):
 		pass
 	
 	## === Waypoint management
-	
-	# == Adding
-	
-	def waypointAddWin(self):
-		self.aw = Tk.Tk()
-		self.wName = Tk.StringVar(self.aw)
-		self.top = Tk.IntVar(self.aw)
-		self.left = Tk.IntVar(self.aw)
 		
-		EntryWidget(self.aw, text="Waypoint Name", variable=self.wName).grid()
-		EntryWidget(self.aw, text="Top position", variable=self.top).grid()
-		EntryWidget(self.aw, text="Left position", variable=self.left).grid()
-		Tk.Button(self.aw, text="Add", command=self.waypointAddComplete).grid()
-
-	def waypointAddComplete(self):
-		for i in self.core.dia.wp.values():
-			if (self.wName.get() == i["name"]):
-				tkinter.messagebox.showerror(title="Cannot add waypoint", message="The name of the waypoint is already in use.")
-				return False
-		
-		self.core.addWaypoint(
-			self.wName.get(),
-			(self.left.get(),self.top.get()))
-		
-		self.updateWindowTitle()		
-		self.aw.destroy()
-		self.redraw()
-	
 	# == Editing
 	
 	def setwName(self, *nope):
