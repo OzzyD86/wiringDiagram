@@ -67,6 +67,8 @@ class wdTk(incs.wdTk.wdTk):
 		#print(event)
 		d = Tk.Menu()
 		d.add_command(label="Create Device here", command= lambda event=event: self.devAddWin(event))
+		d.add_command(label="Waypoint Device here", command= lambda event=event: self.waypointAddWin(event))
+	
 		d.add_separator()
 		d.add_command(label="Hello", state="disabled")
 		d.add_command(label=str(self.canvas.find_closest(event.x,event.y)))
