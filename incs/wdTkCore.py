@@ -515,12 +515,19 @@ class wdTkCore():
 			int(wpn),
 			int(ord)
 		)
-		self.core.struct.cur.execute("update wp_ls set ord = ord + 1 where wire_id = ? and ord >= ?",
-			(wire, ord)
+		
+		a = self.core.struct.cur.execute("select ord from wp_ls where wire_id = ? and ord >= ? order by ord desc",
+			(int(wire), int(ord))
 		)
-
+		for i in a.fetchall():
+			#raise Exception(list(i))
+			self.core.struct.cur.execute("update wp_ls set ord = ord + 1 where wire_id = ? and ord = ?",
+				(int(wire), int(i[0]))
+			)
+			self.core.struct.store.commit()
+			
 		self.core.struct.cur.execute("insert into wp_ls (wire_id, wp_id, ord) values (?,?,?)",
-			(wire, wpn, ord)
+			(int(wire), int(wpn), int(ord))
 		)
 		
 		self.updateWindowTitle()
@@ -569,22 +576,36 @@ class wdTkCore():
 		rem = None
 		
 		for i in self.core.dia.cwps[kwargs['wire']]:
-			if (str(i) == kwargs['wp']):
+			if (str(i) != kwargs['wp']):
 				print("added",i)
 				r.append(i)
 			else:
 				rem = i['wpid']
 				print("skipped",i)
-
-		print(r)
+		
+		s = []
+		od = 1
+		for i in sorted(r, key= lambda x: x["order"]):
+			j = i
+			j["order"] = od
+			od+= 1
+			s.append(j)
+		
+		
+		#print(j)
 
 		if (rem is not None):
-			self.core.dia.cwps[kwargs['wire']] = r
+			self.core.dia.cwps[int(kwargs['wire'])] = s
 				
-			self.core.struct.cur.execute("delete from wp_ls where wire_id = ? and wp_id =?",
-				(kwargs['wire'],rem)
+			self.core.struct.cur.execute("delete from wp_ls where wire_id = ?",
+				(int(kwargs['wire']),)
 			)
-
+			for i in s:
+				#Tk.messagebox.showerror(s,i)
+				self.core.struct.cur.execute("insert into wp_ls (wire_id, wp_id, ord) values (?,?,?)",
+					(int(kwargs["wire"]), int(i['wpid']), int(i["ord"]))
+				)
+			
 		self.core.struct.set_changed()
 		self.updateWindowTitle()
 		self.redraw()
