@@ -331,7 +331,7 @@ class wdTkCore():
 
 	# == Adding
 	
-	def waypointAddWin(self):
+	def waypointAddWin(self, event=None):
 		self.aw = inputDialog(self.window, data={
 			"wName": {
 				"type": "Entry",
@@ -339,11 +339,13 @@ class wdTkCore():
 			},
 			"top": {
 				"type": "Entry",
-				"name": "Waypoint top position"
+				"name": "Waypoint top position",
+				"value": getattr(event, "y", 0)
 			},
 			"left": {
 				"type": "Entry",
-				"name": "Waypoint left position"
+				"name": "Waypoint left position",
+				"value": getattr(event, "x", 0)
 			},
 		})
 		self.aw.addButton("Add", "add")
