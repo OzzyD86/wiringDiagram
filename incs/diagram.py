@@ -26,10 +26,22 @@ class diagram():
 	
 	def addConnectionWaypoint(self, conn, wpid, order):
 		# THIS WILL NOT WORK! If any values have an order >= order above, then they'll need shifting!
+		# Fixed??
+		p = []
+		if (conn in self.cwps):
+			for i in self.cwps[conn]:
+				j = i
+				if (j["order"] >= order):
+					j["order"] += 1
+				p.append(j)
+			self.cwps[conn] = p
+		
 		if (conn in self.cwps):
 			self.cwps[conn].append({ "wpid" : wpid, "order": order})
 		else:
 			self.cwps[conn] = [{ "wpid" : wpid, "order": order}]
+			
+		self.cwps[conn] = sorted(self.cwps[conn], key=lambda x: x["order"])
 		pass
 		
 	def buildWaypointLists(self):
@@ -258,6 +270,9 @@ class diagram():
 			dr.addtag_withtag(p.name, rct)
 			dr.addtag_withtag("_dev", rct)
 			dr.create_text(dms[0],dms[1],text=p.name,font=i18n["font_large"])
+		#dr.bind("<Button-1>", self.down)
+		#dr.bind("<ButtonRelease-1>", self.test)
+
 		#dr.tag_bind(rct, "<Button-1>", drag_start)
 		#dr.tag_bind(rct, "<B1-Motion>", drag_motion)
 
