@@ -603,7 +603,7 @@ class wdTkCore():
 			for i in s:
 				#Tk.messagebox.showerror(s,i)
 				self.core.struct.cur.execute("insert into wp_ls (wire_id, wp_id, ord) values (?,?,?)",
-					(int(kwargs["wire"]), int(i['wpid']), int(i["ord"]))
+					(int(kwargs["wire"]), int(i['wpid']), int(i["order"]))
 				)
 			
 		self.core.struct.set_changed()
