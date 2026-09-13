@@ -23,6 +23,7 @@ import tkinter.ttk as ttk
 import tkinter.filedialog
 import traceback
 from tkinter.messagebox import showerror
+from copy import copy
 
 def report_callback_exception(self, exc, val, tb):
 	showerror("Error", message=str(traceback.extract_stack()) + "\n" + str(val))
@@ -67,9 +68,12 @@ class wdTk(incs.wdTk.wdTk):
 		y = self.canvas.canvasy(event.y)
 		#print(self.canvas.find_closest(event.x,event.y))
 		#print(event)
+		p = copy(event)
+		p.x = x
+		p.y = y
 		d = Tk.Menu()
-		d.add_command(label="Create Device here", command= lambda event=event: self.devAddWin(event))
-		d.add_command(label="Create Waypoint here", command= lambda event=event: self.waypointAddWin(event))
+		d.add_command(label="Create Device here", command= lambda event=event: self.devAddWin(p))
+		d.add_command(label="Create Waypoint here", command= lambda event=event: self.waypointAddWin(p))
 	
 		d.add_separator()
 		d.add_command(label="Hello", state="disabled")
