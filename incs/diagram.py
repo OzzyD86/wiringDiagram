@@ -248,8 +248,10 @@ class diagram():
 					dr.addtag_withtag("_conn", op)
 					dr.addtag_withtag(fc, op)
 					if (self.conn_labelling.get()):
-						dr.create_text(lf+to[0],tp+to[1],text=fc,font=i18n["font_small"],angle=ro,anchor=an)
-				#print(fc)
+						otx = dr.create_text(lf+to[0],tp+to[1],text=fc,font=i18n["font_small"],angle=ro,anchor=an)
+						dr.addtag_withtag("_conn", otx)
+						dr.addtag_withtag(fc, otx)
+					#print(fc)
 				ct += 1
 				outmap[fc] = (lf,tp)
 
@@ -269,7 +271,9 @@ class diagram():
 			)
 			dr.addtag_withtag(p.name, rct)
 			dr.addtag_withtag("_dev", rct)
-			dr.create_text(dms[0],dms[1],text=p.name,font=i18n["font_large"])
+			tx = dr.create_text(dms[0],dms[1],text=p.name,font=i18n["font_large"])
+			dr.addtag_withtag(p.name, tx)
+			dr.addtag_withtag("_dev", tx)
 		#dr.bind("<Button-1>", self.down)
 		#dr.bind("<ButtonRelease-1>", self.test)
 
