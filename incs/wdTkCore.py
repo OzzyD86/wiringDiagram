@@ -26,12 +26,12 @@ class wdTkCore():
 			"x": {
 				"type" : "Entry",
 				"name" : "X Position",
-				"value": getattr(event, "x", 300)
+				"value": int(getattr(event, "x", 300) / float(self.sc.get()))
 			},
 			"y": {
 				"type" : "Entry",
 				"name" : "Y Position",
-				"value": getattr(event, "y", 300)
+				"value": int(getattr(event, "y", 300) / float(self.sc.get()))
 			},
 		})
 		self.aw.addButton("Add", "add")
@@ -340,12 +340,12 @@ class wdTkCore():
 			"top": {
 				"type": "Entry",
 				"name": "Waypoint top position",
-				"value": getattr(event, "y", 0)
+				"value": int(float(getattr(event, "y", 0)) / self.sc.get())
 			},
 			"left": {
 				"type": "Entry",
 				"name": "Waypoint left position",
-				"value": getattr(event, "x", 0)
+				"value": int(float(getattr(event, "x", 0)) / self.sc.get())
 			},
 		})
 		self.aw.addButton("Add", "add")
