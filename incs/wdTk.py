@@ -41,7 +41,48 @@ class wdTk(wdTkCore):
 
 	def click_call(self, event):
 		pass
+	
+	def b1_down(self, event):
+		self.b1_pressed = event
 		
+	def b1_up(self, event):
+		d = Tk.Menu()
+		down = self.b1_pressed
+		up = event
+		
+		x = self.canvas.canvasx(event.x)
+		y = self.canvas.canvasy(event.y)
+		#print(self.canvas.find_closest(event.x,event.y))
+		#print(event)
+		#p = copy(event)
+		#p.x = x
+		#p.y = y
+#		d.add_command(label="Create Device here", command= lambda event=event: self.devAddWin(p))
+#		d.add_command(label="Create Waypoint here", command= lambda event=event: self.waypointAddWin(p))
+	
+#		d.add_separator()
+		d.add_command(label="Start: " + str((down.x, down.y)), state="disabled")
+		d.add_command(label="Finish: " + str((up.x, up.y)), state="disabled")
+		d.add_separator()
+		d.add_command(label="Canvas Start: " + str((self.canvas.canvasx(down.x), self.canvas.canvasy(down.y))), state="disabled")
+		d.add_command(label="Canvas Finish: " + str((self.canvas.canvasx(up.x), self.canvas.canvasy(up.y))), state="disabled")
+		d.add_separator()
+		print(self.canvas.find_closest(x,y))
+		
+#		d.add_command(label=str(self.canvas.find_closest(x,y)))
+#		d.add_separator()
+#		tags = []
+
+#		for i in self.canvas.gettags(self.canvas.find_closest(x,y)):
+#			tags.append(i)
+#			d.add_command(label=i)
+#
+#		if ("_dev" in tags):
+#			d.add_command(label="Edit device " + str(self.canvas.find_closest(x,y)[0]))
+#			pass
+		d.tk_popup(self.canvas.winfo_rootx()+event.x, self.canvas.winfo_rooty()+event.y)
+		self.b1_pressed = None
+
 	def __init__(self):
 		self.app_name = "WiringDiagram"
 		self._open_file = None
@@ -67,6 +108,8 @@ class wdTk(wdTkCore):
 		self.window.rowconfigure(0, weight=1)
 		self.window.columnconfigure(0, weight=1)
 		self.canvas.bind("<Button-3>", self.click_call)
+		self.canvas.bind("<Button-1>", self.b1_down)
+		self.canvas.bind("<ButtonRelease-1>", self.b1_up)
 		#self.window.bind('<Configure>', self.resize_canvas)
 	
 		self.menu = {

@@ -26,9 +26,17 @@ from tkinter.messagebox import showerror
 from copy import copy
 
 def report_callback_exception(self, exc, val, tb):
-	showerror("Error", message=str(traceback.extract_stack()) + "\n" + str(val))
+	d = pjaDialog()
+	text_box = Tk.Text(d.top, wrap=Tk.WORD, width=80, height=10)
+	text_box.insert("0.0", str(traceback.extract_stack()) + "\n" + str(val))
+	text_box.grid(row=0, column=0, rowspan=3, padx=10, pady=10, sticky="nsew")
+	d.top.rowconfigure(0, weight=1)
+	d.top.columnconfigure(0, weight=1)
+	
+	d.go()
+	#showerror("Error", message=str(traceback.extract_stack()) + "\n" + str(val))
 
-#Tk.Tk.report_callback_exception = report_callback_exception
+Tk.Tk.report_callback_exception = report_callback_exception
 
 #from incs.wdCore omport wdCore
 
@@ -38,10 +46,10 @@ class pjaDialog():
 		#self.master = master
 		self.top.protocol('WM_DELETE_WINDOW', self.cancel_command)
 
-		self.tree = ttk.Treeview(self.top)
-		self.tree.grid(column=0, row=0, sticky='news')	
-		bt = Tk.Button(self.top, text='Select', command=self.ok)
-		bt.grid(column=0, row=1)
+		#self.tree = ttk.Treeview(self.top)
+		#self.tree.grid(column=0, row=0, sticky='news')	
+		#bt = Tk.Button(self.top, text='Select', command=self.ok)
+		#bt.grid(column=0, row=1)
 
 	def ok(self):
 		self.quit(self.tree.selection())
@@ -80,6 +88,7 @@ class wdTk(incs.wdTk.wdTk):
 		d.add_command(label=str(self.canvas.find_closest(x,y)))
 		d.add_separator()
 		tags = []
+
 		for i in self.canvas.gettags(self.canvas.find_closest(x,y)):
 			tags.append(i)
 			d.add_command(label=i)
