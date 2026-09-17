@@ -269,10 +269,10 @@ class diagram():
 				dms[0]+(dms[2]/2), dms[1] + (dms[3]/2),
 				outline="black"
 			)
-			dr.addtag_withtag(p.name, rct)
+			dr.addtag_withtag("mn:"+p.machName, rct)
 			dr.addtag_withtag("_dev", rct)
 			tx = dr.create_text(dms[0],dms[1],text=p.name,font=i18n["font_large"])
-			dr.addtag_withtag(p.name, tx)
+			dr.addtag_withtag("mn:"+p.machName, tx)
 			dr.addtag_withtag("_dev", tx)
 		#dr.bind("<Button-1>", self.down)
 		#dr.bind("<ButtonRelease-1>", self.test)

@@ -139,7 +139,7 @@ class wdTkCore():
 		self.updateWindowTitle()
 
 		self.redraw()
-		self.aw.destroy()
+		#self.aw.destroy()
 		return True
 
 	## === Plug Management

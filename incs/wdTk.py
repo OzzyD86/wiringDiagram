@@ -4,7 +4,7 @@ from incs.wdCore import wdCore
 from widgets.connector_points import connector_points
 from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
 import tkinter.messagebox
-
+import math as maths
 from widgets.inputDialog import inputDialog
 from incs.wdTkCore import wdTkCore
 
@@ -52,6 +52,16 @@ class wdTk(wdTkCore):
 		
 		x = self.canvas.canvasx(event.x)
 		y = self.canvas.canvasy(event.y)
+		
+		up.x = int(self.canvas.canvasx(up.x))
+		up.y = int(self.canvas.canvasy(up.y))
+		down.x = self.canvas.canvasx(down.x)
+		down.y = self.canvas.canvasy(down.y)
+		
+		if (maths.sqrt(pow(down.x-x,2) + pow(down.y-y,2)) < 5):
+			click = True
+		else:
+			click=False
 		#print(self.canvas.find_closest(event.x,event.y))
 		#print(event)
 		#p = copy(event)
@@ -67,20 +77,35 @@ class wdTk(wdTkCore):
 		d.add_command(label="Canvas Start: " + str((self.canvas.canvasx(down.x), self.canvas.canvasy(down.y))), state="disabled")
 		d.add_command(label="Canvas Finish: " + str((self.canvas.canvasx(up.x), self.canvas.canvasy(up.y))), state="disabled")
 		d.add_separator()
-		print(self.canvas.find_closest(x,y))
+		
 		
 #		d.add_command(label=str(self.canvas.find_closest(x,y)))
-#		d.add_separator()
-#		tags = []
-
-#		for i in self.canvas.gettags(self.canvas.find_closest(x,y)):
-#			tags.append(i)
-#			d.add_command(label=i)
-#
-#		if ("_dev" in tags):
-#			d.add_command(label="Edit device " + str(self.canvas.find_closest(x,y)[0]))
-#			pass
-		d.tk_popup(self.canvas.winfo_rootx()+event.x, self.canvas.winfo_rooty()+event.y)
+	
+		tags = []
+		name = None
+		for i in self.canvas.gettags(self.canvas.find_closest(down.x,down.y)):
+			tags.append(i)
+			d.add_command(label=i)
+			if (i.split(":")[0] == "mn"):
+				name = i.split(":")[1]
+			if (i.split(":")[0] == "wn"):
+				name = i.split(":")[1]
+				
+		d.add_separator()
+		if ("_dev" in tags):
+			if (not click):
+				d.add_command(label="Move device here ", command= lambda : self.contextDevMove(name,x,y))
+			else:
+				d.add_command(label="Delete device", command= lambda : self.devDelComplete(dhName=name))
+		
+				pass
+		if ("_wp" in tags):
+			d.add_command(label="Delete waypoint", command= lambda : self.waypointDelComplete(wpName=int(name), delRel = True))
+		
+		d.add_command(label="Create Device here", command= lambda event=event: self.devAddWin(up))
+		d.add_command(label="Create Waypoint here", command= lambda event=event: self.waypointAddWin(up))
+	
+		d.tk_popup(self.canvas.winfo_rootx()+int(event.x/self.sc.get()), self.canvas.winfo_rooty()+int(event.y/self.sc.get()))
 		self.b1_pressed = None
 
 	def __init__(self):
@@ -437,9 +462,14 @@ class wdTk(wdTkCore):
 				if (self.waypointing.get()):
 					if (len(cs) > 1):
 						#print(cs)
-						r = self.canvas.create_line(st,n[0:2], fill="black")
-						r = self.canvas.create_line(n[-2:] ,fn, fill="black")
-	
+						r = self.canvas.create_line(st,n[0:2], fill="green")
+						self.canvas.addtag_withtag("_wire", r)
+						self.canvas.addtag_withtag(k, r)
+						self.canvas.addtag_withtag(st,r)
+						r = self.canvas.create_line(n[-2:] ,fn, fill="green")
+						self.canvas.addtag_withtag("_wire", r)
+						self.canvas.addtag_withtag(k, r)
+						self.canvas.addtag_withtag(st,r)
 						for m in range(len(cs)-1):
 							q = (cs[m], cs[m+1])
 							#print(q)
@@ -449,16 +479,31 @@ class wdTk(wdTkCore):
 								olines[cs[m], cs[m+1]] = 1
 					else:
 						r = self.canvas.create_line(st,n,fn, fill="black")
+						self.canvas.addtag_withtag("_wire", r)
+						self.canvas.addtag_withtag(m, r)
+						self.canvas.addtag_withtag(st, r)
+						
 				else:
 					r = self.canvas.create_line(st,fn, fill="black")
+					#self.canvas.addtag_withtag("_wire", r)
+					#self.canvas.addtag_withtag(m, r)
+					#self.canvas.addtag_withtag(st, r)
 
 		if (self.waypointing.get()):
 			for m,n in olines.items():
-				self.canvas.create_line(d.wp[m[0]]["loc"], d.wp[m[1]]["loc"], width=n, fill="black")
-			
+				r = self.canvas.create_line(d.wp[m[0]]["loc"], d.wp[m[1]]["loc"], width=n, fill="black")
+				
+				self.canvas.addtag_withtag("_wire", r)
+				self.canvas.addtag_withtag("wp_bridge", r)
+				self.canvas.addtag_withtag(str(m[0])+":"+str(m[1]), r)
+				self.canvas.addtag_withtag(st, r)
+				
 		if (self.wp_labels.get()):
 			for i,j in d.wp.items():
-				self.canvas.create_text(j["loc"][0],j["loc"][1],text=j["name"],font=('Arial',4))
+				r = self.canvas.create_text(j["loc"][0],j["loc"][1],text=j["name"],font=('Arial',4))
+				self.canvas.addtag_withtag("_wp", r)
+				self.canvas.addtag_withtag("wn:" + str(i), r)
+				self.canvas.addtag_withtag(j, r)
 
 		self.canvas.scale("all", 0,0, self.sc.get(), self.sc.get())
 		self.canvas.config(scrollregion=(q2))
