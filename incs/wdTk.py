@@ -5,7 +5,10 @@ from widgets.connector_points import connector_points
 from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
 import tkinter.messagebox
 
-class wdTk():
+from widgets.inputDialog import inputDialog
+from incs.wdTkCore import wdTkCore
+
+class wdTk(wdTkCore):
 	def resize_canvas(self, event):
    
 		new_width = event.width
@@ -14,6 +17,31 @@ class wdTk():
 		# Update the canvas size
 		self.canvas.config(width=new_width, height=new_height)
 
+	def file_new(self):
+		if (self.core.struct.is_changed()):
+			a = Tk.messagebox.askyesnocancel(title="Unsaved Changes", message="There are unsaved changes. Save before clearing?")
+			#print(a)
+			if (a is None):
+				return None
+			elif (a is True):
+				self.file_save()
+
+		files = [#('All Files', '*.*'), 
+			 ('Databases', '*.db')]
+	
+		a = Tk.filedialog.asksaveasfilename(filetypes = files, defaultextension = files)
+		if (len(a) == 0):
+			print("Cancelled?")
+		else:
+			self._open_file = a
+			self.core.open_file(a)
+			self.redraw()
+			self.updateWindowTitle()
+			self.core.struct.clear_changed()
+
+	def click_call(self, event):
+		pass
+		
 	def __init__(self):
 		self.app_name = "WiringDiagram"
 		self._open_file = None
@@ -38,7 +66,7 @@ class wdTk():
 		self.hscroll.config( command = self.canvas.xview )
 		self.window.rowconfigure(0, weight=1)
 		self.window.columnconfigure(0, weight=1)
-		#self.canvas.bind("<Button-1>", self.click_call)
+		self.canvas.bind("<Button-3>", self.click_call)
 		#self.window.bind('<Configure>', self.resize_canvas)
 	
 		self.menu = {
@@ -96,7 +124,7 @@ class wdTk():
 		self.conn_labelling.trace('w', self.set_export_vars)
 		self.core.dia.conn_labelling.trace('w', self.set_export_vars)
 		
-		self.scale = Tk.Menu()
+		self.scale = Tk.Menu(self.menu["export"])
 		self.scale.add_checkbutton(label="1x", onvalue=1,variable=self.sc)
 		self.scale.add_checkbutton(label="2x", onvalue=2,variable=self.sc)
 		self.sc.trace('w', self.set_export_vars)
@@ -123,8 +151,6 @@ class wdTk():
 		self.core.dia.wp_labelling = self.wp_labels
 		self.core.dia.conn_labelling = self.conn_labelling
 		self.redraw()
-	#	print(self.wp_labels.get())
-		pass
 		
 	def open_file(self, file):
 		self.core.open_file(file)
@@ -132,19 +158,47 @@ class wdTk():
 		self.canvas.config(scrollregion=(self.core.dia.bounds))
 		self.set_export_vars()
 		self.updateWindowTitle()
+
+	def file_load(self):
+		if (self.core.struct.is_changed()):
+			a = Tk.messagebox.askyesnocancel(title="Unsaved Changed", message="There are unsaved changes. Save before load?")
+			#print(a)
+			if (a is None):
+				return None
+			elif (a is True):
+				self.file_save()
+
+		files = [#('All Files', '*.*'), 
+			 ('Databases', '*.db')]
+		a = Tk.filedialog.askopenfile(filetypes = files, defaultextension = files)
+	
+		# This is literally the new code
+		if (a is None):
+			print("Cancelled?")
+		else:
+			a = a.name
+			self.core.open_file(a)
+			self.redraw()
+			self._open_file = a
+			self.core.struct.clear_changed()
+			self.canvas.config(scrollregion=(self.core.dia.bounds))
+			self.updateWindowTitle()
+
+	def file_save(self):
+		self.core.struct.store.commit() # That needs moving
+		self.core.struct.clear_changed()
+		self.updateWindowTitle()
+		pass
 		
 	def quit(self):
-		#print("Closing:", self.core.struct.is_changed())
 		if (self.core.struct.is_changed()):
 			a = Tk.messagebox.askyesnocancel(title="Unsaved Changes", message="There are unsaved changes. Save before closing?")
-			#print(a)
 			if (a is None):
 				return None
 			elif (a is False):
 				exit(0)
 			elif (a is True):
 				self.file_save()
-
 				exit(0)
 		else:
 			if (Tk.messagebox.askquestion(title=None, message="Are you sure") == "yes"):
@@ -155,8 +209,9 @@ class wdTk():
 		VALUES = []
 		#self.core.dia = d # WTF 
 		for i in self.core.dia.listDevices():
+			q = self.core.dia.dev[i].name
 			KEYS.append(i)
-			VALUES.append(i + " (" + i + ")")
+			VALUES.append(q + " (" + i + ")")
 		return (KEYS, VALUES)
 	
 	## === Do Device Management
@@ -164,7 +219,7 @@ class wdTk():
 	# == Device Adding
 
 	def dupDevAddWin(self):
-		self.aw = Tk.Tk()
+		self.aw = Tk.Toplevel()
 
 		KEYS, VALUES = self.getKeys()
 
@@ -191,7 +246,6 @@ class wdTk():
 		
 		d = self.core.dia.getDevice(obj)
 		s = self.core.dia.locs[obj]
-	#	print(s)
 		
 		self.core.addDevice(
 			self.mName.get(), self.hName.get(),
@@ -204,414 +258,53 @@ class wdTk():
 		self.aw.destroy()
 		self.redraw()
 
-	def devAddWin(self):
-		self.aw = Tk.Tk()
-		self.mName = Tk.StringVar(self.aw)
-		self.hName = Tk.StringVar(self.aw)
-		EntryWidget(self.aw, text="New Machine Name", variable=self.mName).grid(padx=5, pady=(5,0))
-		EntryWidget(self.aw, text="Human Name", variable=self.hName).grid(padx=5, pady=(5,0))
-		Tk.Button(self.aw, text="Add", command=self.devAddComplete).grid(padx=5, pady=(5,0))
+	def alert(self, *args, **kwargs): # For inputDialog testing purposes only. Please don't use for else (oh unless you want to print kwargs and print a warning) and remove after
+		Tk.messagebox.showwarning("Button pressed", "Yes. This is triggered")
+		print(args, kwargs)
 
-	def devAddComplete(self):
-		if (self.mName.get() in self.core.dia.listDevices()):
-			tkinter.messagebox.showerror(title="Cannot add device", message="The name of the device is already in use.")
-			return False
+	'''def example(self, win, val, *args, **kwargs):
+		print(win, val, args, kwargs)
 		
-		self.core.addDevice(
-			self.mName.get(), self.hName.get(),
-			(400,300,50,50))
-		
-		self.updateWindowTitle()		
-		self.aw.destroy()
-		self.redraw()
-		
-	# == Device Editing
-	
-	def devEditWin(self):
-		if (len(self.core.dia.listDevices())== 0):
-			Tk.messagebox.showerror(title="No devices", message="There are no devices to edit.")
-			return False
-			
-		self.aw = Tk.Tk()
-		KEYS, VALUES = self.getKeys()
-	
-		self.top = Tk.StringVar(self.aw)
-		self.left = Tk.StringVar(self.aw)
-		self.width = Tk.StringVar(self.aw)
-		self.height = Tk.StringVar(self.aw)
-		self.mName = Tk.StringVar(self.aw)
-		#Tk.Label(self.aw, text="Edit Machine").grid()
-		#a = ttk.Combobox(self.aw, state='readonly', textvariable= self.mName, values=VALUES).grid()
-
-		ComboEntryWidget(self.aw, text="Edit Machine", variable=self.mName, values=VALUES, command= self.setmName).grid()		
-		EntryWidget(self.aw, text="Top", variable=self.top).grid()
-		EntryWidget(self.aw, text="Left", variable=self.left).grid()
-		EntryWidget(self.aw, text="Width", variable=self.width).grid()
-		EntryWidget(self.aw, text="Height", variable=self.height).grid()
-
-		Tk.Button(self.aw, text="Add", command=self.devEditComplete).grid()
-
-	def devEditComplete(self):
-		KEYS, VALUES = self.getKeys()
-		if (self.mName.get() not in VALUES):
-			Tk.messagebox.showerror(title="Device not found", message="There is no device to edit.")
-			return False
-
-		obj = KEYS[VALUES.index(self.mName.get())]
-		
-		self.core.updateDevice(obj,
-			(int(self.left.get()),
-			int(self.top.get()), 
-			int(self.width.get()), 
-			int(self.height.get()))
-		)
-		self.canvas.config(scrollregion=(self.core.dia.bounds))
-		self.updateWindowTitle()
-
-		self.aw.destroy()
-		self.redraw()
-		
-	# == Device Deleting
-	
-	def devDelWin(self):
-		if (len(self.core.dia.listDevices())== 0):
-			tkinter.messagebox.showerror(title="No devices", message="There are no devices to delete.")
-			return False
-			
-		self.aw = Tk.Tk()
-		KEYS, VALUES = self.getKeys()
-
-		self.dhName = Tk.StringVar(self.aw)
-		ComboEntryWidget(self.aw, text="Machine Name", variable=self.dhName, values=VALUES).grid()		
-
-		Tk.Button(self.aw, text="Delete", command=self.devDelComplete).grid()
-
-	def file_save(self):
-		self.core.struct.store.commit() # That needs moving
-		self.core.struct.clear_changed()
-		self.updateWindowTitle()
-		pass
-		
-	def devDelComplete(self):
-		
-		# Load the objects
-		KEYS, VALUES = self.getKeys()
-		
-		# Find the object
-		if not self.dhName.get() in VALUES:
-			Tk.messagebox.showerror(title="No device", message="No.")
-			return False
-			
-		obj = KEYS[VALUES.index(self.dhName.get())]
-		
-		self.core.deleteDevice(obj)
-		self.updateWindowTitle()
-
-		self.redraw()
-		self.aw.destroy()
-		pass
-		
-	## === Do Connector Management
-	
-	# == Connector Adding
-	
-	def connAddWin(self):
-		self.aw = Tk.Tk()
-		KEYS, VALUES = self.getKeys()
-		self.val = Tk.IntVar(self.aw)
-		self.cName = Tk.StringVar(self.aw)
-		self.mhName = Tk.StringVar(self.aw)
-		self.ddName = Tk.StringVar(self.aw)
-		self.ddName.set("None")
-		
-		ComboEntryWidget(self.aw, text="Machine Name", variable=self.mhName, values=VALUES).grid()		
-
-#		Tk.Label(self.aw, text="Machine Name").grid()
-#		a = ttk.Combobox(self.aw, state='readonly', textvariable= self.mhName, values=VALUES).grid()
-
-		EntryWidget(self.aw, text="Connection Name", variable=self.cName).grid()
-
-		ComboEntryWidget(self.aw, text="Data Direction", variable=self.ddName, values=["In", "Out", "Both", "None"]).grid()		
-		
-		#Tk.Label(self.aw, text="Data Direction").grid()
-		#a = ttk.Combobox(self.aw, state='readonly', textvariable= self.ddName, values=["In", "Out", "Both", "None"]).grid()
-
-		SpinEntryWidget(self.aw, text="Quantity", min=1, max=32, variable=self.val).grid()
-		#Tk.Label(self.aw, text="Quantity").grid()
-		#Tk.Spinbox(self.aw, from_=1, to=32, textvariable=self.val).grid()
-		
-		Tk.Button(self.aw, text="Add", command=self.connAddComplete).grid()
-
-	def connAddComplete(self):
-		KEYS, VALUES = self.getKeys()
-		if not self.mhName.get() in VALUES:
-			Tk.messagebox.showerror(title="No device", message="No.")
-			return False
-			
-		obj = KEYS[VALUES.index(self.mhName.get())]
-		if (self.cName.get() in self.core.dia.getDevice(obj).connectors.keys()):
-			Tk.messagebox.showerror(title="Cannot add plug", message="The name of the plug is already in use for this device.")
-			return False
-		
-		if (self.val.get() == 1):
-			self.core.addConnector(obj, self.cName.get(), dir= self.ddName.get())
-		elif (self.val.get() > 1):
-			for i in range(self.val.get()):
-				self.core.addConnector(obj, self.cName.get()+"_"+str(i+1), dir= self.ddName.get())
-			pass
-		else:
-			Tk.messagebox.showerror(title="Cannot add plug", message="Invalid value.")
-			return False
-		
-		self.updateWindowTitle()
-
-		self.redraw()
-		self.aw.destroy()
-		
-	# == Connection Deleting
-	
-	def connDelWin(self):
-		self.aw = Tk.Tk()
-		KEYS, VALUES = self.getKeys()
-	
-		self.outdName = Tk.StringVar(self.aw)
-		self.outcName = Tk.StringVar(self.aw)
-
-		self.b = ComboEntryWidget(self.aw, text="Connection Name", variable=self.outcName)#.grid()	# I have to set it up first because it's called, but drawn later!
-
-		ComboEntryWidget(self.aw, text="Machine Name", variable=self.outdName, values=VALUES, command= lambda *a, b = self.b.box: self.setM(i = self.outdName.get(), o = b)).grid()
-		
-		#Tk.Label(self.aw, text="Machine Name").grid()
-		#a = ttk.Combobox(self.aw, state='readonly', textvariable= self.outdName, values=VALUES).grid()
-		
-		
-		#Tk.Label(self.aw, text="Connection Name").grid()
-		#self.b = ttk.Combobox(self.aw, state='disabled', textvariable= self.outcName)
-		self.b.grid()
-		
-		Tk.Button(self.aw, text="Delete", command=self.connDelComplete).grid()
-		#self.outdName.trace('w', lambda *a, b = self.b: self.setM(i = self.outdName.get(), o = b)) #self.setOutC)
-		#self.indName.trace('w', lambda *a, b = self.e: self.setM(i = self.indName.get(), o = b))#self.setInC)
-	
-	def connDelComplete(self):
-		KEYS, VALUES = self.getKeys()
-			
-		#print(self.indName.get(), self.incName.get(),
-		#	self.outdName.get(), self.outcName.get())
-		objIn = KEYS[VALUES.index(self.outdName.get())]
-
-		self.core.deleteConnector(objIn, self.outcName.get())
-		
-		#self.core.addWire(objOut, self.outcName.get(), objIn, self.incName.get())
-		self.updateWindowTitle()
-		
-		self.redraw()
-		self.aw.destroy()
+		Tk.messagebox.showerror(val, args)'''
 		
 	## === Do Wire Management
 	
-	# == Wire Adding
-	
-	def wireAddWin(self):
-		self.aw = Tk.Tk()
-		KEYS, VALUES = self.getKeys()
-	
-		self.indName = Tk.StringVar(self.aw)
-		self.incName = Tk.StringVar(self.aw)
-		self.outdName = Tk.StringVar(self.aw)
-		self.outcName = Tk.StringVar(self.aw)
-
-		aa = ComboEntryWidget(self.aw, text="Output Connection Name", state='disabled', variable=self.outcName)
-
-		ComboEntryWidget(self.aw, text="Output Machine Name", variable=self.outdName, values=VALUES, 
-			command = lambda *a, b = aa.box: self.setM(i = self.outdName.get(), o = b)).grid()
-		aa.grid()
-
-		bb = ComboEntryWidget(self.aw, text="Output Machine Name", state='disabled', variable=self.incName)
-
-		ComboEntryWidget(self.aw, text="Input Machine Name", variable=self.indName, values=VALUES, 
-			command = lambda *a, b = bb.box: self.setM(i = self.indName.get(), o = b)).grid()			
-		bb.grid()
-				
-		Tk.Button(self.aw, text="Add", command=self.wireAddComplete).grid()
-	
-	def wireAddComplete(self):
-		KEYS, VALUES = self.getKeys()
-			
-		#print(self.indName.get(), self.incName.get(),
-		#	self.outdName.get(), self.outcName.get())
-		if (self.indName.get() not in VALUES):
-			tkinter.messagebox.showwarning(title="Cannot select device", message="Please select a valid output device.")
-			return
-			
-		if (self.outdName.get() not in VALUES):
-			tkinter.messagebox.showwarning(title="Cannot select device", message="Please select a valid input device.")
-			return
-			
-		objIn = KEYS[VALUES.index(self.indName.get())]
-		objOut = KEYS[VALUES.index(self.outdName.get())]
-
-		self.core.addWire(objOut, self.outcName.get(), objIn, self.incName.get())
-		self.updateWindowTitle()
-
-		self.redraw()
-		self.aw.destroy()
-
 	# = Wire Deleting
 	
-	def wireDelWin(self):
-		self.aw = Tk.Tk()
+	def wireDelWin(self):	# I'm not updating this just yet
+		self.aw = inputDialog(self.window, data={
+		
+		})
+
 		KEYS, VALUES = self.getKeys()
 		
 		self.a = connector_points(self.aw, self.core.dia)
-		self.a.pass_machines(self.getKeys()).go().grid()
-		
-		#self.mName.trace('w', self.setM2)
-		Tk.Button(self.aw, text="Delete", command=self.wireDelComplete).grid()
+		self.a.pass_machines(self.getKeys()).go().grid(sticky="news")
+		Tk.Button(self.aw, text="Delete", command=self.wireDelComplete).grid(sticky='swen')
+		self.aw.columnconfigure(0, weight=1)
 
 	def wireDelComplete(self):
 		KEYS, VALUES = self.getKeys()
 		
 		o = self.a.get()
-		obj = KEYS[VALUES.index(o[0].get())]
+		#Tk.messagebox.showerror("", o[2]["values"][0])
 
-		self.core.deleteWire(obj, o[1].get())
+		obj = KEYS[VALUES.index(o[0])]
+		#Tk.messagebox.showerror("Yes", o)
+
+		#self.core.deleteWire(obj, o[1])
+		self.core.deleteWireByID(int(o[2]["values"][0]))
 		self.updateWindowTitle()
 		self.redraw()
 		self.aw.destroy()
 		pass
 	
 	## === Waypoint management
-	
-	# == Adding
-	
-	def waypointAddWin(self):
-		self.aw = Tk.Tk()
-		self.wName = Tk.StringVar(self.aw)
-		self.top = Tk.IntVar(self.aw)
-		self.left = Tk.IntVar(self.aw)
-		
-		EntryWidget(self.aw, text="Waypoint Name", variable=self.wName).grid()
-		EntryWidget(self.aw, text="Top position", variable=self.top).grid()
-		EntryWidget(self.aw, text="Left position", variable=self.left).grid()
-		Tk.Button(self.aw, text="Add", command=self.waypointAddComplete).grid()
-
-	def waypointAddComplete(self):
-		for i in self.core.dia.wp.values():
-			if (self.wName.get() == i["name"]):
-				tkinter.messagebox.showerror(title="Cannot add waypoint", message="The name of the waypoint is already in use.")
-				return False
-		
-		self.core.addWaypoint(
-			self.wName.get(),
-			(self.left.get(),self.top.get()))
-		
-		self.updateWindowTitle()		
-		self.aw.destroy()
-		self.redraw()
-	
-	# == Editing
-	
-	def setwName(self, *nope):
-		
-		obj = self.wName.get()
-		#print(obj)
-		for i,j in self.core.dia.wp.items():
-			if (j["name"] == obj):
-				#print(obj, j["name"], i)
-				o = i
-		d = self.core.dia.wp[o]
-		#print(d)
-		self.top.set(d["loc"][1])
-		self.left.set(d["loc"][0])
-		
-	def waypointEditWin(self):
-		#if (len(self.core.dia.listDevices())== 0):
-		#	tkinter.messagebox.showerror(title="No devices", message="There are no devices to edit.")
-		#	return False
-		VALUES = []
-		self.aw = Tk.Tk()
-		for i,j in self.core.dia.wp.items():
-			VALUES.append(j["name"])
-	
-		self.top = Tk.StringVar(self.aw)
-		self.left = Tk.StringVar(self.aw)
-		self.wName = Tk.StringVar(self.aw)
-		
-		ComboEntryWidget(self.aw, text="Edit Waypoint", variable=self.wName, values=VALUES, 
-			command = self.setwName).grid()
-
-		#Tk.Label(self.aw, text="Edit Waypoint").grid()
-		#a = ttk.Combobox(self.aw, state='readonly', textvariable= self.wName, values=VALUES).grid()
-		
-		EntryWidget(self.aw, text="Top position", variable=self.top).grid()
-		EntryWidget(self.aw, text="Left position", variable=self.left).grid()
-
-		#self.wName.trace('w',self.setwName)
-		Tk.Button(self.aw, text="Edit", command=self.waypointEditComplete).grid()
-
-	def waypointEditComplete(self):
-		obj = self.wName.get()
-		#print(obj)
-	
-		print(self.core.updateWaypoint(obj, (self.left.get(), self.top.get())))
-		
-		self.canvas.config(scrollregion=(self.core.dia.bounds))
-		self.updateWindowTitle()
-
-		self.aw.destroy()
-		self.redraw()
-	# == Deleting
-	
-	def waypointDelWin(self):
-		#if (len(self.core.dia.listDevices())== 0):
-		#	tkinter.messagebox.showerror(title="No devices", message="There are no devices to delete.")
-		#	return False
-		VALUES = []
-		self.aw = Tk.Tk()
-		for i,j in self.core.dia.wp.items():
-			VALUES.append(j["name"])
-			#print(i)
-
-		#self.mName = Tk.StringVar(self.aw)
-		self.wpName = Tk.StringVar(self.aw)
-
-		ComboEntryWidget(self.aw, text="Waypoint Name", variable=self.wpName, values=VALUES).grid()
-
-		#Tk.Label(self.aw, text="Waypoint Name").grid()
-		#a = ttk.Combobox(self.aw, state='readonly', textvariable= self.wpName, values=VALUES)
-		#a.grid()
-		
-		var = Tk.IntVar()
-		Tk.Checkbutton(self.aw, text="Delete associated paths", variable=var, 
-			onvalue=1, offvalue=0, state=Tk.DISABLED).grid()
-		#Tk.Label(self.aw, text="Human Name").grid()
-		#Tk.Entry(self.aw, textvariable= self.hName).grid()
-		Tk.Button(self.aw, text="Delete", command=self.waypointDelComplete).grid()
-
-	def waypointDelComplete(self):
-		
-		# Load the objects
-		#KEYS, VALUES = self.getKeys()
-		
-		# Find the object
-		#if not self.dhName.get() in VALUES:
-		#	tkinter.messagebox.showerror(title="No device", message="No.")
-		#	return False
 			
-		obj = self.wpName.get()
-		
-		self.core.deleteWaypoint(obj)
-		self.updateWindowTitle()
-
-		self.redraw()
-		self.aw.destroy()
-		pass
-	
 	## === Routing management
 	
 	# == Add Route
-	def setRoute(self, *args, **kwargs):
+	def setRoute(self, *args, **kwargs):	## Is this function used?
 		#print(self.core.dia.cwps)
 		p = {0: "Insert at beginning" }
 		if (int(self.wire.get()) in self.core.dia.cwps):
@@ -621,72 +314,6 @@ class wdTk():
 			print("Blank")
 		self.b['state']='readonly'
 		self.b["values"] = list(p.values())
-		
-	def routeAddWin(self):
-		self.aw = Tk.Tk()
-		VALUES = []
-		for i,j in self.core.dia.conns.items():
-			#print(i,j)
-			VALUES.append(i)
-		#KEYS, VALUES = self.getKeys()
-	
-		self.wire = Tk.StringVar(self.aw)
-		self.pos = Tk.StringVar(self.aw)
-		self.wpn = Tk.StringVar(self.aw)
-		#self.outcName = Tk.StringVar(self.aw)
-
-		ComboEntryWidget(self.aw, text="Select Wire Id", variable=self.wire, values=VALUES).grid()
-
-		p = []
-		for i,j in self.core.dia.wp.items():
-			p.append(j)
-			#print(i,j)
-
-		ComboEntryWidget(self.aw, text="Select Waypoint", variable=self.wpn, values=p).grid()
-		#c = ttk.Combobox(self.aw, state='readonly', textvariable= self.wpn, values=p).grid()
-		
-		Tk.Button(self.aw, text="Add", command=self.routeAddComplete).grid()
-		
-	def routeAddComplete(self):
-		print(self.wpn.get())
-		for i,j in self.core.dia.wp.items():
-			if (self.wpn.get() == str(j)):
-				wpn = i
-				print("i:",i)
-			else:
-				print(i,j)
-		q = self.core.struct.cur.execute(
-			"select max(ord) as o from wp_ls where wire_id = ?",
-			(self.wire.get(),)
-		)
-		r = q.fetchone()
-		s = dict(r)
-		if (s["o"] is None):
-			ord = 1
-		else:
-			ord = s["o"] + 1
-		self.core.dia.addConnectionWaypoint(
-			int(self.wire.get()),
-			wpn,
-			ord
-		)
-		self.core.struct.cur.execute("insert into wp_ls (wire_id, wp_id, ord) values (?,?,?)",
-			(int(self.wire.get()), wpn, ord)
-		)
-		pass
-		
-		'''KEYS, VALUES = self.getKeys()
-			
-		#print(self.indName.get(), self.incName.get(),
-		#	self.outdName.get(), self.outcName.get())
-		objIn = KEYS[VALUES.index(self.indName.get())]
-		objOut = KEYS[VALUES.index(self.outdName.get())]
-
-		self.core.addWire(objIn, self.incName.get(), objOut, self.outcName.get())'''
-		self.updateWindowTitle()
-		self.core.struct.set_changed()
-		self.redraw()
-		self.aw.destroy()
 	
 	def getRoutes(self):
 		p = {}
@@ -694,65 +321,15 @@ class wdTk():
 			for k in j:
 				p[i,k["wpid"], k["order"]] = str((i,k["wpid"]))
 		return p
-	
-	def routeDelWin(self):
-		self.aw = Tk.Tk()
-		
-		VALUES = list(self.getRoutes().values())
-		print(self.getRoutes().values())
-		#KEYS, VALUES = self.getKeys()
-	
-		self.rName = Tk.StringVar(self.aw)
-
-		ComboEntryWidget(self.aw, text="Select Wire Id", variable=self.rName, values=VALUES).grid()
-		
-		#Tk.Label(self.aw, text="select wire id").grid()
-		#a = ttk.Combobox(self.aw, state='readonly', textvariable= self.rName, values=VALUES).grid()
-
-		Tk.Button(self.aw, text="Delete", command=self.routeDelComplete).grid()
-	
-	def routeDelComplete(self):
-		q = self.getRoutes()
-		KEYS = list(q.keys())
-		VALUES = list(q.values())
-		#print(list(q.values()))
-		p = KEYS[VALUES.index(self.rName.get())]
-		print(p)
-		
-		if (int(p[0]) in self.core.dia.cwps.keys()):
-			q = self.core.dia.cwps[int(p[0])]
-			r = []
-			for i in q:
-				#print(i)
-				if (i["wpid"] != int(p[1])):
-					print("added",i)
-					r.append(i)
-				else:
-					print("skipped",i)
-			self.core.dia.cwps[int(p[0])] = r
-		else:
-			print("no",self.core.dia.cwps)
 			
-		self.core.struct.cur.execute("delete from wp_ls where wire_id = ? and wp_id =?",
-			(p[0],p[1])
-		)
-
-		#self.core.addWire(objIn, self.incName.get(), objOut, self.outcName.get())''#'
-		self.core.struct.set_changed()
-		self.updateWindowTitle()
-		self.redraw()
-		self.aw.destroy()
 	# == Drawing management ==
 
 	def setM(self, *what, **kwargs):
-		#print(what)
-		#print(kwargs)
 		
 		KEYS, VALUES = self.getKeys()
 		obj = KEYS[VALUES.index(kwargs['i'])]
 		ii = self.core.dia.getDevice(obj).connectors.keys()
 
-		print(kwargs['o'])
 		if (kwargs['o']["state"] is None):
 			# Oh! Then try this:
 			kwargs['o'].setState("readonly")
@@ -813,8 +390,6 @@ class wdTk():
 						if (l["wpid"] in d.wp):
 							n += d.wp[l["wpid"]]["loc"]
 							cs.append(l["wpid"])
-							#print(d.wp[l["wpid"]]["loc"])
-				#print(n)
 			
 				if (self.waypointing.get()):
 					if (len(cs) > 1):
@@ -834,17 +409,14 @@ class wdTk():
 				else:
 					r = self.canvas.create_line(st,fn, fill="black")
 
-
 		if (self.waypointing.get()):
 			for m,n in olines.items():
 				self.canvas.create_line(d.wp[m[0]]["loc"], d.wp[m[1]]["loc"], width=n, fill="black")
-			#print(m,n)
 			
 		if (self.wp_labels.get()):
 			for i,j in d.wp.items():
 				self.canvas.create_text(j["loc"][0],j["loc"][1],text=j["name"],font=('Arial',4))
 
-		#	print(i,j)
 		self.canvas.scale("all", 0,0, self.sc.get(), self.sc.get())
 		self.canvas.config(scrollregion=(q2))
 		
@@ -855,36 +427,7 @@ class wdTk():
 		
 		if (file is not None):
 			self.core.dia.exportPng().save(file.name)
-		#print(file)
 		
-	def file_load(self):
-		if (self.core.struct.is_changed()):
-			a = Tk.messagebox.askyesnocancel(title="Unsaved Changed", message="There are unsaved changes. Save before load?")
-			#print(a)
-			if (a is None):
-				return None
-			elif (a is True):
-				self.file_save()
-
-
-		files = [#('All Files', '*.*'), 
-			 ('Databases', '*.db')]
-		a = Tk.filedialog.askopenfile(filetypes = files, defaultextension = files)
-	
-		# This is literally the new code
-		if (a is None):
-			print("Cancelled?")
-		else:
-			a = a.name
-			self.core.open_file(a)
-			self.redraw()
-			self._open_file = a
-			self.core.struct.clear_changed()
-			self.canvas.config(scrollregion=(self.core.dia.bounds))
-			self.updateWindowTitle()
-			
-		pass
-	
 	def updateWindowTitle(self):
 		title = self.app_name
 		if (self._open_file is not None):
@@ -894,28 +437,3 @@ class wdTk():
 			title += "]"
 		self.window.title(title)
 		
-	def file_new(self):
-		if (self.core.struct.is_changed()):
-			a = Tk.messagebox.askyesnocancel(title="Unsaved Changed", message="There are unsaved changes. Save before clearing?")
-			#print(a)
-			if (a is None):
-				return None
-			elif (a is True):
-				self.file_save()
-
-
-		files = [#('All Files', '*.*'), 
-			 ('Databases', '*.db')]
-	
-		a = Tk.filedialog.asksaveasfilename(filetypes = files, defaultextension = files)
-		if (len(a) == 0):
-			print("Cancelled?")
-		else:
-			self._open_file = a
-			self.core.open_file(a)
-			self.redraw()
-			self.updateWindowTitle()
-			self.core.struct.clear_changed()
-			
-			#print("Yes")
-		#print(type(a), a)
