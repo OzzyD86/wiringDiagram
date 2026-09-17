@@ -18,9 +18,17 @@ def drag_motion(event):
 def check_current_version():
 	return t.core.check_current_version()
 
+from copy import copy
 import tkinter as Tk
 import tkinter.ttk as ttk
 import tkinter.filedialog
+import traceback
+from tkinter.messagebox import showerror
+
+def report_callback_exception(self, exc, val, tb):
+	showerror("Error", message=str(traceback.extract_stack()) + "\n" + str(val))
+
+Tk.Tk.report_callback_exception = report_callback_exception
 
 #from incs.wdCore omport wdCore
 
@@ -56,28 +64,51 @@ import incs.wdTk
 	
 class wdTk(incs.wdTk.wdTk):
 	def click_call(self, event):
+		x = self.canvas.canvasx(event.x)
+		y = self.canvas.canvasy(event.y)
 		#print(self.canvas.find_closest(event.x,event.y))
 		#print(event)
+		p = copy(event)
+		p.x = x
+		p.y = y
 		d = Tk.Menu()
-		d.add_command(label="Hello")
-		d.add_command(label=str(self.canvas.find_closest(event.x,event.y)))
+		d.add_command(label="Create Device here", command= lambda event=event: self.devAddWin(p))
+		d.add_command(label="Create Waypoint here", command= lambda event=event: self.waypointAddWin(p))
+	
 		d.add_separator()
-		for i in self.canvas.gettags(self.canvas.find_closest(event.x,event.y)):
+		d.add_command(label="Hello", state="disabled")
+		d.add_command(label=str(self.canvas.find_closest(x,y)))
+		d.add_separator()
+		tags = []
+		for i in self.canvas.gettags(self.canvas.find_closest(x,y)):
+			tags.append(i)
 			d.add_command(label=i)
+
+		if ("_dev" in tags):
+			d.add_command(label="Edit device " + str(self.canvas.find_closest(x,y)[0]))
+			pass
 		d.tk_popup(self.canvas.winfo_rootx()+event.x, self.canvas.winfo_rooty()+event.y)
 		pass
 	
-	def setmName(self, *nope):
+	'''def setmName(self, *nope):
 		KEYS, VALUES = self.getKeys()
 		obj = KEYS[VALUES.index(self.mName.get())]
 		left, top, width, height = self.core.dia.locs[obj]
 		self.top.set(top)
 		self.left.set(left)
 		self.width.set(width)
-		self.height.set(height)
-		#print(d.locs)
-				
+		self.height.set(height)'''
+
+	def setmName2(self, w, val, *args):
+		p = w.data['mName']["obj"].get_key_of_value(args[0])
+		left, top, width, height = self.core.dia.locs[p]
+		w.set("top", top)
+		w.set("left", left)
+		w.set("width", width)
+		w.set("height", height)
+		
 	def setM2(self, *args):
+		#showerror(args, args)
 		pass
 		
 t = wdTk()
