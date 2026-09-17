@@ -591,6 +591,7 @@ class wdTkCore():
 			od+= 1
 			s.append(j)
 		
+		
 		#print(j)
 
 		if (rem is not None):
