@@ -18,6 +18,7 @@ def drag_motion(event):
 def check_current_version():
 	return t.core.check_current_version()
 
+from copy import copy
 import tkinter as Tk
 import tkinter.ttk as ttk
 import tkinter.filedialog

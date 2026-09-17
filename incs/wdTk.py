@@ -41,7 +41,7 @@ class wdTk(wdTkCore):
 
 	def click_call(self, event):
 		pass
-	
+		
 	def b1_down(self, event):
 		self.b1_pressed = event
 		
@@ -167,7 +167,7 @@ class wdTk(wdTkCore):
 		self.conn_labelling.trace('w', self.set_export_vars)
 		self.core.dia.conn_labelling.trace('w', self.set_export_vars)
 		
-		self.scale = Tk.Menu()
+		self.scale = Tk.Menu(self.menu["export"])
 		self.scale.add_checkbutton(label="1x", onvalue=1,variable=self.sc)
 		self.scale.add_checkbutton(label="2x", onvalue=2,variable=self.sc)
 		self.sc.trace('w', self.set_export_vars)
