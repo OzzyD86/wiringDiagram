@@ -18,13 +18,11 @@ def drag_motion(event):
 def check_current_version():
 	return t.core.check_current_version()
 
-from copy import copy
 import tkinter as Tk
 import tkinter.ttk as ttk
 import tkinter.filedialog
 import traceback
 from tkinter.messagebox import showerror
-from copy import copy
 
 def report_callback_exception(self, exc, val, tb):
 	d = pjaDialog()
@@ -108,7 +106,19 @@ class wdTk(incs.wdTk.wdTk):
 		self.left.set(left)
 		self.width.set(width)
 		self.height.set(height)'''
+		
+	def contextDevMove(self, obj, x,y):
+		p = self.core.dia.locs[obj]
+		_,_,w,h = p
 
+		self.devEditComplete(**{
+			"mName": obj,
+			"left": x,
+			"top": y,
+			"width": w,
+			"height": h
+		})
+		
 	def setmName2(self, w, val, *args):
 		p = w.data['mName']["obj"].get_key_of_value(args[0])
 		left, top, width, height = self.core.dia.locs[p]
