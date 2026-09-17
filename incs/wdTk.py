@@ -108,8 +108,8 @@ class wdTk(wdTkCore):
 		self.window.rowconfigure(0, weight=1)
 		self.window.columnconfigure(0, weight=1)
 		self.canvas.bind("<Button-3>", self.click_call)
-		self.canvas.bind("<Button-1>", self.b1_down)
-		self.canvas.bind("<ButtonRelease-1>", self.b1_up)
+		#self.canvas.bind("<Button-1>", self.b1_down)
+		#self.canvas.bind("<ButtonRelease-1>", self.b1_up)
 		#self.window.bind('<Configure>', self.resize_canvas)
 	
 		self.menu = {
