@@ -53,10 +53,10 @@ class wdTk(wdTkCore):
 		x = self.canvas.canvasx(event.x)
 		y = self.canvas.canvasy(event.y)
 		
-		up.x = int(self.canvas.canvasx(up.x))
-		up.y = int(self.canvas.canvasy(up.y))
-		down.x = self.canvas.canvasx(down.x)
-		down.y = self.canvas.canvasy(down.y)
+		up.x = int(self.canvas.canvasx(up.x) / 1)
+		up.y = int(self.canvas.canvasy(up.y) / 1)
+		down.x = int(self.canvas.canvasx(down.x) / 1)
+		down.y = int(self.canvas.canvasy(down.y) / 1)
 		
 		if (maths.sqrt(pow(down.x-x,2) + pow(down.y-y,2)) < 5):
 			click = True
@@ -83,6 +83,7 @@ class wdTk(wdTkCore):
 	
 		tags = []
 		name = None
+		wid = None
 		for i in self.canvas.gettags(self.canvas.find_closest(down.x,down.y)):
 			tags.append(i)
 			d.add_command(label=i)
@@ -90,18 +91,23 @@ class wdTk(wdTkCore):
 				name = i.split(":")[1]
 			if (i.split(":")[0] == "wn"):
 				name = i.split(":")[1]
+			if (i.split(":")[0] == "wid"):
+				wid = int(i.split(":")[1])
 				
 		d.add_separator()
 		if ("_dev" in tags):
 			if (not click):
-				d.add_command(label="Move device here ", command= lambda : self.contextDevMove(name,x,y))
+				d.add_command(label="Move device here ", command= lambda : self.contextDevMove(name,int(up.x/self.sc.get()),int(up.y/self.sc.get())))
 			else:
 				d.add_command(label="Delete device", command= lambda : self.devDelComplete(dhName=name))
 		
 				pass
 		if ("_wp" in tags):
 			d.add_command(label="Delete waypoint", command= lambda : self.waypointDelComplete(wpName=int(name), delRel = True))
-		
+		if ("_wire" in tags):
+			if (wid is not None):
+				d.add_command(label="Delete wire " + str(wid), command= lambda event=event: self.wireDelComplete(wid))
+	
 		d.add_command(label="Create Device here", command= lambda event=event: self.devAddWin(up))
 		d.add_command(label="Create Waypoint here", command= lambda event=event: self.waypointAddWin(up))
 	
@@ -351,20 +357,25 @@ class wdTk(wdTkCore):
 		Tk.Button(self.aw, text="Delete", command=self.wireDelComplete).grid(sticky='swen')
 		self.aw.columnconfigure(0, weight=1)
 
-	def wireDelComplete(self):
+	def wireDelComplete(self, id= None):
 		KEYS, VALUES = self.getKeys()
-		
-		o = self.a.get()
-		#Tk.messagebox.showerror("", o[2]["values"][0])
+		no_draw = False
+		if (id is None):
+			o = self.a.get()
+			#Tk.messagebox.showerror("", o[2]["values"][0])
 
-		obj = KEYS[VALUES.index(o[0])]
+			#obj = KEYS[VALUES.index(o[0])]
+			id = int(o[2]["values"][0])
+		else:
+			no_draw = True
 		#Tk.messagebox.showerror("Yes", o)
 
 		#self.core.deleteWire(obj, o[1])
-		self.core.deleteWireByID(int(o[2]["values"][0]))
+		self.core.deleteWireByID(int(id))
 		self.updateWindowTitle()
 		self.redraw()
-		self.aw.destroy()
+		if (not no_draw):
+			self.aw.destroy()
 		pass
 	
 	## === Waypoint management
@@ -464,11 +475,11 @@ class wdTk(wdTkCore):
 						#print(cs)
 						r = self.canvas.create_line(st,n[0:2], fill="green")
 						self.canvas.addtag_withtag("_wire", r)
-						self.canvas.addtag_withtag(k, r)
+						self.canvas.addtag_withtag("wid:" + str(k), r)
 						self.canvas.addtag_withtag(st,r)
 						r = self.canvas.create_line(n[-2:] ,fn, fill="green")
 						self.canvas.addtag_withtag("_wire", r)
-						self.canvas.addtag_withtag(k, r)
+						self.canvas.addtag_withtag("wid:" + str(k), r)
 						self.canvas.addtag_withtag(st,r)
 						for m in range(len(cs)-1):
 							q = (cs[m], cs[m+1])
@@ -480,7 +491,7 @@ class wdTk(wdTkCore):
 					else:
 						r = self.canvas.create_line(st,n,fn, fill="black")
 						self.canvas.addtag_withtag("_wire", r)
-						self.canvas.addtag_withtag(m, r)
+						self.canvas.addtag_withtag("wid:" + str(k), r)
 						self.canvas.addtag_withtag(st, r)
 						
 				else:
