@@ -127,17 +127,17 @@ class diagram():
 		for i in self.locs.items():
 			#print(i[1])
 			e = i[1]
-			if (e[0] < bbox[0]):
-				bbox[0] = e[0]
+			if (e[0] - (e[2] /2)< bbox[0]):
+				bbox[0] = e[0] - (e[2] /2)
 				
-			if (e[2] > bbox[2]):
-				bbox[2] = e[2]
+			if (e[0] + (e[2]/2) > bbox[2]):
+				bbox[2] = e[0]+(e[2]/2)
 				
-			if (e[1] < bbox[1]):
-				bbox[1] = e[1]
+			if (e[1] - (e[3]/2) < bbox[1]):
+				bbox[1] = e[1] - (e[3]/2)
 				
-			if (e[3] > bbox[3]):
-				bbox[3] = e[3]
+			if (e[1] + (e[3] /2) > bbox[3]):
+				bbox[3] = e[1] + (e[3] / 2)
 			#pass
 		
 		for i in self.wp.items():
@@ -161,6 +161,7 @@ class diagram():
 		#for i in bbox:
 		#	i = i * 
 		return bbox
+		#return [bbox[0]-100, bbox[1] -100, bbox[2]+100,bbox[3]+100]
 		
 	def objMk(self, dr, p, dms = (0,0,1,1), _type = 1, honour_db = False, offset = (0,0)):
 		try:
