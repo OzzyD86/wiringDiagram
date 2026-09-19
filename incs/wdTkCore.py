@@ -570,13 +570,12 @@ class wdTkCore():
 		self.aw.passFunc("del", self.routeDelComplete)
 			
 	def routeDelComplete(self, **kwargs):
-		print(kwargs)
 
 		r = []
 		rem = None
-		
+		#raise Exception(kwargs)
 		for i in self.core.dia.cwps[kwargs['wire']]:
-			if (str(i) != kwargs['wp']):
+			if (str(i) != str(kwargs['wp'])):
 				print("added",i)
 				r.append(i)
 			else:
@@ -590,7 +589,6 @@ class wdTkCore():
 			j["order"] = od
 			od+= 1
 			s.append(j)
-		
 		
 		#print(j)
 

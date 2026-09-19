@@ -104,6 +104,11 @@ class wdTk(wdTkCore):
 				pass
 		if ("_wp" in tags):
 			d.add_command(label="Delete waypoint", command= lambda : self.waypointDelComplete(wpName=int(name), delRel = True))
+			for k,i in self.core.dia.cwps.items():
+				for j in i:
+					if (int(j["wpid"]) == int(name)):
+						d.add_command(label="Detach wire " + str(k), command= lambda k=k,j=j : self.routeDelComplete(wire=k, wp = j))
+		
 		if ("_wire" in tags):
 			if (wid is not None):
 				d.add_command(label="Delete wire " + str(wid), command= lambda event=event: self.wireDelComplete(wid))
@@ -117,7 +122,6 @@ class wdTk(wdTkCore):
 							pt = i.split(":")[1]
 					if (pt is not None):
 						d.add_command(label="Connect wire " + str(wid) + " to waypoint " + str(pt), command= lambda event=event: self.routeAddComplete(wire=wid, wpn=pt, pos=1))
-	
 		d.add_command(label="Create Device here", command= lambda event=event: self.devAddWin(up))
 		d.add_command(label="Create Waypoint here", command= lambda event=event: self.waypointAddWin(up))
 	
@@ -507,6 +511,10 @@ class wdTk(wdTkCore):
 						self.canvas.addtag_withtag("_wire", r)
 						if (len(n) == 0):
 							self.canvas.addtag_withtag("straight_line", r)
+						else:
+							self.canvas.addtag_withtag("bendy_line", r)
+							self.canvas.addtag_withtag(cs, r)
+						
 						self.canvas.addtag_withtag("wid:" + str(k), r)
 						self.canvas.addtag_withtag(st, r)
 						
@@ -518,6 +526,7 @@ class wdTk(wdTkCore):
 
 		if (self.waypointing.get()):
 			for m,n in olines.items():
+				pass
 				r = self.canvas.create_line(d.wp[m[0]]["loc"], d.wp[m[1]]["loc"], width=n, fill="black")
 				
 				self.canvas.addtag_withtag("_wire", r)
