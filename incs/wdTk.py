@@ -108,6 +108,16 @@ class wdTk(wdTkCore):
 			if (wid is not None):
 				d.add_command(label="Delete wire " + str(wid), command= lambda event=event: self.wireDelComplete(wid))
 	
+			p = self.canvas.gettags(self.canvas.find_closest(up.x, up.y))
+			if ("_wp" in p):
+				if ("straight_line" in tags):
+					pt = None
+					for i in p:
+						if (i.split(":")[0] == "wn"):
+							pt = i.split(":")[1]
+					if (pt is not None):
+						d.add_command(label="Connect wire " + str(wid) + " to waypoint " + str(pt), command= lambda event=event: self.routeAddComplete(wire=wid, wpn=pt, pos=1))
+	
 		d.add_command(label="Create Device here", command= lambda event=event: self.devAddWin(up))
 		d.add_command(label="Create Waypoint here", command= lambda event=event: self.waypointAddWin(up))
 	
@@ -128,6 +138,7 @@ class wdTk(wdTkCore):
 		#frame.grid(column=0,row=0)
 		self.canvas = Tk.Canvas(self.window, width=800, height=600)
 		self.canvas.grid(sticky="news")
+		self.canvas.grid_propagate (False)
 		self.vscroll = Tk.Scrollbar(self.window)
 		self.vscroll.grid(column=1, row=0,sticky="news")
 		self.hscroll = Tk.Scrollbar(self.window,orient=Tk.HORIZONTAL)
@@ -417,7 +428,8 @@ class wdTk(wdTkCore):
 		else:
 			kwargs['o']["state"]='readonly'
 			kwargs['o']["values"]=list(ii)
-				
+	
+	
 	def redraw(self):
 		d = self.core.dia
 		q = d.bbox()
@@ -434,12 +446,14 @@ class wdTk(wdTkCore):
 		a = d.buildWaypointLists()
 		#print(a)
 		olines = {}
-		self.canvas.delete("all")
+		self.canvas.delete("_dev")
+		self.canvas.delete("_conn")
 		for i in d.listDevices():
 			if (i in d.locs):
 				aa = d.objMk(self.canvas, d.getDevice(i), d.locs[i])
 				d.getDevice(i).drwConnPos = aa
 
+		self.canvas.delete("_wire")
 		for k,i in d.conns.items():
 			p =0
 			pin = None
@@ -491,6 +505,8 @@ class wdTk(wdTkCore):
 					else:
 						r = self.canvas.create_line(st,n,fn, fill="black")
 						self.canvas.addtag_withtag("_wire", r)
+						if (len(n) == 0):
+							self.canvas.addtag_withtag("straight_line", r)
 						self.canvas.addtag_withtag("wid:" + str(k), r)
 						self.canvas.addtag_withtag(st, r)
 						
@@ -508,7 +524,8 @@ class wdTk(wdTkCore):
 				self.canvas.addtag_withtag("wp_bridge", r)
 				self.canvas.addtag_withtag(str(m[0])+":"+str(m[1]), r)
 				self.canvas.addtag_withtag(st, r)
-				
+		
+		self.canvas.delete("_wp")
 		if (self.wp_labels.get()):
 			for i,j in d.wp.items():
 				r = self.canvas.create_text(j["loc"][0],j["loc"][1],text=j["name"],font=('Arial',4))
