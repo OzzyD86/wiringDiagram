@@ -41,6 +41,21 @@ class wdTk(wdTkCore):
 
 	def click_call(self, event):
 		pass
+	
+	def gpw(self, wp1, wp2):
+		cd = {}
+		for i,j in self.core.dia.cwps.items():
+			for k in j:
+				if (int(k["wpid"]) == int(wp1)):
+					cd[i] = k
+		o = {}
+		for i in list(cd.keys()):
+			for k in self.core.dia.cwps[i]:
+				if (int(k["wpid"]) == int(wp2)) and (abs(cd[i]["order"] - k["order"]) == 1):
+					o[i] = (min(k["order"], cd[i]["order"]))
+					pass
+		return o
+		pass
 		
 	def b1_down(self, event):
 		self.b1_pressed = event
@@ -78,12 +93,12 @@ class wdTk(wdTkCore):
 		d.add_command(label="Canvas Finish: " + str((self.canvas.canvasx(up.x), self.canvas.canvasy(up.y))), state="disabled")
 		d.add_separator()
 		
-		
-#		d.add_command(label=str(self.canvas.find_closest(x,y)))
+#	d.add_command(label=str(self.canvas.find_closest(x,y)))
 	
 		tags = []
 		name = None
 		wid = None
+		wwis = None
 		for i in self.canvas.gettags(self.canvas.find_closest(down.x,down.y)):
 			tags.append(i)
 			d.add_command(label=i)
@@ -93,6 +108,8 @@ class wdTk(wdTkCore):
 				name = i.split(":")[1]
 			if (i.split(":")[0] == "wid"):
 				wid = int(i.split(":")[1])
+			if (i.split(":")[0] == "br"):
+				wwid = (i.split(":")[1:3])
 				
 		d.add_separator()
 		if ("_dev" in tags):
@@ -115,11 +132,30 @@ class wdTk(wdTkCore):
 	
 			p = self.canvas.gettags(self.canvas.find_closest(up.x, up.y))
 			if ("_wp" in p):
-				if ("straight_line" in tags):
-					pt = None
-					for i in p:
-						if (i.split(":")[0] == "wn"):
-							pt = i.split(":")[1]
+				pt = None
+				br = None
+				for i in p:
+					if (i.split(":")[0] == "wn"):
+						pt = i.split(":")[1]
+					
+				if ("wp_bridge" in tags):
+					if (wwid is not None):
+						e = self.gpw(wwid[0], wwid[1])
+						for i,j in e.items():
+							d.add_command(label="Connect wire " + str(i) + " to waypoint " + str(pt) +" at order "+str(j+1), command= lambda pt=pt,wid=i,o=j+1 : self.routeAddComplete(wire=wid, wpn=pt, pos=o))
+		
+				if ("BEGIN" in tags):
+					if (pt is not None):
+						d.add_command(label="Connect wire " + str(wid) + " to waypoint " + str(pt), command= lambda event=event: self.routeAddComplete(wire=wid, wpn=pt, pos=1))
+				elif ("END" in tags):
+					ord = 0
+					for i in self.core.dia.cwps[wid]:
+						if (i["order"] > ord):
+							ord = i["order"]
+							
+					d.add_command(label="Connect wire " + str(wid) + " to waypoint " + str(pt), command= lambda event=event: self.routeAddComplete(wire=wid, wpn=pt, pos=ord+1))
+
+				elif ("straight_line" in tags):
 					if (pt is not None):
 						d.add_command(label="Connect wire " + str(wid) + " to waypoint " + str(pt), command= lambda event=event: self.routeAddComplete(wire=wid, wpn=pt, pos=1))
 		d.add_command(label="Create Device here", command= lambda event=event: self.devAddWin(up))
@@ -493,10 +529,12 @@ class wdTk(wdTkCore):
 						#print(cs)
 						r = self.canvas.create_line(st,n[0:2], fill="green")
 						self.canvas.addtag_withtag("_wire", r)
+						self.canvas.addtag_withtag("BEGIN", r)
 						self.canvas.addtag_withtag("wid:" + str(k), r)
 						self.canvas.addtag_withtag(st,r)
 						r = self.canvas.create_line(n[-2:] ,fn, fill="green")
 						self.canvas.addtag_withtag("_wire", r)
+						self.canvas.addtag_withtag("END", r)
 						self.canvas.addtag_withtag("wid:" + str(k), r)
 						self.canvas.addtag_withtag(st,r)
 						for m in range(len(cs)-1):
@@ -507,17 +545,40 @@ class wdTk(wdTkCore):
 							else:
 								olines[cs[m], cs[m+1]] = 1
 					else:
-						r = self.canvas.create_line(st,n,fn, fill="black")
-						self.canvas.addtag_withtag("_wire", r)
+						
 						if (len(n) == 0):
+							r = self.canvas.create_line(st,n,fn, fill="black")
+							self.canvas.addtag_withtag("_wire", r)
+							self.canvas.addtag_withtag("wid:" + str(k), r)
 							self.canvas.addtag_withtag("straight_line", r)
 						else:
-							self.canvas.addtag_withtag("bendy_line", r)
-							self.canvas.addtag_withtag(cs, r)
-						
-						self.canvas.addtag_withtag("wid:" + str(k), r)
-						self.canvas.addtag_withtag(st, r)
-						
+							o = 0
+							nn = []
+							t = []
+							n.append(fn)
+							for i in n:
+								t.append(i)
+								o+=1
+								if ((o%2)==0):
+									nn.append(tuple(t))
+									t= []
+							if (len(t) > 0):
+								nn.append(t)
+							o=0
+							for i in nn:
+								#s = self.canvas.create_text(250,150,text=n)
+								#return
+								r = self.canvas.create_line(st,i, fill="black")
+								if (o == 0):
+									self.canvas.addtag_withtag("BEGIN", r)
+								o+= 1
+								st = i
+								self.canvas.addtag_withtag("_wire", r)
+								self.canvas.addtag_withtag("bendy_line", r)
+								self.canvas.addtag_withtag(cs, r)
+								self.canvas.addtag_withtag("wid:" + str(k), r)
+								#self.canvas.addtag_withtag(st, r)
+							self.canvas.addtag_withtag("END", r)
 				else:
 					r = self.canvas.create_line(st,fn, fill="black")
 					#self.canvas.addtag_withtag("_wire", r)
@@ -531,7 +592,7 @@ class wdTk(wdTkCore):
 				
 				self.canvas.addtag_withtag("_wire", r)
 				self.canvas.addtag_withtag("wp_bridge", r)
-				self.canvas.addtag_withtag(str(m[0])+":"+str(m[1]), r)
+				self.canvas.addtag_withtag("br:"+str(m[0])+":"+str(m[1]), r)
 				self.canvas.addtag_withtag(st, r)
 		
 		self.canvas.delete("_wp")
