@@ -120,11 +120,14 @@ class wdTk(wdTkCore):
 		
 				pass
 		if ("_wp" in tags):
-			d.add_command(label="Delete waypoint", command= lambda : self.waypointDelComplete(wpName=int(name), delRel = True))
-			for k,i in self.core.dia.cwps.items():
-				for j in i:
-					if (int(j["wpid"]) == int(name)):
-						d.add_command(label="Detach wire " + str(k), command= lambda k=k,j=j : self.routeDelComplete(wire=k, wp = j))
+			if (not click):
+				d.add_command(label="Move waypoint", command= lambda : self.waypointEditComplete(wName=int(name),left=int(up.x/self.sc.get()),top=int(up.y/self.sc.get())))
+			else:
+				d.add_command(label="Delete waypoint", command= lambda : self.waypointDelComplete(wpName=int(name), delRel = True))
+				for k,i in self.core.dia.cwps.items():
+					for j in i:
+						if (int(j["wpid"]) == int(name)):
+							d.add_command(label="Detach wire " + str(k), command= lambda k=k,j=j : self.routeDelComplete(wire=k, wp = j))
 		
 		if ("_wire" in tags):
 			if (wid is not None):
@@ -581,7 +584,7 @@ class wdTk(wdTkCore):
 							self.canvas.addtag_withtag("END", r)
 				else:
 					r = self.canvas.create_line(st,fn, fill="black")
-					#self.canvas.addtag_withtag("_wire", r)
+					self.canvas.addtag_withtag("_wire", r)
 					#self.canvas.addtag_withtag(m, r)
 					#self.canvas.addtag_withtag(st, r)
 

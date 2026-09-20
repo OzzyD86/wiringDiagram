@@ -414,8 +414,9 @@ class wdTkCore():
 		self.canvas.config(scrollregion=(self.core.dia.bounds))
 		self.updateWindowTitle()
 
-		self.aw.destroy()
+		#self.aw.destroy()
 		self.redraw()
+		return True
 
 	# == Delete Waypoint 
 	
