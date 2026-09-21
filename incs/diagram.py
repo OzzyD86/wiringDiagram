@@ -127,17 +127,17 @@ class diagram():
 		for i in self.locs.items():
 			#print(i[1])
 			e = i[1]
-			if (e[0] < bbox[0]):
-				bbox[0] = e[0]
+			if (e[0] - (e[2] /2)< bbox[0]):
+				bbox[0] = e[0] - (e[2] /2)
 				
-			if (e[2] > bbox[2]):
-				bbox[2] = e[2]
+			if (e[0] + (e[2]/2) > bbox[2]):
+				bbox[2] = e[0]+(e[2]/2)
 				
-			if (e[1] < bbox[1]):
-				bbox[1] = e[1]
+			if (e[1] - (e[3]/2) < bbox[1]):
+				bbox[1] = e[1] - (e[3]/2)
 				
-			if (e[3] > bbox[3]):
-				bbox[3] = e[3]
+			if (e[1] + (e[3] /2) > bbox[3]):
+				bbox[3] = e[1] + (e[3] / 2)
 			#pass
 		
 		for i in self.wp.items():
@@ -161,6 +161,7 @@ class diagram():
 		#for i in bbox:
 		#	i = i * 
 		return bbox
+		#return [bbox[0]-100, bbox[1] -100, bbox[2]+100,bbox[3]+100]
 		
 	def objMk(self, dr, p, dms = (0,0,1,1), _type = 1, honour_db = False, offset = (0,0)):
 		try:
@@ -246,11 +247,11 @@ class diagram():
 				elif (a==2):
 					op = dr.create_rectangle(lf-2.5, tp-2.5, lf + 2.5, tp+2.5, outline=c)
 					dr.addtag_withtag("_conn", op)
-					dr.addtag_withtag(fc, op)
+					dr.addtag_withtag("c:"+p.machName+"."+fc, op)
 					if (self.conn_labelling.get()):
 						otx = dr.create_text(lf+to[0],tp+to[1],text=fc,font=i18n["font_small"],angle=ro,anchor=an)
 						dr.addtag_withtag("_conn", otx)
-						dr.addtag_withtag(fc, otx)
+						dr.addtag_withtag("c:"+p.machName+"."+fc, otx)
 					#print(fc)
 				ct += 1
 				outmap[fc] = (lf,tp)
@@ -269,10 +270,10 @@ class diagram():
 				dms[0]+(dms[2]/2), dms[1] + (dms[3]/2),
 				outline="black"
 			)
-			dr.addtag_withtag(p.name, rct)
+			dr.addtag_withtag("mn:"+p.machName, rct)
 			dr.addtag_withtag("_dev", rct)
 			tx = dr.create_text(dms[0],dms[1],text=p.name,font=i18n["font_large"])
-			dr.addtag_withtag(p.name, tx)
+			dr.addtag_withtag("mn:"+p.machName, tx)
 			dr.addtag_withtag("_dev", tx)
 		#dr.bind("<Button-1>", self.down)
 		#dr.bind("<ButtonRelease-1>", self.test)

@@ -35,7 +35,7 @@ class wdCore():
 	def load(self, resource):
 		for i in resource.cur.execute("select * from units"):
 		#print(dict(i))
-			self.dia.addDevice(i['iName'], device(i['proName']))
+			self.dia.addDevice(i['iName'], device(i["iName"], i['proName']))
 			if (i["left"] is not None):
 				self.dia.locateDevice(i["iName"], (i["left"],i["top"]),(i["width"],i["height"]))
 
@@ -73,7 +73,7 @@ class wdCore():
 		self.struct.cur.execute("insert into units (iName, proName, left, top, width, height) values(?, ?,?,?,?,?)", 
 			(mName, hName, *coords))
 		self.struct.set_changed()
-		self.dia.addDevice(mName, device(hName))
+		self.dia.addDevice(mName, device(mName, hName))
 		#if (i["left"] is not None):
 		self.dia.locateDevice(mName, (coords[0],coords[1]),(coords[2], coords[3]))
 
