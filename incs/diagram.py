@@ -247,11 +247,11 @@ class diagram():
 				elif (a==2):
 					op = dr.create_rectangle(lf-2.5, tp-2.5, lf + 2.5, tp+2.5, outline=c)
 					dr.addtag_withtag("_conn", op)
-					dr.addtag_withtag(fc, op)
+					dr.addtag_withtag("c:"+p.machName+"."+fc, op)
 					if (self.conn_labelling.get()):
 						otx = dr.create_text(lf+to[0],tp+to[1],text=fc,font=i18n["font_small"],angle=ro,anchor=an)
 						dr.addtag_withtag("_conn", otx)
-						dr.addtag_withtag(fc, otx)
+						dr.addtag_withtag("c:"+p.machName+"."+fc, otx)
 					#print(fc)
 				ct += 1
 				outmap[fc] = (lf,tp)

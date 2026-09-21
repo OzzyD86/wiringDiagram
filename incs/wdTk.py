@@ -110,8 +110,20 @@ class wdTk(wdTkCore):
 				wid = int(i.split(":")[1])
 			if (i.split(":")[0] == "br"):
 				wwid = (i.split(":")[1:3])
+			if (i.split(":")[0] == "c"):
+				conn = i.split(":")[1].split(".")
 				
 		d.add_separator()
+		
+		if ("_conn" in tags):
+			if ("_conn" in self.canvas.gettags(self.canvas.find_closest(up.x, up.y))):
+				if (not click):
+					for i in self.canvas.gettags(self.canvas.find_closest(up.x, up.y)):
+						if (i.split(":")[0] == "c"):
+							conn2 = i.split(":")[1].split(".")
+				
+					d.add_command(label="Create connection", command= lambda : self.wireAddComplete(indName=conn2[0], incName = conn2[1], outdName = conn[0], outcName = conn[1]))
+		
 		if ("_dev" in tags):
 			if (not click):
 				d.add_command(label="Move device here ", command= lambda : self.contextDevMove(name,int(up.x/self.sc.get()),int(up.y/self.sc.get())))
