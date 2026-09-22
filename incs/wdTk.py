@@ -86,12 +86,13 @@ class wdTk(wdTkCore):
 #		d.add_command(label="Create Waypoint here", command= lambda event=event: self.waypointAddWin(p))
 	
 #		d.add_separator()
-		d.add_command(label="Start: " + str((down.x, down.y)), state="disabled")
-		d.add_command(label="Finish: " + str((up.x, up.y)), state="disabled")
-		d.add_separator()
-		d.add_command(label="Canvas Start: " + str((self.canvas.canvasx(down.x), self.canvas.canvasy(down.y))), state="disabled")
-		d.add_command(label="Canvas Finish: " + str((self.canvas.canvasx(up.x), self.canvas.canvasy(up.y))), state="disabled")
-		d.add_separator()
+		if (self.config.dev.get()):
+			d.add_command(label="Start: " + str((down.x, down.y)), state="disabled")
+			d.add_command(label="Finish: " + str((up.x, up.y)), state="disabled")
+			d.add_separator()
+			d.add_command(label="Canvas Start: " + str((self.canvas.canvasx(down.x), self.canvas.canvasy(down.y))), state="disabled")
+			d.add_command(label="Canvas Finish: " + str((self.canvas.canvasx(up.x), self.canvas.canvasy(up.y))), state="disabled")
+			d.add_separator()
 		
 #	d.add_command(label=str(self.canvas.find_closest(x,y)))
 	
@@ -101,7 +102,8 @@ class wdTk(wdTkCore):
 		wwis = None
 		for i in self.canvas.gettags(self.canvas.find_closest(down.x,down.y)):
 			tags.append(i)
-			d.add_command(label=i)
+			if (self.config.dev.get()):
+				d.add_command(label=i)
 			if (i.split(":")[0] == "mn"):
 				name = i.split(":")[1]
 			if (i.split(":")[0] == "wn"):
@@ -128,6 +130,7 @@ class wdTk(wdTkCore):
 			if (not click):
 				d.add_command(label="Move device here ", command= lambda : self.contextDevMove(name,int(up.x/self.sc.get()),int(up.y/self.sc.get())))
 			else:
+				d.add_command(label="Edit device", command = lambda dName=name: self.devEditWin(mName=dName))
 				d.add_command(label="Delete device", command= lambda : self.devDelComplete(dhName=name))
 		
 				pass
@@ -135,12 +138,14 @@ class wdTk(wdTkCore):
 			if (not click):
 				d.add_command(label="Move waypoint", command= lambda : self.waypointEditComplete(wName=int(name),left=int(up.x/self.sc.get()),top=int(up.y/self.sc.get())))
 			else:
+				det = Tk.Menu()
+				#det.lift()
 				d.add_command(label="Delete waypoint", command= lambda : self.waypointDelComplete(wpName=int(name), delRel = True))
 				for k,i in self.core.dia.cwps.items():
 					for j in i:
 						if (int(j["wpid"]) == int(name)):
-							d.add_command(label="Detach wire " + str(k), command= lambda k=k,j=j : self.routeDelComplete(wire=k, wp = j))
-		
+							det.add_command(label="Wire " + str(k), command= lambda k=k,j=j : self.routeDelComplete(wire=k, wp = j))
+				d.add_cascade(label = "Detach...", menu=det)
 		if ("_wire" in tags):
 			if (wid is not None):
 				d.add_command(label="Delete wire " + str(wid), command= lambda event=event: self.wireDelComplete(wid))
@@ -173,9 +178,11 @@ class wdTk(wdTkCore):
 				elif ("straight_line" in tags):
 					if (pt is not None):
 						d.add_command(label="Connect wire " + str(wid) + " to waypoint " + str(pt), command= lambda event=event: self.routeAddComplete(wire=wid, wpn=pt, pos=1))
-		d.add_command(label="Create Device here", command= lambda event=event: self.devAddWin(up))
-		d.add_command(label="Create Waypoint here", command= lambda event=event: self.waypointAddWin(up))
-	
+		if (click):
+			d.add_command(label="Create Device here", command= lambda event=event: self.devAddWin(up))
+			d.add_command(label="Create Waypoint here", command= lambda event=event: self.waypointAddWin(up))
+		
+		#d.add_command(label= d.keys())
 		d.tk_popup(self.canvas.winfo_rootx()+int(event.x/self.sc.get()), self.canvas.winfo_rooty()+int(event.y/self.sc.get()))
 		self.b1_pressed = None
 
@@ -205,8 +212,8 @@ class wdTk(wdTkCore):
 		self.window.rowconfigure(0, weight=1)
 		self.window.columnconfigure(0, weight=1)
 		self.canvas.bind("<Button-3>", self.click_call)
-		#self.canvas.bind("<Button-1>", self.b1_down)
-		#self.canvas.bind("<ButtonRelease-1>", self.b1_up)
+		self.canvas.bind("<Button-1>", self.b1_down)
+		self.canvas.bind("<ButtonRelease-1>", self.b1_up)
 		#self.window.bind('<Configure>', self.resize_canvas)
 	
 		self.menu = {

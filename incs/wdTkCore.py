@@ -53,7 +53,7 @@ class wdTkCore():
 		
 	# == Device Editing
 	
-	def devEditWin(self):
+	def devEditWin(self, **preDefs):
 		if (len(self.core.dia.listDevices())== 0):
 			Tk.messagebox.showerror(title="No devices", message="There are no devices to edit.")
 			return False
@@ -78,9 +78,13 @@ class wdTkCore():
 				"type": "Entry", "name": "Height"
 			}
 		})
+		#raise Exception(self.core.dia.listDevices())
 		self.aw.addButton("Edit", "edit")
 		self.aw.passFunc("edit", self.devEditComplete)
-
+		for i,j in preDefs.items():
+			self.aw.set("mName", j)
+			pass
+			
 	def devEditComplete(self, **kwargs):
 		p = self.core.dia.listDevices(True)
 	
