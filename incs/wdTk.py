@@ -128,9 +128,24 @@ class wdTk(wdTkCore):
 		
 		if ("_dev" in tags):
 			if (not click):
-				d.add_command(label="Move device here ", command= lambda : self.contextDevMove(name,int(up.x/self.sc.get()),int(up.y/self.sc.get())))
+				d.add_command(label="Move device here", command= lambda : self.contextDevMove(name,int(up.x/self.sc.get()),int(up.y/self.sc.get())))
+				d.add_command(label="Duplicate device here...", command= lambda : self.dupDevAddWin(dName=name, top=int(up.y/self.sc.get()), left=int(up.x/self.sc.get())))
+				p = self.canvas.gettags(self.canvas.find_closest(up.x, up.y))
+				if ("_dev" in p):
+					iName = None
+					for i in p:
+						if (i.split(":")[0] == "mn"):
+							iName = i.split(":")[1]
+					d.add_command(label="Make connection between devices", command= lambda : self.wireAddWin(outdName=name, indName=iName))
+				elif ("_conn" in p):
+					iName, con = None, None
+					for i in p:
+						if (i.split(":")[0] == "c"):
+							iName, con = i.split(":")[1].split(".")
+					d.add_command(label="Connect here from this device", command= lambda : self.wireAddWin(outdName=name, indName=iName, incName = con))
+	
 			else:
-				d.add_command(label="Edit device", command = lambda dName=name: self.devEditWin(mName=dName))
+				d.add_command(label="Edit device...", command = lambda dName=name: self.devEditWin(mName=dName))
 				d.add_command(label="Delete device", command= lambda : self.devDelComplete(dhName=name))
 		
 				pass
@@ -365,10 +380,33 @@ class wdTk(wdTkCore):
 	
 	# == Device Adding
 
-	def dupDevAddWin(self):
-		self.aw = Tk.Toplevel()
+	def dupDevAddWin(self, **preDefs):
+		self.aw = inputDialog(self.window, data={
+			"dName": {
+				"type" : "Combo",
+				"name": "Existing Machine to Duplicate",
+				"values": self.core.dia.listDevices(True),
+			},
+			"mName":{
+				"type": "Entry", "name": "New Machine Name"
+			},
+			"hName": {
+				"type": "Entry", "name": "New Human Name"
+			},
+			"top": {
+				"type": "Entry", "name": "Top", "value":0
+			},
+			"left": {
+				"type": "Entry", "name": "Left","value":0
+			}
+		})
+		for i,j in preDefs.items():
+			self.aw.set(i, j)
+			pass
+		self.aw.addButton("Duplicate", "add")
+		self.aw.passFunc("add", self.dupDevAddComplete)
 
-		KEYS, VALUES = self.getKeys()
+		'''KEYS, VALUES = self.getKeys()
 
 		self.dName = Tk.StringVar(self.aw)
 		self.mName = Tk.StringVar(self.aw)
@@ -381,13 +419,14 @@ class wdTk(wdTkCore):
 		EntryWidget(self.aw, text="New Machine Name", variable=self.mName).grid()
 		EntryWidget(self.aw, text="Human Name", variable=self.hName).grid()
 
-		Tk.Button(self.aw, text="Add", command=self.dupDevAddComplete).grid()
+		Tk.Button(self.aw, text="Add", command=self.dupDevAddComplete).grid()'''
 
-	def dupDevAddComplete(self):
+	def dupDevAddComplete(self, **kwargs):
+		#raise Exception(kwargs)
 		KEYS, VALUES = self.getKeys()
-		obj = KEYS[VALUES.index(self.dName.get())]
+		obj = kwargs["dName"] #KEYS[VALUES.index(self.dName.get())]
 		
-		if (self.mName.get() in self.core.dia.listDevices()):
+		if (kwargs["mName"] in self.core.dia.listDevices()):
 			Tk.messagebox.showerror(title="Cannot add device", message="The name of the device is already in use.")
 			return False
 		
@@ -395,15 +434,16 @@ class wdTk(wdTkCore):
 		s = self.core.dia.locs[obj]
 		
 		self.core.addDevice(
-			self.mName.get(), self.hName.get(),
-			(400,300,s[2],s[3]))
+			kwargs["mName"], kwargs["hName"],
+			(int(kwargs["left"]),int(kwargs["top"]),s[2],s[3]))
 		
 		for i, j in d.connectors.items():
-			self.core.addConnector(self.mName.get(), i, dir=  j['direction'])
+			self.core.addConnector(kwargs["mName"], i, dir=  j['direction'])
 
 		self.updateWindowTitle()		
-		self.aw.destroy()
+		#self.aw.destroy()
 		self.redraw()
+		return True
 
 	def alert(self, *args, **kwargs): # For inputDialog testing purposes only. Please don't use for else (oh unless you want to print kwargs and print a warning) and remove after
 		Tk.messagebox.showwarning("Button pressed", "Yes. This is triggered")

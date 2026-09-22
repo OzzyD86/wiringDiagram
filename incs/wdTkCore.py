@@ -117,7 +117,7 @@ class wdTkCore():
 		self.aw = inputDialog(self.window, data={
 			"dhName":{
 				"type" : "Combo",
-				"name": "Edit Machine",
+				"name": "Delete Machine",
 				"values": self.core.dia.listDevices(True),
 				#"onUpdate": self.setmName2,
 			},
@@ -277,7 +277,7 @@ class wdTkCore():
 		else:
 			Tk.messagebox.showerror(val[0]["target"], args)
 
-	def wireAddWin(self):
+	def wireAddWin(self, **preDefs):
 		self.aw = inputDialog(self.window, data={
 			"outdName" : {
 				"type":"Combo",
@@ -293,17 +293,20 @@ class wdTkCore():
 			},
 			"indName" : {
 				"type":"Combo",
-				"name":"Output Device Name",
+				"name":"Input Device Name",
 				"values": self.core.dia.listDevices(True),
 				"onUpdate": self.getPlugsForDev,
 				"updateVars": [{"target" : "incName"}]
 			},
 			"incName" : {
 				"type":"Combo",
-				"name":"Output Connector Name",
+				"name":"Input Connector Name",
 				"values": {},
 			}
 		})
+		for i,j in preDefs.items():
+			self.aw.set(i, j)
+			pass
 		self.aw.addButton("Add", "add")
 		self.aw.passFunc("add", self.wireAddComplete)
 
