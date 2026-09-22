@@ -50,6 +50,58 @@ class wdTkCore():
 		self.updateWindowTitle()		
 		self.redraw()
 		return True
+	
+	# == Device Duplication
+	
+	def dupDevAddWin(self, **preDefs):
+		self.aw = inputDialog(self.window, data={
+			"dName": {
+				"type" : "Combo",
+				"name": "Existing Machine to Duplicate",
+				"values": self.core.dia.listDevices(True),
+			},
+			"mName":{
+				"type": "Entry", "name": "New Machine Name"
+			},
+			"hName": {
+				"type": "Entry", "name": "New Human Name"
+			},
+			"top": {
+				"type": "Entry", "name": "Top", "value":0
+			},
+			"left": {
+				"type": "Entry", "name": "Left","value":0
+			}
+		})
+		for i,j in preDefs.items():
+			self.aw.set(i, j)
+			pass
+		self.aw.addButton("Duplicate", "add")
+		self.aw.passFunc("add", self.dupDevAddComplete)
+
+	def dupDevAddComplete(self, **kwargs):
+		#raise Exception(kwargs)
+		KEYS, VALUES = self.getKeys()
+		obj = kwargs["dName"] #KEYS[VALUES.index(self.dName.get())]
+		
+		if (kwargs["mName"] in self.core.dia.listDevices()):
+			Tk.messagebox.showerror(title="Cannot add device", message="The name of the device is already in use.")
+			return False
+		
+		d = self.core.dia.getDevice(obj)
+		s = self.core.dia.locs[obj]
+		
+		self.core.addDevice(
+			kwargs["mName"], kwargs["hName"],
+			(int(kwargs["left"]),int(kwargs["top"]),s[2],s[3]))
+		
+		for i, j in d.connectors.items():
+			self.core.addConnector(kwargs["mName"], i, dir=  j['direction'])
+
+		self.updateWindowTitle()		
+		#self.aw.destroy()
+		self.redraw()
+		return True
 		
 	# == Device Editing
 	

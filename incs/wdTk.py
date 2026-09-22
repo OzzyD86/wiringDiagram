@@ -159,8 +159,8 @@ class wdTk(wdTkCore):
 				for k,i in self.core.dia.cwps.items():
 					for j in i:
 						if (int(j["wpid"]) == int(name)):
-							det.add_command(label="Wire " + str(k), command= lambda k=k,j=j : self.routeDelComplete(wire=k, wp = j))
-				d.add_cascade(label = "Detach...", menu=det)
+							d.add_command(label="Wire " + str(k), command= lambda k=int(k),j=j : self.routeDelComplete(wire=k, wp = j))
+				#d.add_cascade(label = "Detach...", menu=det)
 		if ("_wire" in tags):
 			if (wid is not None):
 				d.add_command(label="Delete wire " + str(wid), command= lambda event=event: self.wireDelComplete(wid))
@@ -379,71 +379,6 @@ class wdTk(wdTkCore):
 	## === Do Device Management
 	
 	# == Device Adding
-
-	def dupDevAddWin(self, **preDefs):
-		self.aw = inputDialog(self.window, data={
-			"dName": {
-				"type" : "Combo",
-				"name": "Existing Machine to Duplicate",
-				"values": self.core.dia.listDevices(True),
-			},
-			"mName":{
-				"type": "Entry", "name": "New Machine Name"
-			},
-			"hName": {
-				"type": "Entry", "name": "New Human Name"
-			},
-			"top": {
-				"type": "Entry", "name": "Top", "value":0
-			},
-			"left": {
-				"type": "Entry", "name": "Left","value":0
-			}
-		})
-		for i,j in preDefs.items():
-			self.aw.set(i, j)
-			pass
-		self.aw.addButton("Duplicate", "add")
-		self.aw.passFunc("add", self.dupDevAddComplete)
-
-		'''KEYS, VALUES = self.getKeys()
-
-		self.dName = Tk.StringVar(self.aw)
-		self.mName = Tk.StringVar(self.aw)
-		self.hName = Tk.StringVar(self.aw)
-	
-		ComboEntryWidget(self.aw, text="Existing machine to duplicate", variable=self.dName, values=VALUES).grid()
-		#Tk.Label(self.aw, text="Existing machine to duplicate").grid()
-		#a = ttk.Combobox(self.aw, state='readonly', textvariable= self.dName, values=VALUES).grid()
-
-		EntryWidget(self.aw, text="New Machine Name", variable=self.mName).grid()
-		EntryWidget(self.aw, text="Human Name", variable=self.hName).grid()
-
-		Tk.Button(self.aw, text="Add", command=self.dupDevAddComplete).grid()'''
-
-	def dupDevAddComplete(self, **kwargs):
-		#raise Exception(kwargs)
-		KEYS, VALUES = self.getKeys()
-		obj = kwargs["dName"] #KEYS[VALUES.index(self.dName.get())]
-		
-		if (kwargs["mName"] in self.core.dia.listDevices()):
-			Tk.messagebox.showerror(title="Cannot add device", message="The name of the device is already in use.")
-			return False
-		
-		d = self.core.dia.getDevice(obj)
-		s = self.core.dia.locs[obj]
-		
-		self.core.addDevice(
-			kwargs["mName"], kwargs["hName"],
-			(int(kwargs["left"]),int(kwargs["top"]),s[2],s[3]))
-		
-		for i, j in d.connectors.items():
-			self.core.addConnector(kwargs["mName"], i, dir=  j['direction'])
-
-		self.updateWindowTitle()		
-		#self.aw.destroy()
-		self.redraw()
-		return True
 
 	def alert(self, *args, **kwargs): # For inputDialog testing purposes only. Please don't use for else (oh unless you want to print kwargs and print a warning) and remove after
 		Tk.messagebox.showwarning("Button pressed", "Yes. This is triggered")
