@@ -45,7 +45,11 @@ class inputDialog(Tk.Toplevel):
 		Tk.Button(self, text=title, command=lambda: self.button_press(local_action)).grid(padx=5, pady=(5, 0), sticky='swen')
 	
 	def set(self, op, val):
-		self.vars[op].set(val)
+		if (self.data[op]["type"] == "Combo" and type(self.data[op]["values"]) == dict):
+			x = list(self.data[op]["values"].keys()).index(val)
+			self.vars[op].set(list(self.data[op]["values"].values())[x])
+		else:
+			self.vars[op].set(val)
 
 	def passFunc(self, loc, func):
 		self.funcs[loc].append(func)
