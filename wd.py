@@ -2,7 +2,7 @@ from copy import copy
 from PIL import Image, ImageDraw, ImageFont
 from incs.diagram import diagram
 from dev import device
-
+		
 def drag_start(event):
 	widget = event.widget
 	widget._drag_start_x = event.x
@@ -24,6 +24,10 @@ import tkinter.filedialog
 import traceback
 from tkinter.messagebox import showerror
 
+class config():
+	def __init__(self):
+		self.dev = Tk.BooleanVar(value=True)
+		
 def report_callback_exception(self, exc, val, tb):
 	d = pjaDialog()
 	text_box = Tk.Text(d.top, wrap=Tk.WORD, width=80, height=10)
@@ -68,7 +72,7 @@ class pjaDialog():
 		return self.how
 
 import incs.wdTk
-	
+
 class wdTk(incs.wdTk.wdTk):
 	def click_call(self, event):
 		x = self.canvas.canvasx(event.x)
@@ -132,7 +136,7 @@ class wdTk(incs.wdTk.wdTk):
 		pass
 		
 t = wdTk()
-
+setattr(t, "config", config())
 #p = pjaDialog().go()
 
 t.open_file("f.db")
