@@ -1,5 +1,6 @@
 class device():
-	def __init__(self, name):
+	def __init__(self, machName, name):
+		self.machName = machName
 		self.name = name
 		self.connectors = {}
 		

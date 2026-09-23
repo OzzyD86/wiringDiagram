@@ -2,6 +2,8 @@ from incs.diagram import diagram
 from dev import device
 from incs.diagramStructure import diagramStructure
 
+from incs.wire import wire
+
 class wdCore():
 	
 	def __init__(self, x = None):
@@ -15,6 +17,7 @@ class wdCore():
 		return 2
 		
 	def open_file(self, file):
+		
 		f = diagramStructure(file)
 		f.build()
 		if (f.check_version() < self.check_current_version()):
@@ -32,7 +35,7 @@ class wdCore():
 	def load(self, resource):
 		for i in resource.cur.execute("select * from units"):
 		#print(dict(i))
-			self.dia.addDevice(i['iName'], device(i['proName']))
+			self.dia.addDevice(i['iName'], device(i["iName"], i['proName']))
 			if (i["left"] is not None):
 				self.dia.locateDevice(i["iName"], (i["left"],i["top"]),(i["width"],i["height"]))
 
@@ -46,6 +49,7 @@ class wdCore():
 				pass
 				
 		for i in resource.cur.execute("select * from wire"):
+			print(list(i))
 			self.dia.addConnection(i["id"],
 				(i["devIn"], i["ConnIn"]),
 				(i["devOut"], i["ConnOut"])
@@ -56,7 +60,7 @@ class wdCore():
 				(i["x"], i["y"])
 				#(i["devIn"], i["ConnIn"])
 			)
-		for i in resource.cur.execute("select * from wp_ls"):
+		for i in resource.cur.execute("select * from wp_ls order by wire_id asc, `ord` asc"):
 			self.dia.addConnectionWaypoint(
 				i["wire_id"], i["wp_id"], i["ord"]
 			)
@@ -69,7 +73,7 @@ class wdCore():
 		self.struct.cur.execute("insert into units (iName, proName, left, top, width, height) values(?, ?,?,?,?,?)", 
 			(mName, hName, *coords))
 		self.struct.set_changed()
-		self.dia.addDevice(mName, device(hName))
+		self.dia.addDevice(mName, device(mName, hName))
 		#if (i["left"] is not None):
 		self.dia.locateDevice(mName, (coords[0],coords[1]),(coords[2], coords[3]))
 
@@ -107,13 +111,25 @@ class wdCore():
 	def addWire(self, devIn, conIn, devOut, conOut):
 		self.struct.cur.execute("insert into wire (devIn,connIn,devOut,connOut) values (?,?,?,?)",
 			(devIn, conIn, devOut, conOut))
-		print(self.struct.cur.lastrowid)
+		#print(self.struct.cur.lastrowid)
 		self.dia.addConnection(self.struct.cur.lastrowid, 
 			(devIn, conIn),
 			(devOut, conOut)
 		)
 		self.struct.set_changed()
 
+	def deleteWireByID(self, id):
+		#raise Exception("Not working yet")
+		print(id)
+		self.struct.cur.execute("delete from wire where id = ?",
+			(id,))
+			
+		#self.struct.cur.execute("delete from wire where DevIn = ? and ConnIn = ?",
+		#	(obj, conn))
+			
+		self.dia.deleteConnectionByID(int(id))
+		self.struct.set_changed()
+		
 	def deleteWire(self, obj, conn):
 		self.struct.cur.execute("delete from wire where DevOut = ? and ConnOut = ?",
 			(obj, conn))
@@ -134,7 +150,7 @@ class wdCore():
 	def updateWaypoint(self,wid,loc):
 		
 		for i,j in self.dia.wp.items():
-			if (j["name"] == wid):
+			if (i == wid):
 				#print(obj, j["name"], i)
 				o = i
 				
@@ -150,11 +166,11 @@ class wdCore():
 		return True
 		
 	def deleteWaypoint(self,wid):
-		for i,j in self.dia.wp.items():
-			if (j['name'] == wid):
-				a = i
+		#for i,j in self.dia.wp.items():
+		#	if (j['name'] == wid):
+		#		a = i
 				
-		del self.dia.wp[a]
-		self.struct.cur.execute("delete from waypoints where name = ?", (wid,))
+		del self.dia.wp[wid]
+		self.struct.cur.execute("delete from waypoints where id = ?", (wid,))
 		self.struct.set_changed()
 		return True
