@@ -82,7 +82,17 @@ class loader():
 		return (mod in list(self.loaders.keys()))
 		
 class wdTk(incs.wdTk.wdTk):
+	def cueEvts(self, event = "", **kwargs):
+		out = []
+		#print("Run events for " + event)
+		if (event in self.events):
+			for i in self.events[event]:
+				out.append( i(self, **kwargs))
+					
+		return out
+		
 	def pluginLoad(self):
+		self.events = {}
 		mods = {}
 		loaders = {}
 		setattr(self, "loaders", loader())
@@ -105,8 +115,14 @@ class wdTk(incs.wdTk.wdTk):
 		#			notebook.add( d(notebook), text=i.name.split(".")[0])
 
 		#displayText.insert(tkinter.END, win.core.loaders.loaders)
-		#for i in sorted(loaders.keys()):
-		#	for k in loaders[i]:
+		for i in sorted(loaders.keys()):
+			for k in loaders[i]:
+				for l,m in k["events"].items():
+					if (not l in self.events):
+						self.events[l] = []
+					for n in m:
+						self.events[l].append(n)
+					pass
 		#		notebook.add(k["call"](notebook), text=k["name"])
 
 	def click_call(self, event):
@@ -165,6 +181,9 @@ class wdTk(incs.wdTk.wdTk):
 		w.set("left", left)
 		w.set("width", width)
 		w.set("height", height)
+		for i in self.cueEvts("onMachineNameSet", w=w, val=val):
+			for j,k in i.items():
+				w.set(j,k)
 		
 	def setM2(self, *args):
 		#showerror(args, args)
