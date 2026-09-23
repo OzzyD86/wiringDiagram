@@ -8,10 +8,24 @@ from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
 class inputDialog(Tk.Toplevel):
 	def __init__(self, master, data={}, **kwargs):
 		super().__init__(master, **kwargs)
-		self.data = data # This will be useful later!
+		self.p = ttk.Notebook(self)
+		self.data = {} #data # This will be useful later!
 		self.vars = {}
 		self.funcs = {}
-		for i, j in data.items():
+		nw = self.addItems( data)
+		self.p.add(nw, text="General")
+		self.p.grid(sticky="swen")
+		self.columnconfigure(0, weight=1)
+	
+	def addNb(self, called, items = {}):
+		nw = self.addItems(items)
+		self.p.add(nw, text=called)
+		
+	def addItems(self, items = {}):
+		nw = Tk.Frame(self)
+		
+		for i, j in items.items():
+			self.data[i] =j
 			self.vars[i] = Tk.StringVar(self)
 			#print(j)
 			if ("onUpdate" in j.keys()):
@@ -26,20 +40,21 @@ class inputDialog(Tk.Toplevel):
 				self.vars[i].set(j["value"])
 				
 			if (j["type"] in ["Entry"]):
-				j["obj"] = EntryWidget(self, text=j["name"], variable=self.vars[i])#.grid(padx=5, pady=(5,0), sticky='nsew')
+				j["obj"] = EntryWidget(nw, text=j["name"], variable=self.vars[i])#.grid(padx=5, pady=(5,0), sticky='nsew')
 			elif (j["type"] in ["Combo"]):
-				j["obj"] = ComboEntryWidget(self, text=j["name"], variable=self.vars[i], values=j['values'], command= c, cArgs=(self, cc))#.grid(sticky='nsew')		
+				j["obj"] = ComboEntryWidget(nw, text=j["name"], variable=self.vars[i], values=j['values'], command= c, cArgs=(self, cc))#.grid(sticky='nsew')		
 			elif (j["type"] in ["Label", "Text"]):
-				j["obj"] = Tk.Label(self, text= j["text"], wraplength=800) #.grid(padx=5,pady=(5,0), sticky='sewn')
+				j["obj"] = Tk.Label(nw, text= j["text"], wraplength=800) #.grid(padx=5,pady=(5,0), sticky='sewn')
 			elif (j["type"] in ["Spin"]):
-				j["obj"] = SpinEntryWidget(self, text=j["name"], min=1, max=32, variable=self.vars[i])
+				j["obj"] = SpinEntryWidget(nw, text=j["name"], min=1, max=32, variable=self.vars[i])
 			elif(j["type"] in ["Checkbox"]):
-				j["obj"] = Tk.Checkbutton(self, text=j["name"], variable=self.vars[i], 
+				j["obj"] = Tk.Checkbutton(nw, text=j["name"], variable=self.vars[i], 
 					onvalue=1, offvalue=0, state=Tk.DISABLED)
 	
 			j["obj"].grid(padx=5, pady=(5,0), sticky='nsew')
-		self.columnconfigure(0, weight=1)
-
+		nw.columnconfigure(0, weight=1)
+		return nw
+		
 	def addButton(self, title, local_action = "add"):
 		self.funcs[local_action] = []
 		Tk.Button(self, text=title, command=lambda: self.button_press(local_action)).grid(padx=5, pady=(5, 0), sticky='swen')
