@@ -13,7 +13,7 @@ class wdTkCore():
 	
 	def devAddWin(self, event = None):
 		d = getattr(event, "x", 0)
-
+			
 		self.aw = inputDialog(self.window, data={
 			"mName": {
 				"type" : "Entry",
@@ -34,9 +34,15 @@ class wdTkCore():
 				"value": int(getattr(event, "y", 300) / float(self.sc.get()))
 			},
 		})
+		for i in self.cueEvts("onDeviceAddDialog"):
+			self.aw.addNb(i["Name"], i["Widgets"])
+			pass
+			
 		self.aw.addButton("Add", "add")
 		self.aw.passFunc("add", self.devAddComplete)
-
+		for i in self.cueEvts("onDeviceAddComplete"):
+			self.aw.passFunc("add", i)
+	
 	def devAddComplete(self, **kwargs):
 		if (kwargs['mName'] in self.core.dia.listDevices()):
 			tkinter.messagebox.showerror(title="Cannot add device", message="The name of the device is already in use.")
@@ -130,9 +136,14 @@ class wdTkCore():
 				"type": "Entry", "name": "Height"
 			}
 		})
+		for i in self.cueEvts("onDeviceEditDialog"):
+			self.aw.addNb(i["Name"], i["Widgets"])
+			pass
 		#raise Exception(self.core.dia.listDevices())
 		self.aw.addButton("Edit", "edit")
 		self.aw.passFunc("edit", self.devEditComplete)
+		for i in self.cueEvts("onDeviceEditComplete"):
+			self.aw.passFunc("edit", i)
 		for i,j in preDefs.items():
 			self.aw.set("mName", j)
 			pass
