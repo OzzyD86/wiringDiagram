@@ -209,6 +209,7 @@ class wdTk(wdTkCore):
 		self._open_file = None
 		
 		self.window = Tk.Tk()
+		self.pluginLoad()
 		
 		self.window.title(self.app_name)
 		self.core = wdCore(self.window)

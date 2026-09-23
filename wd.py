@@ -72,8 +72,43 @@ class pjaDialog():
 		return self.how
 
 import incs.wdTk
+import os, importlib
 
+class loader():
+	def __init__(self):
+		self.loaders = {}
+	
+	def is_loaded(self, mod):
+		return (mod in list(self.loaders.keys()))
+		
 class wdTk(incs.wdTk.wdTk):
+	def pluginLoad(self):
+		mods = {}
+		loaders = {}
+		setattr(self, "loaders", loader())
+
+		for i in os.scandir("plugins"):
+			if (os.path.isfile("plugins/" + i.name)):
+				mods[i.name.split(".")[0]] = importlib.import_module("plugins." + i.name.split(".")[0])
+				nm= i.name.split(".")[0]
+				a = mods[nm]
+				
+				d = getattr(a, i.name.split(".")[0])
+				if (hasattr(a, "MANIFEST")):
+					if (a.MANIFEST["order"] in loaders):
+						loaders[a.MANIFEST["order"]].append(a.MANIFEST)
+					else:
+						loaders[a.MANIFEST["order"]] = [a.MANIFEST]
+					self.loaders.loaders[nm] = True
+		#			#displayText.insert(tkinter.END, str(d) + "\n")
+		#		else:
+		#			notebook.add( d(notebook), text=i.name.split(".")[0])
+
+		#displayText.insert(tkinter.END, win.core.loaders.loaders)
+		#for i in sorted(loaders.keys()):
+		#	for k in loaders[i]:
+		#		notebook.add(k["call"](notebook), text=k["name"])
+
 	def click_call(self, event):
 		x = self.canvas.canvasx(event.x)
 		y = self.canvas.canvasy(event.y)
