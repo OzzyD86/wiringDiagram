@@ -201,6 +201,9 @@ class wdTk(wdTkCore):
 		d.tk_popup(self.canvas.winfo_rootx()+int(event.x/self.sc.get()), self.canvas.winfo_rooty()+int(event.y/self.sc.get()))
 		self.b1_pressed = None
 
+	def motion(self, event):
+		self.canvas.itemconfig(self.canvas.find_withtag("current"), fill="yellow")
+		
 	def __init__(self):
 		self.app_name = "WiringDiagram"
 		self._open_file = None
@@ -229,6 +232,7 @@ class wdTk(wdTkCore):
 		self.canvas.bind("<Button-3>", self.click_call)
 		self.canvas.bind("<Button-1>", self.b1_down)
 		self.canvas.bind("<ButtonRelease-1>", self.b1_up)
+		#self.canvas.bind("<Motion>", self.motion)
 		#self.window.bind('<Configure>', self.resize_canvas)
 	
 		self.menu = {
