@@ -69,8 +69,8 @@ class inputDialog(Tk.Toplevel):
 		else:
 			self.vars[op].set(val)
 
-	def passFunc(self, loc, func):
-		self.funcs[loc].append(func)
+	def passFunc(self, loc, func, **kwargs):
+		self.funcs[loc].append([func, kwargs])
 		
 	def button_press(self, mode):
 		snd={}
@@ -85,9 +85,9 @@ class inputDialog(Tk.Toplevel):
 					snd[i] = j.get()
 			else:
 				print("Slight panic:", i, j)
-					
+		
 		for i in self.funcs[mode]:
-			t = i(**snd)
+			t = i[0](**{**snd, **i[1]})
 		
 		if (t):
 			self.destroy()
