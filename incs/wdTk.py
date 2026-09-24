@@ -242,8 +242,10 @@ class wdTk(wdTkCore):
 			"add": Tk.Menu(),
 			"edit": Tk.Menu(),
 			"delete": Tk.Menu(),
-			"export": Tk.Menu()
+			"export": Tk.Menu(),
+			"plugins": Tk.Menu()
 		}
+		
 		self.sc = Tk.IntVar()
 		self.sc.set(1)
 		mf = self.menu["file"]
@@ -304,11 +306,16 @@ class wdTk(wdTkCore):
 		self.menu["export"].add_separator()
 		self.menu["export"].add_command(label="PNG", command=self.export_png)
 
+		for i in self.cueEvts("onMenuSpawn"):
+			pass
+			self.menu["plugins"].add_cascade(label=i["name"], menu=i["menu"])
+			
 		y = self.menu["root"]
 		y.add_cascade(label="File", menu=self.menu["file"])
 		y.add_cascade(label="Add", menu=self.menu["add"])
 		y.add_cascade(label="Edit", menu=self.menu["edit"])
 		y.add_cascade(label="Delete", menu=self.menu["delete"])
+		y.add_cascade(label="Plugins", menu=self.menu["plugins"])
 		y.add_cascade(label="Export", menu=self.menu["export"])
 
 		self.window.config(menu=self.menu["root"])

@@ -33,14 +33,14 @@ class wdTkCore():
 				"name" : "Y Position",
 				"value": int(getattr(event, "y", 300) / float(self.sc.get()))
 			},
-		})
+		}, sf= self)
 		for i in self.cueEvts("onDeviceAddDialog"):
 			self.aw.addNb(i["Name"], i["Widgets"])
 			pass
 			
 		self.aw.addButton("Add", "add")
 		self.aw.passFunc("add", self.devAddComplete)
-		for i in self.cueEvts("onDeviceAddComplete"):
+		for i in self.cueEvts("onDeviceAddComplete", False):
 			self.aw.passFunc("add", i)
 	
 	def devAddComplete(self, **kwargs):
