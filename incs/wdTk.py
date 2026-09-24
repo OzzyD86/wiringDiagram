@@ -197,6 +197,22 @@ class wdTk(wdTkCore):
 			d.add_command(label="Create Device here", command= lambda event=event: self.devAddWin(up))
 			d.add_command(label="Create Waypoint here", command= lambda event=event: self.waypointAddWin(up))
 		
+		if (click):
+			pd = "Click"
+		else:
+			pd = "Drag"
+			
+		if ("_dev" in tags):
+			rr = "Device"
+			_pass = {"dev":self.core.dia.dev[name], "loc": self.core.dia.locs[name]}
+		else:
+			rr = "Unknown"
+		
+		for i in self.cueEvts("on" + rr + pd, False):
+			d = i(d, **_pass) # NO! Just no!
+	
+		for i in self.cueEvts("onAny" + pd, False):
+			d = i(d, core = self, event=up)
 		#d.add_command(label= d.keys())
 		d.tk_popup(self.canvas.winfo_rootx()+int(event.x/self.sc.get()), self.canvas.winfo_rooty()+int(event.y/self.sc.get()))
 		self.b1_pressed = None
@@ -204,11 +220,12 @@ class wdTk(wdTkCore):
 	def motion(self, event):
 		self.canvas.itemconfig(self.canvas.find_withtag("current"), fill="yellow")
 		
-	def __init__(self):
+	def __init__(self, master = None, **kwargs):
 		self.app_name = "WiringDiagram"
 		self._open_file = None
 		
-		self.window = Tk.Tk()
+		super().__init__(master, **kwargs)
+		self.window = self #Tk.Tk()
 		self.pluginLoad()
 		
 		self.window.title(self.app_name)

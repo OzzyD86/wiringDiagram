@@ -7,10 +7,12 @@ import tkinter.messagebox
 
 from widgets.inputDialog import inputDialog
 
-class wdTkCore():
+class wdTkCore(Tk.Tk):
 	
 	# === Device Adding
-	
+	def __init__(self, master = None, **kwargs):
+		super().__init__(master, **kwargs)
+		
 	def devAddWin(self, event = None):
 		d = getattr(event, "x", 0)
 			
