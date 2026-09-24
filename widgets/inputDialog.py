@@ -7,6 +7,9 @@ from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
 
 class inputDialog(Tk.Toplevel):
 	def __init__(self, master, data={}, **kwargs):
+		if ("sf" in kwargs):
+			self.sf = kwargs["sf"]
+			del kwargs["sf"]
 		super().__init__(master, **kwargs)
 		self.p = ttk.Notebook(self)
 		self.data = {} #data # This will be useful later!
@@ -71,6 +74,8 @@ class inputDialog(Tk.Toplevel):
 		
 	def button_press(self, mode):
 		snd={}
+		if (hasattr(self, "sf")):
+			snd['s'] = self.sf
 		#print("Do stuff here") 
 		for i,j in self.vars.items():
 			if (type(j) is Tk.StringVar):
