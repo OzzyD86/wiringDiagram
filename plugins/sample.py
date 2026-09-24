@@ -16,6 +16,7 @@ def devAddWin(s, **kwargs):
 
 def devAddComplete(**kwargs):
 	pass#raise Exception(kwargs)
+	return True
 	
 def a(self, w, val, *args):
 	return { "Test" : "Get data here" }
