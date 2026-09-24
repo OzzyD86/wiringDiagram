@@ -26,7 +26,7 @@ from tkinter.messagebox import showerror
 
 class config():
 	def __init__(self):
-		self.dev = Tk.BooleanVar(value=True)
+		self.dev = Tk.BooleanVar(value=False)
 		
 def report_callback_exception(self, exc, val, tb):
 	d = pjaDialog()
@@ -82,12 +82,15 @@ class loader():
 		return (mod in list(self.loaders.keys()))
 		
 class wdTk(incs.wdTk.wdTk):
-	def cueEvts(self, event = "", **kwargs):
+	def cueEvts(self, event = "", exec=True, **kwargs):
 		out = []
 		#print("Run events for " + event)
 		if (event in self.events):
 			for i in self.events[event]:
-				out.append( i(self, **kwargs))
+				if (exec):
+					out.append(i(self, **kwargs))
+				else:
+					out.append(i)
 					
 		return out
 		
@@ -124,7 +127,7 @@ class wdTk(incs.wdTk.wdTk):
 						self.events[l].append(n)
 					pass
 		#		notebook.add(k["call"](notebook), text=k["name"])
-
+		
 	def click_call(self, event):
 		x = self.canvas.canvasx(event.x)
 		y = self.canvas.canvasy(event.y)
@@ -188,13 +191,22 @@ class wdTk(incs.wdTk.wdTk):
 	def setM2(self, *args):
 		#showerror(args, args)
 		pass
-		
-t = wdTk()
-setattr(t, "config", config())
-#p = pjaDialog().go()
-
-t.open_file("f.db")
-t.redraw()
+try:
+	t = wdTk()
+	setattr(t, "config", config())
+	#p = pjaDialog().go()
+	t.open_file("f.db")
+	t.redraw()
+	
+except Exception as e:
+	d = Tk.Tk()
+	text_box = Tk.Text(d, wrap=Tk.WORD, width=80, height=10)
+	text_box.insert("0.0", e)
+	text_box.grid(row=0, column=0, rowspan=3, padx=10, pady=10, sticky="nsew")
+	d.rowconfigure(0, weight=1)
+	d.columnconfigure(0, weight=1)
+	#d.go()
+	d.mainloop()
 
 #t.core.dia.exportPng().save("mx2.png")
 t.window.mainloop()
