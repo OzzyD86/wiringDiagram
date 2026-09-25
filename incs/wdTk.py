@@ -7,6 +7,7 @@ import tkinter.messagebox
 import math as maths
 from widgets.inputDialog import inputDialog
 from incs.wdTkCore import wdTkCore
+from copy import copy
 
 class wdTk(wdTkCore):
 	def resize_canvas(self, event):
@@ -63,7 +64,7 @@ class wdTk(wdTkCore):
 	def b1_up(self, event):
 		d = Tk.Menu()
 		down = self.b1_pressed
-		up = event
+		up = copy(event)
 		
 		x = self.canvas.canvasx(event.x)
 		y = self.canvas.canvasy(event.y)
@@ -215,6 +216,8 @@ class wdTk(wdTkCore):
 			d = i(d, core = self, event=up)
 		#d.add_command(label= d.keys())
 		d.tk_popup(self.canvas.winfo_rootx()+int(event.x/self.sc.get()), self.canvas.winfo_rooty()+int(event.y/self.sc.get()))
+		#d.tk_popup(self.canvas.winfo_rootx()+ up.x, self.canvas.winfo_rooty()+up.y)
+
 		self.b1_pressed = None
 
 	def motion(self, event):
@@ -322,9 +325,9 @@ class wdTk(wdTkCore):
 		self.menu["export"].add_cascade(label="Scale...", menu= self.scale)
 		self.menu["export"].add_separator()
 		self.menu["export"].add_command(label="PNG", command=self.export_png)
-
+		m = 0
 		for i in self.cueEvts("onMenuSpawn"):
-			pass
+			m+=1
 			self.menu["plugins"].add_cascade(label=i["name"], menu=i["menu"])
 			
 		y = self.menu["root"]
@@ -332,7 +335,8 @@ class wdTk(wdTkCore):
 		y.add_cascade(label="Add", menu=self.menu["add"])
 		y.add_cascade(label="Edit", menu=self.menu["edit"])
 		y.add_cascade(label="Delete", menu=self.menu["delete"])
-		y.add_cascade(label="Plugins", menu=self.menu["plugins"])
+		if (m>0):
+			y.add_cascade(label="Plugins", menu=self.menu["plugins"])
 		y.add_cascade(label="Export", menu=self.menu["export"])
 
 		self.window.config(menu=self.menu["root"])
