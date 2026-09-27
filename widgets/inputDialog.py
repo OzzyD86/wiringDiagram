@@ -45,7 +45,12 @@ class inputDialog(Tk.Toplevel):
 			if (j["type"] in ["Entry"]):
 				j["obj"] = EntryWidget(nw, text=j["name"], variable=self.vars[i])#.grid(padx=5, pady=(5,0), sticky='nsew')
 			elif (j["type"] in ["Combo"]):
-				j["obj"] = ComboEntryWidget(nw, text=j["name"], variable=self.vars[i], values=j['values'], command= c, cArgs=(self, cc))#.grid(sticky='nsew')		
+				state = "readonly"
+				if ("editable" in j):
+					if (j["editable"]):
+						state = "normal"
+					pass
+				j["obj"] = ComboEntryWidget(nw, text=j["name"], variable=self.vars[i], values=j['values'], state=state, command= c, cArgs=(self, cc))#.grid(sticky='nsew')		
 			elif (j["type"] in ["Label", "Text"]):
 				j["obj"] = Tk.Label(nw, text= j["text"], wraplength=800) #.grid(padx=5,pady=(5,0), sticky='sewn')
 			elif (j["type"] in ["Spin"]):
@@ -73,6 +78,7 @@ class inputDialog(Tk.Toplevel):
 		self.funcs[loc].append([func, kwargs])
 		
 	def button_press(self, mode):
+		t = True # Force success and close dialog if nothing happens
 		snd={}
 		if (hasattr(self, "sf")):
 			snd['s'] = self.sf
