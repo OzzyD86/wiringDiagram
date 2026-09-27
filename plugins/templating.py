@@ -101,10 +101,11 @@ def odc(menu, **kwargs):
 def oac(menu, **kwargs):
 	menu.add_command(label="Load device from template...", command = lambda: tmpLoadWin(kwargs["core"], kwargs["event"]))
 	return menu
+	
 MANIFEST = {
 	"order": 0,
 	"events": {
-		"onMenuSpawn" : [menu],
+		#"onMenuSpawn" : [menu],
 		"onDeviceClick": [odc],
 		"onAnyClick": [oac],
 		#"onDeviceAddDialog" : [devAddWin],

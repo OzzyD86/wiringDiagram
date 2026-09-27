@@ -33,7 +33,7 @@ def menu(self):
 MANIFEST = {
 	"order": 0,
 	"events": {
-		"onMenuSpawn" : [menu],
+		#"onMenuSpawn" : [menu],
 		"onDeviceAddDialog" : [devAddWin],
 		"onDeviceEditDialog" : [devAddWin],
 		#"onMachineNameSet" : [a]
