@@ -3,7 +3,7 @@ from widgets.inputDialog import inputDialog
 class grouping():
 	def checkInit(self, erm, **kwargs):
 		try:
-			p = main.core.struct.cur.execute("select * from `groups`")
+			p = main.core.struct.cur.execute("select * from `group`")
 		except:
 			main.core.struct.cur.execute("create table `group` (id integer primary key autoincrement, `name` text not null)")
 			main.core.struct.cur.execute("create table `group_residents` (id integer primary key autoincrement, `group_id` integer not null, `name` text not null, `type` text not null)")
