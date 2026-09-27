@@ -1,7 +1,7 @@
 from copy import copy
 from PIL import Image, ImageDraw, ImageFont
-from incs.diagram import diagram
-from dev import device
+#forom incs.diagram import diagram
+#forom dev import device
 		
 def drag_start(event):
 	widget = event.widget
@@ -26,7 +26,7 @@ from tkinter.messagebox import showerror
 
 class config():
 	def __init__(self):
-		self.dev = Tk.BooleanVar(value=False)
+		self.dev = Tk.BooleanVar(value=True)
 		
 def report_callback_exception(self, exc, val, tb):
 	d = pjaDialog()
@@ -107,6 +107,7 @@ class wdTk(incs.wdTk.wdTk):
 				a = mods[nm]
 				
 				d = getattr(a, i.name.split(".")[0])
+				setattr(a, "main", self) # Does this work?
 				if (hasattr(a, "MANIFEST")):
 					if (a.MANIFEST["order"] in loaders):
 						loaders[a.MANIFEST["order"]].append(a.MANIFEST)
@@ -191,18 +192,27 @@ class wdTk(incs.wdTk.wdTk):
 	def setM2(self, *args):
 		#showerror(args, args)
 		pass
+		
+app = "wiringDiagram"
 try:
 	t = wdTk()
 	setattr(t, "config", config())
 	#p = pjaDialog().go()
+	t.cueEvts("onInitialise") # good to go!
 	t.open_file("f.db")
 	t.redraw()
 	
 except Exception as e:
+	#t.destroy()
 	d = Tk.Tk()
-	text_box = Tk.Text(d, wrap=Tk.WORD, width=80, height=10)
+	font = ("Arial", 6)
+	d.title("Error")
+	Tk.Label(d, text=app + " ran into an error", font="Arial 8 bold").grid(sticky="w")
+	
+	'''text_box = Tk.Text(d, wrap=Tk.WORD, width=40, height=10)
 	text_box.insert("0.0", e)
-	text_box.grid(row=0, column=0, rowspan=3, padx=10, pady=10, sticky="nsew")
+	text_box.grid(row=0, column=0, rowspan=3, padx=10, pady=10, sticky="nsew")'''
+	Tk.Label(d, text=str(type(e).__name__) + ": " +str(e), font= [*font, "bold"]).grid()
 	d.rowconfigure(0, weight=1)
 	d.columnconfigure(0, weight=1)
 	#d.go()
