@@ -350,6 +350,7 @@ class wdTk(wdTkCore):
 	def open_file(self, file):
 		self.core.open_file(file)
 		self._open_file = file
+		self.cueEvts("onFileLoad")
 		self.canvas.config(scrollregion=(self.core.dia.bounds))
 		self.set_export_vars()
 		self.updateWindowTitle()
