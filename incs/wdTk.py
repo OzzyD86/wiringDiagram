@@ -36,6 +36,7 @@ class wdTk(wdTkCore):
 		else:
 			self._open_file = a
 			self.core.open_file(a)
+			self.cueEvts("onFileLoad")
 			self.redraw()
 			self.updateWindowTitle()
 			self.core.struct.clear_changed()
@@ -382,6 +383,7 @@ class wdTk(wdTkCore):
 		else:
 			a = a.name
 			self.core.open_file(a)
+			self.cueEvts("onFileLoad")
 			self.redraw()
 			self._open_file = a
 			self.core.struct.clear_changed()
