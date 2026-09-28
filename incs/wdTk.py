@@ -213,8 +213,6 @@ class wdTk(wdTkCore):
 			rr = "Device"
 			_pass["dev"] = self.core.dia.dev[name]
 			_pass["loc"] = self.core.dia.locs[name]
-		elif ("_group" in tags): # NO!
-			rr = "Group"
 		else:
 			rr = "Unknown"
 		

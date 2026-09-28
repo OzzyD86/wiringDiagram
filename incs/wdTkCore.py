@@ -117,7 +117,9 @@ class wdTkCore(Tk.Tk):
 		if (len(self.core.dia.listDevices())== 0):
 			Tk.messagebox.showerror(title="No devices", message="There are no devices to edit.")
 			return False
-		
+		for i in self.cueEvts("onDevEditWinPreDef", False):
+			preDefs = i(preDefs)
+			
 		self.aw = inputDialog(self.window, data={
 			"mName":{
 				"type" : "Combo",
@@ -144,10 +146,11 @@ class wdTkCore(Tk.Tk):
 		#raise Exception(self.core.dia.listDevices())
 		self.aw.addButton("Edit", "edit")
 		self.aw.passFunc("edit", self.devEditComplete)
-		for i in self.cueEvts("onDeviceEditComplete"):
+		for i in self.cueEvts("onDeviceEditComplete", False):
 			self.aw.passFunc("edit", i)
+			
 		for i,j in preDefs.items():
-			self.aw.set("mName", j)
+			self.aw.set(i, j)
 			pass
 			
 	def devEditComplete(self, **kwargs):
