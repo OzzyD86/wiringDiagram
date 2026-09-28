@@ -198,14 +198,23 @@ class wdTk(wdTkCore):
 			d.add_command(label="Create Device here", command= lambda event=event: self.devAddWin(up))
 			d.add_command(label="Create Waypoint here", command= lambda event=event: self.waypointAddWin(up))
 		
+		_pass = {}
+		_pass["canTags"] = self.canvas.gettags(self.canvas.find_closest(down.x,down.y))
+		
 		if (click):
 			pd = "Click"
+			_pass["click"] = up
 		else:
 			pd = "Drag"
-			
+			_pass["down"] = down
+			_pass["up"] = up
+
 		if ("_dev" in tags):
 			rr = "Device"
-			_pass = {"dev":self.core.dia.dev[name], "loc": self.core.dia.locs[name]}
+			_pass["dev"] = self.core.dia.dev[name]
+			_pass["loc"] = self.core.dia.locs[name]
+		elif ("_group" in tags): # NO!
+			rr = "Group"
 		else:
 			rr = "Unknown"
 		
@@ -214,6 +223,7 @@ class wdTk(wdTkCore):
 	
 		for i in self.cueEvts("onAny" + pd, False):
 			d = i(d, core = self, event=up)
+			
 		#d.add_command(label= d.keys())
 		d.tk_popup(self.canvas.winfo_rootx()+int(event.x/self.sc.get()), self.canvas.winfo_rooty()+int(event.y/self.sc.get()))
 		#d.tk_popup(self.canvas.winfo_rootx()+ up.x, self.canvas.winfo_rooty()+up.y)
@@ -500,7 +510,6 @@ class wdTk(wdTkCore):
 			kwargs['o']["state"]='readonly'
 			kwargs['o']["values"]=list(ii)
 	
-	
 	def redraw(self):
 		d = self.core.dia
 		q = d.bbox()
@@ -615,7 +624,7 @@ class wdTk(wdTkCore):
 					self.canvas.addtag_withtag("_wire", r)
 					#self.canvas.addtag_withtag(m, r)
 					#self.canvas.addtag_withtag(st, r)
-
+			
 		if (self.waypointing.get()):
 			for m,n in olines.items():
 				pass
@@ -634,6 +643,7 @@ class wdTk(wdTkCore):
 				self.canvas.addtag_withtag("wn:" + str(i), r)
 				self.canvas.addtag_withtag(j, r)
 
+		self.cueEvts("onCanvasRedraw", canvas=self.canvas)
 		self.canvas.scale("all", 0,0, self.sc.get(), self.sc.get())
 		self.canvas.config(scrollregion=(q2))
 		
