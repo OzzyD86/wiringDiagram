@@ -95,29 +95,56 @@ def redrawCanvas(self, **kwargs):
 		kwargs["canvas"].lower(op)
 	pass
 	
-def groupAddWin(**kwargs):
-	#raise Exception(kwargs)
+def devAddWin(s, **kwargs):
+	return { "Name" : "Group",
+		"Widgets" : model_data_loader()
+	}
+	
+def model_data_loader():
 	s = []
 	for i in main.core.struct.cur.execute("select `name` from `group`"):
 		s.append(i[0])
-	d = inputDialog(main, data ={
+	return {
 		"group" : {
 			"type" : "Combo",
 			"name" : "Group",
 			"values" : s,
 			"editable" : True,
 		}
-	})
+	}
+	
+def groupAddWin(**kwargs):
+	#raise Exception(kwargs)
+	
+	d = inputDialog(main, data = model_data_loader())
 	d.addButton("Add", "add")
 	d.passFunc("add", devGroupComplete, device= kwargs["device"])
-		
+
+def devAddComplete(**kwargs):
+	if (kwargs["group"] != ""):
+		devGroupComplete(group = kwargs["group"], device=kwargs["mName"])
+	else:
+		groupRemComplete(device=kwargs["mName"])
+	return True
+	
+def devEditVarsPopulate(kwargs):
+	aa = main.core.struct.cur.execute("select a.`name` from `group` a join `group_residents` b on a.id = b.group_id where b.`name` = ? and b.`type` = 'device'", (kwargs["mName"],)).fetchone()
+	if (aa is not None):
+		kwargs["group"] = aa[0]
+	return kwargs
+	
 MANIFEST = {
 	"order": 0,
 	"events": {
 		"onFileLoad": [ g.checkInit ],
 		#"onMenuSpawn" : [menu],
+		"onDevEditWinPreDef": [devEditVarsPopulate],
+		"onDeviceAddDialog" : [devAddWin],
+		"onDeviceAddComplete" : [devAddComplete],
+		"onDeviceEditDialog" : [devAddWin],
+		"onDeviceEditComplete" : [devAddComplete],
 		"onDeviceClick": [odc],
-		"onGroupDrag": [checkGroupDrag],
+		"onUnknownDrag": [checkGroupDrag],
 		"onCanvasRedraw": [redrawCanvas],
 		#""
 		#"onAnyClick": [oac],
