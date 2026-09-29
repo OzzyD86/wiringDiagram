@@ -127,10 +127,12 @@ def devAddComplete(**kwargs):
 		groupRemComplete(device=kwargs["mName"])
 	return True
 	
-def devEditVarsPopulate(kwargs):
-	aa = main.core.struct.cur.execute("select a.`name` from `group` a join `group_residents` b on a.id = b.group_id where b.`name` = ? and b.`type` = 'device'", (kwargs["mName"],)).fetchone()
+def devEditVarsPopulate(self, w, val, args):
+	p = w.data['mName']["obj"].get_key_of_value(args[0])
+	aa = main.core.struct.cur.execute("select a.`name` from `group` a join `group_residents` b on a.id = b.group_id where b.`name` = ? and b.`type` = 'device'", (p,)).fetchone()
 	if (aa is not None):
-		kwargs["group"] = aa[0]
+		return {"group":  aa[0]}
+	return {"group":""}
 	return kwargs
 	
 MANIFEST = {
@@ -138,7 +140,8 @@ MANIFEST = {
 	"events": {
 		"onFileLoad": [ g.checkInit ],
 		#"onMenuSpawn" : [menu],
-		"onDevEditWinPreDef": [devEditVarsPopulate],
+		#"onDevEditWinPreDef": [devEditVarsPopulate],
+		"onMachineNameSet": [devEditVarsPopulate],
 		"onDeviceAddDialog" : [devAddWin],
 		"onDeviceAddComplete" : [devAddComplete],
 		"onDeviceEditDialog" : [devAddWin],

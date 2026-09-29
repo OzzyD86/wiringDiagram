@@ -31,14 +31,14 @@ def menu(self):
 	}
 	
 MANIFEST = {
-	"order": 0,
+	"order": 1,
 	"events": {
 		#"onMenuSpawn" : [menu],
-		"onDeviceAddDialog" : [devAddWin],
-		"onDeviceEditDialog" : [devAddWin],
+		#"onDeviceAddDialog" : [devAddWin],
+		#"onDeviceEditDialog" : [devAddWin],
 		#"onMachineNameSet" : [a]
 		
-		"onDeviceAddComplete" : [devAddComplete],
+		#"onDeviceAddComplete" : [devAddComplete],
 		#"onDeviceEditComplete" : [devAddWin],
 	}
 }
