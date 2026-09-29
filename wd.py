@@ -185,7 +185,7 @@ class wdTk(incs.wdTk.wdTk):
 		w.set("left", left)
 		w.set("width", width)
 		w.set("height", height)
-		for i in self.cueEvts("onMachineNameSet", w=w, val=val):
+		for i in self.cueEvts("onMachineNameSet", w=w, val=val, args=args):
 			for j,k in i.items():
 				w.set(j,k)
 		
