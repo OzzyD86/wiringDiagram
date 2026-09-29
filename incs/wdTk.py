@@ -150,7 +150,6 @@ class wdTk(wdTkCore):
 				d.add_command(label="Edit device...", command = lambda dName=name: self.devEditWin(mName=dName))
 				d.add_command(label="Delete device", command= lambda : self.devDelComplete(dhName=name))
 		
-				pass
 		if ("_wp" in tags):
 			if (not click):
 				d.add_command(label="Move waypoint", command= lambda : self.waypointEditComplete(wName=int(name),left=int(up.x/self.sc.get()),top=int(up.y/self.sc.get())))
@@ -163,6 +162,7 @@ class wdTk(wdTkCore):
 						if (int(j["wpid"]) == int(name)):
 							d.add_command(label="Wire " + str(k), command= lambda k=int(k),j=j : self.routeDelComplete(wire=k, wp = j))
 				#d.add_cascade(label = "Detach...", menu=det)
+				dpt = int(name)
 		if ("_wire" in tags):
 			if (wid is not None):
 				d.add_command(label="Delete wire " + str(wid), command= lambda event=event: self.wireDelComplete(wid))
@@ -214,6 +214,9 @@ class wdTk(wdTkCore):
 			rr = "Device"
 			_pass["dev"] = self.core.dia.dev[name]
 			_pass["loc"] = self.core.dia.locs[name]
+		elif ("_wp" in tags):
+			rr = "Waypoint"
+			_pass["wp"] = dpt
 		else:
 			rr = "Unknown"
 		
