@@ -218,6 +218,11 @@ class wdTk(wdTkCore):
 		elif ("_wp" in tags):
 			rr = "Waypoint"
 			_pass["wp"] = dpt
+		elif ("_wire" in tags):
+			rr = "Wire"
+			_pass["wid"] = None
+			if (wid is not None):
+				_pass["wid"] = int(wid)
 		else:
 			rr = "Unknown"
 		
