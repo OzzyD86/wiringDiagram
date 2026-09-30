@@ -1,5 +1,5 @@
 from widgets.inputDialog import inputDialog
-
+from PIL import ImageDraw, ImageFont
 class grouping():
 	def checkInit(self, erm, **kwargs):
 		try:
@@ -87,6 +87,50 @@ def checkGroupDrag(self, **kwargs):
 		self.add_command(label="Move group " + str(id) + " here", command = lambda id=id, delta=(down.x-up.x,down.y-up.y) : moveGroupId(id, delta))
 	
 	return self
+
+def redrawPNG(img, offset=(0,0)):
+	l = ImageDraw.Draw(img)
+	gps = {}
+	gpNames = {}
+	for i in main.core.struct.cur.execute("select * from `group`").fetchall():
+		gpNames[i[0]] = i[1]
+	for i in main.core.struct.cur.execute("select * from group_residents").fetchall():
+		if (i[1] not in gps):
+			gps[i[1]] = [None, None, None, None]
+		if (i[3] == "device"):
+			e = main.core.dia.locs[i[2]]
+			if (gps[i[1]][0] is None or e[0] - (e[2]/2) < gps[i[1]][0]):
+				gps[i[1]][0] = e[0]-1 -(e[2]/2)
+			if (gps[i[1]][1] is None or e[1] - (e[3]/2)  < gps[i[1]][1]):
+				gps[i[1]][1] = e[1] - (e[3]/2)-1
+			if (gps[i[1]][2] is None or e[0] + (e[2]/2) > gps[i[1]][2]):
+				gps[i[1]][2] = e[0]+1 +(e[2]/2)
+			if (gps[i[1]][3] is None or e[1] + (e[3]/2)> gps[i[1]][3]):
+				gps[i[1]][3] = e[1] + (e[3]/2)+1
+				
+		elif (i[3] == "waypoint"):
+			e = main.core.dia.wp[int(i[2])]["loc"]
+			if (gps[i[1]][0] is None or e[0] < gps[i[1]][0]):
+				gps[i[1]][0] = e[0]-1
+			if (gps[i[1]][1] is None or e[1] < gps[i[1]][1]):
+				gps[i[1]][1] = e[1] -1
+			if (gps[i[1]][2] is None or e[0] > gps[i[1]][2]):
+				gps[i[1]][2] = e[0]+1
+			if (gps[i[1]][3] is None or e[1] > gps[i[1]][3]):
+				gps[i[1]][3] = e[1] +1
+			pass
+	f = ImageFont.load_default_imagefont()
+	for i,j in gps.items():
+		x = (j[0]+j[2]-(offset[0]*2)) / 2
+		y = (j[1]+j[3]-(offset[1]*2)) / 2
+		l.text(
+			(x,y), text=gpNames[i], fill=(255,255,0), font = f)
+		l.rectangle((j[0]-offset[0],j[1]-offset[1],j[2]-offset[0],j[3]-offset[1]), outline=(255,255,0))
+		#op = kwargs["canvas"].create_rectangle(j[0], j[1], j[2], j[3], width=5, outline="yellow")
+		#kwargs["canvas"].addtag_withtag("_group", op)
+		#kwargs["canvas"].addtag_withtag("gid:"+str(i), op)
+		#kwargs["canvas"].lower(op)
+	return img
 	
 def redrawCanvas(self, **kwargs):
 	self.canvas.delete("_group")
@@ -244,7 +288,7 @@ MANIFEST = {
 		"onWaypointEditDialog" : [devAddWin],
 		"onWaypointNameSet": [wpEditVarsPopulate],
 		"onWaypointEditComplete" : [waypointEditComplete],
-	
+		"onExportPNG": [redrawPNG]
 		#""
 		#"onAnyClick": [oac],
 		#"onDeviceAddDialog" : [devAddWin],
