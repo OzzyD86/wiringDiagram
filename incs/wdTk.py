@@ -152,6 +152,7 @@ class wdTk(wdTkCore):
 		
 		if ("_wp" in tags):
 			if (not click):
+				dpt = int(name)
 				d.add_command(label="Move waypoint", command= lambda : self.waypointEditComplete(wName=int(name),left=int(up.x/self.sc.get()),top=int(up.y/self.sc.get())))
 			else:
 				det = Tk.Menu()
@@ -250,6 +251,9 @@ class wdTk(wdTkCore):
 		#frame = Tk.Frame(self.window, height=900,width=700)
 		#frame.grid(column=0,row=0)
 		self.canvas = Tk.Canvas(self.window, width=800, height=600)
+		'''i=self.canvas.create_text((0,0), text= "UNSTABLE", anchor="nw", fill="white", font="Arial 8 bold")
+		r=self.canvas.create_rectangle(self.canvas.bbox(i),fill="red")
+		self.canvas.tag_lower(r,i)'''
 		self.canvas.grid(sticky="news")
 		self.canvas.grid_propagate (False)
 		self.vscroll = Tk.Scrollbar(self.window)
@@ -656,7 +660,7 @@ class wdTk(wdTkCore):
 		file = Tk.filedialog.asksaveasfile(filetypes = files, defaultextension = files)
 		
 		if (file is not None):
-			self.core.dia.exportPng().save(file.name)
+			self.core.dia.exportPng(ancs = self.cueEvts("onExportPNG", False)).save(file.name)
 		
 	def updateWindowTitle(self):
 		title = self.app_name

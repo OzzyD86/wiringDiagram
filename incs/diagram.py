@@ -283,13 +283,17 @@ class diagram():
 
 		return outmap
 		
-	def exportPng(self):
+	def exportPng(self, ancs = []):
+			
 		olines = {}
 		a = self.buildWaypointLists()
 		#print(a)
 		w = int(self.bounds[2] - self.bounds[0])
 		h = int(self.bounds[3] - self.bounds[1])
 		im = Image.new("RGB", (w,h), (255,255,255))
+		for i in ancs:
+			im = i(im, (self.bounds[0], self.bounds[1]))
+			
 		f = ImageFont.load_default_imagefont()
 		dr = ImageDraw.Draw(im)
 		for i in self.listDevices():
@@ -335,7 +339,7 @@ class diagram():
 					if (len(cs) > 1):
 						#print(cs)
 						dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],n[0]-self.bounds[0],n[1]-self.bounds[1]), fill=(0,0,0))
-						dr.line((n[-2]-self.bounds[0], n[-1] ,fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill=(0,0,0))
+						dr.line((n[-2]-self.bounds[0], n[-1]-self.bounds[1] ,fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill=(0,0,0))
 	
 						for m in range(len(cs)-1):
 							q = (cs[m], cs[m+1])
