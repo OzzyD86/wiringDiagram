@@ -124,8 +124,8 @@ def redrawPNG(img, offset=(0,0)):
 		x = (j[0]+j[2]-(offset[0]*2)) / 2
 		y = (j[1]+j[3]-(offset[1]*2)) / 2
 		l.text(
-			(x,y), text=gpNames[i], fill=(255,255,0), font = f)
-		l.rectangle((j[0]-offset[0],j[1]-offset[1],j[2]-offset[0],j[3]-offset[1]), outline=(255,255,0))
+			(x,y), text=gpNames[i], fill=(192,192,0), font = f)
+		l.rectangle((j[0]-offset[0],j[1]-offset[1],j[2]-offset[0],j[3]-offset[1]), outline=(192,192,0))
 		#op = kwargs["canvas"].create_rectangle(j[0], j[1], j[2], j[3], width=5, outline="yellow")
 		#kwargs["canvas"].addtag_withtag("_group", op)
 		#kwargs["canvas"].addtag_withtag("gid:"+str(i), op)
