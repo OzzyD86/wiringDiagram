@@ -56,9 +56,12 @@ def moveGroupId(gid, alter):
 	#for i in main.core.dia.listDevices():
 	for i in main.core.struct.cur.execute("select `name` from `group_residents` where `type` = 'device' and group_id = ?", (gid,)).fetchall():
 		p = main.core.dia.locs[i[0]]
-		main.core.dia.locateDevice(i[0],
-			(p[0] - alter[0], p[1] - alter[1]),
-			(p[2], p[3]))
+		main.core.updateDevice(i[0],
+			(p[0] - alter[0], p[1] - alter[1], p[2], p[3])
+		)
+		#main.core.dia.locateDevice(i[0],
+		#	(p[0] - alter[0], p[1] - alter[1]),
+		#	(p[2], p[3]))
 		#raise Exception(
 	
 	for i in main.core.struct.cur.execute("select `name` from `group_residents` where `type` = 'waypoint' and group_id = ?", (gid,)).fetchall():
