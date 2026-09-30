@@ -150,6 +150,36 @@ def devEditVarsPopulate(self, w, val, args):
 
 ### == This does all the waypoint stuff
 
+def wpEditVarsPopulate(self, w, val, args):
+	#raise Exception(self,w,val,args)
+	for i,j in self.core.dia.wp.items():
+			if j["name"] == args[0]:
+				wp = i
+	#p = w.data['mName']["obj"].get_key_of_value(args[0])
+	aa = main.core.struct.cur.execute("select a.`name` from `group` a join `group_residents` b on a.id = b.group_id where b.`name` = ? and b.`type` = 'waypoint'", (wp,)).fetchone()
+	if (aa is not None):
+		return {"group":  aa[0]}
+	return {"group":""}
+	
+def waypointAddComplete(**kwargs):
+	for j,i in main.core.dia.wp.items():
+		if (kwargs['wName'] == i["name"]):
+			kwargs["wp"] = j
+			break
+	#raise Exception(kwargs)
+	if (kwargs["group"] != ""):
+		wpGroupComplete(group = kwargs["group"], wp=kwargs["wp"])
+	else:
+		wpGroupRemComplete(wp=kwargs["wp"])
+	return True
+	
+def waypointEditComplete(**kwargs):
+	if (kwargs["group"] != ""):
+		wpGroupComplete(group = kwargs["group"], wp=kwargs["wName"])
+	else:
+		wpGroupRemComplete(wp=kwargs["wName"])
+	return True
+	
 def wpGroupRemComplete(**kwargs):
 	#raise Exception(kwargs)
 	e = main.core.struct.cur.execute("delete from group_residents where `name` = ? and `type` = 'waypoint'", (kwargs["wp"],))
@@ -205,6 +235,13 @@ MANIFEST = {
 		"onWaypointClick": [owc],
 		"onUnknownDrag": [checkGroupDrag],
 		"onCanvasRedraw": [redrawCanvas],
+		
+		"onWaypointAddDialog" : [devAddWin],
+		"onWaypointAddComplete" : [waypointAddComplete],
+		"onWaypointEditDialog" : [devAddWin],
+		"onWaypointNameSet": [wpEditVarsPopulate],
+		"onWaypointEditComplete" : [waypointEditComplete],
+	
 		#""
 		#"onAnyClick": [oac],
 		#"onDeviceAddDialog" : [devAddWin],
