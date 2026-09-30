@@ -39,7 +39,7 @@ def report_callback_exception(self, exc, val, tb):
 	d.go()
 	#showerror("Error", message=str(traceback.extract_stack()) + "\n" + str(val))
 
-Tk.Tk.report_callback_exception = report_callback_exception
+#Tk.Tk.report_callback_exception = report_callback_exception
 
 #from incs.wdCore omport wdCore
 

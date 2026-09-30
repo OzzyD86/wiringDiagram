@@ -153,6 +153,7 @@ class wdTk(wdTkCore):
 		if ("_wp" in tags):
 			if (not click):
 				d.add_command(label="Move waypoint", command= lambda : self.waypointEditComplete(wName=int(name),left=int(up.x/self.sc.get()),top=int(up.y/self.sc.get())))
+				dpt = int(name)
 			else:
 				det = Tk.Menu()
 				#det.lift()
