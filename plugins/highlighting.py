@@ -25,16 +25,7 @@ class highlighting():
 			
 			a = kwargs["canvas"].create_line(st, drw[i], fn, fill="white",width=10)
 			kwargs["canvas"].addtag_withtag("_highlight", a)
-		if (_int is not None):
-			#raise Exception("run")
-			for i in kwargs["canvas"].find_all():
-				p = kwargs["canvas"].gettags(i)
-				if ("_wire" in p):
-					if (("wid:" + str(_int[0])) in p):
-						kwargs["canvas"].itemconfig(i, fill="deep pink")
-						#raise Exception(p)
-					else:
-						kwargs["canvas"].itemconfig(i, fill="black")
+
 		pass
 		
 	def owc(self, menu, **kwargs):
