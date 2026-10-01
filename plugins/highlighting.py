@@ -1,24 +1,40 @@
-_int = None
+_int = []
 
 class highlighting():
 	def highlightSet(self, val):
 		global _int
-		_int = val
+		_int = [val]
 		#raise Exception(val)
 		main.redraw()
 		
 	def draw(self, *args, **kwargs):
 		global _int
+		kwargs["canvas"].delete("_highlight")
+		drw = {}
+		for i in _int:
+			drw[i] = []
+			if (i in main.core.dia.cwps.keys()):
+				for j in main.core.dia.cwps[i]:
+					drw[i].append(main.core.dia.wp[j["wpid"]]["loc"])
+		
+		for i in _int:
+			d = main.core.dia
+			q = d.conns[i]
+			st = d.getDevice(q[0][0]).drwConnPos[q[0][1]]
+			fn =  d.getDevice(q[1][0]).drwConnPos[q[1][1]]
+			
+			a = kwargs["canvas"].create_line(st, drw[i], fn, fill="white",width=10)
+			kwargs["canvas"].addtag_withtag("_highlight", a)
 		if (_int is not None):
 			#raise Exception("run")
 			for i in kwargs["canvas"].find_all():
 				p = kwargs["canvas"].gettags(i)
 				if ("_wire" in p):
-					if (("wid:" + str(_int)) in p):
-						kwargs["canvas"].itemconfig(i, fill="white")
+					if (("wid:" + str(_int[0])) in p):
+						kwargs["canvas"].itemconfig(i, fill="deep pink")
 						#raise Exception(p)
 					else:
-						kwargs["canvas"].itemconfig(i, fill="purple")
+						kwargs["canvas"].itemconfig(i, fill="black")
 		pass
 		
 	def owc(self, menu, **kwargs):
