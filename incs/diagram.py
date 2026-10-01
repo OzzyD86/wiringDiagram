@@ -262,7 +262,7 @@ class diagram():
 				dms[0]+(dms[2]/2)+offset[0], dms[1] + (dms[3]/2)+offset[1]),
 				outline=(0,0,0)
 			)
-			dr.text((dms[0]+offset[0],dms[1]+offset[1]), p.name,font=f,fill=(0,0,0))
+			dr.text((dms[0]+offset[0],dms[1]+offset[1]), p.name,font=f,fill=(0,0,0), anchor="mm")
 	
 		elif (a == 2):
 			rct = dr.create_rectangle(
@@ -283,13 +283,17 @@ class diagram():
 
 		return outmap
 		
-	def exportPng(self):
+	def exportPng(self, ancs = []):
+			
 		olines = {}
 		a = self.buildWaypointLists()
 		#print(a)
 		w = int(self.bounds[2] - self.bounds[0])
 		h = int(self.bounds[3] - self.bounds[1])
 		im = Image.new("RGB", (w,h), (255,255,255))
+		for i in ancs:
+			im = i(im, (self.bounds[0], self.bounds[1]))
+			
 		f = ImageFont.load_default_imagefont()
 		dr = ImageDraw.Draw(im)
 		for i in self.listDevices():
@@ -335,7 +339,7 @@ class diagram():
 					if (len(cs) > 1):
 						#print(cs)
 						dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],n[0]-self.bounds[0],n[1]-self.bounds[1]), fill=(0,0,0))
-						dr.line((n[-2]-self.bounds[0], n[-1] ,fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill=(0,0,0))
+						dr.line((n[-2]-self.bounds[0], n[-1]-self.bounds[1] ,fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill=(0,0,0))
 	
 						for m in range(len(cs)-1):
 							q = (cs[m], cs[m+1])
@@ -353,7 +357,7 @@ class diagram():
 							dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],n[0]-self.bounds[0],n[1]-self.bounds[1]), fill="black")
 							dr.line((n[0]-self.bounds[0], n[1]-self.bounds[1],fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill="black")
 				else:
-					dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill=(0,0,0))
+					dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill=(0,0,0), anchor="mm")
 		
 		if (self.waypointing.get()):
 			for m,n in olines.items():
@@ -364,7 +368,7 @@ class diagram():
 		
 		if (self.wp_labelling.get()):
 			for i,j in self.wp.items():
-				dr.text((j["loc"][0]-self.bounds[0],j["loc"][1]+self.bounds[1]), j["name"],font=f,fill=(0,0,0))
+				dr.text((j["loc"][0]-self.bounds[0],j["loc"][1]+self.bounds[1]), j["name"],font=f,fill=(0,0,0), anchor="mm")
 
 		#print(m,n)
 		'''for i in self.conns.values():
