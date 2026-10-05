@@ -198,7 +198,7 @@ try:
 	t = wdTk()
 	setattr(t, "config", config())
 	#p = pjaDialog().go()
-	t.cueEvts("onInitialise") # good to go!
+	t.cueEvts("onInitialise", win=t) # good to go!
 	t.open_file("f.db")
 	t.redraw()
 	

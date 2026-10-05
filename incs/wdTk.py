@@ -415,12 +415,15 @@ class wdTk(wdTkCore):
 			if (a is None):
 				return None
 			elif (a is False):
+				self.cueEvts("onUninitialise", win=self)
 				exit(0)
 			elif (a is True):
 				self.file_save()
+				self.cueEvts("onUninitialise", win=self)
 				exit(0)
 		else:
 			if (Tk.messagebox.askquestion(title=None, message="Are you sure") == "yes"):
+				self.cueEvts("onUninitialise", win=self)
 				exit(0)
 			
 	def getKeys(self):
