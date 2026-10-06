@@ -230,9 +230,12 @@ class wdTk(wdTkCore):
 		for i in self.cueEvts("on" + rr + pd, False):
 			d = i(d, **_pass) # NO! Just no!
 	
+		#p=[]
 		for i in self.cueEvts("onAny" + pd, False):
-			d = i(d, core = self, event=up)
+			#p.append(i)
+			d = i(d, core = self, event=up, **_pass)
 			
+		#raise Exception(p)
 		#d.add_command(label= d.keys())
 		d.tk_popup(self.canvas.winfo_rootx()+int(event.x/self.sc.get()), self.canvas.winfo_rooty()+int(event.y/self.sc.get()))
 		#d.tk_popup(self.canvas.winfo_rootx()+ up.x, self.canvas.winfo_rooty()+up.y)
