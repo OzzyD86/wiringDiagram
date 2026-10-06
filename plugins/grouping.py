@@ -251,8 +251,8 @@ def wpGroupComplete(**kwargs):
 def wpAddComplete(**kwargs):
 	if (kwargs["group"] != ""):
 		wpGroupComplete(group = kwargs["group"], wp=kwargs["wp"])
-	#else:
-		#groupRemComplete(device=kwargs["mName"])
+	else:
+		wpGroupRemComplete(wp=kwargs["wp"])
 	return True
 	
 def wpGroupAddWin(**kwargs):
@@ -261,6 +261,25 @@ def wpGroupAddWin(**kwargs):
 	d.addButton("Add", "add")
 	d.passFunc("add", wpAddComplete, wp= kwargs["wp"])
 
+def multiAddWin(**kwargs):
+	#raise Exception(kwargs)
+	d = inputDialog(main, data = model_data_loader())
+	d.addButton("Add", "add")
+	d.passFunc("add", multiAddComplete, wp= kwargs["sel"])
+
+def multiAddComplete(wp, **kwargs):
+	for i in wp["machs"]:
+		devAddComplete(mName=i, **kwargs)
+	for i in wp["wps"]:
+		waypointEditComplete(wp=i, **kwargs) # That SHOULD work!
+		pass
+	return True
+	
+def osmm(menu, **kwargs):
+	a = "Group " + str(len(kwargs["sel"]["machs"])) + " devices and "+ str(len(kwargs["sel"]["wps"])) + " waypoints"
+	menu.add_command(label=a, command=lambda sel=kwargs["sel"]: multiAddWin(sel = sel))
+	return menu
+	
 def owc(menu, **kwargs):
 	menu.add_separator()
 	menu.add_command(label="Add to group", command = lambda wp=kwargs["wp"]: wpGroupAddWin(wp=wp))
@@ -288,8 +307,9 @@ MANIFEST = {
 		"onWaypointEditDialog" : [devAddWin],
 		"onWaypointNameSet": [wpEditVarsPopulate],
 		"onWaypointEditComplete" : [waypointEditComplete],
-		"onExportPNG": [redrawPNG]
-		#""
+		"onExportPNG": [redrawPNG],
+		
+		"onSelectionMakeMenu" : [osmm]
 		#"onAnyClick": [oac],
 		#"onDeviceAddDialog" : [devAddWin],
 		#"onDeviceEditDialog" : [devAddWin],

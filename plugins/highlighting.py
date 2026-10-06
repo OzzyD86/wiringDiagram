@@ -23,10 +23,20 @@ class highlighting():
 			st = d.getDevice(q[0][0]).drwConnPos[q[0][1]]
 			fn =  d.getDevice(q[1][0]).drwConnPos[q[1][1]]
 			
-			a = kwargs["canvas"].create_line(st, drw[i], fn, fill="white",width=10)
+			a = kwargs["canvas"].create_line(st, drw[i], fn, fill="chocolate1",width=10)
 			kwargs["canvas"].addtag_withtag("_highlight", a)
-
-		pass
+		
+		'''if (_int is not None):
+			#raise Exception("run")
+			for i in kwargs["canvas"].find_all():
+				p = kwargs["canvas"].gettags(i)
+				if ("_wire" in p):
+					if (("wid:" + str(_int[0])) in p):
+						kwargs["canvas"].itemconfig(i, fill="deep pink")
+						#raise Exception(p)
+					else:
+						kwargs["canvas"].itemconfig(i, fill="black")
+		pass'''
 		
 	def owc(self, menu, **kwargs):
 		if (kwargs["wid"] is not None):
