@@ -18,6 +18,7 @@ class megaMenu(Tk.Menu):
 		return #super().add_command(**kwargs)
 		
 	def compile(self):
+		
 		for i,j in self.ops.items():
 			if (self._collapsed and i not in ["default"]):
 				e = Tk.Menu(self)

@@ -43,16 +43,16 @@ class highlighting():
 		
 	def owc(self, menu, **kwargs):
 		if (kwargs["wid"] is not None):
-			menu.add_command(label="Highlight", command= lambda hl=kwargs["wid"]: self.highlightSet(hl))
+			menu.add_command("Highlighting", label="Highlight", command= lambda hl=kwargs["wid"]: self.highlightSet(hl))
 		return menu
 
 	def obc(self, menu, **kwargs):
 		if ("wire_list" in kwargs):
 			print(kwargs["wire_list"])
 			if (len(kwargs["wire_list"]) == 1):
-				menu.add_command(label="Highlight", command= lambda hl=kwargs["wire_list"]: self.highlightSet(hl))
+				menu.add_command("Highlighting", label="Highlight", command= lambda hl=kwargs["wire_list"]: self.highlightSet(hl))
 			elif (len(kwargs["wire_list"]) > 1):
-				menu.add_command(label="Highlight " + str(len(kwargs['wire_list'])), command= lambda hl=kwargs["wire_list"]: self.highlightSet(hl))
+				menu.add_command("Highlighting", label="Highlight " + str(len(kwargs['wire_list'])), command= lambda hl=kwargs["wire_list"]: self.highlightSet(hl))
 		return menu
 		
 hl = highlighting()
