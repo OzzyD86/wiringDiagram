@@ -135,9 +135,13 @@ def redrawPNG(img, offset=(0,0)):
 def redrawCanvas(self, **kwargs):
 	self.canvas.delete("_group")
 	gps = {}
-	for i in main.core.struct.cur.execute("select * from group_residents").fetchall():
+	gpNames = {}
+	for i in main.core.struct.cur.execute("select * from `group`").fetchall():
+		gpNames[i[0]] = i[1]
+	for i in main.core.struct.cur.execute("select a.* from group_residents a").fetchall():
 		if (i[1] not in gps):
 			gps[i[1]] = [None, None, None, None]
+		#nams[i[1]] = i[4]
 		if (i[3] == "device"):
 			e = main.core.dia.locs[i[2]]
 			if (gps[i[1]][0] is None or e[0] - (e[2]/2) < gps[i[1]][0]):
@@ -167,7 +171,11 @@ def redrawCanvas(self, **kwargs):
 		kwargs["canvas"].addtag_withtag("_group", op)
 		kwargs["canvas"].addtag_withtag("gid:"+str(i), op)
 		kwargs["canvas"].lower(op)
-	pass
+		
+		r = kwargs["canvas"].create_text(j[0],j[1],text=gpNames[i],font=('Arial',12),anchor="nw", fill="yellow")
+		kwargs["canvas"].addtag_withtag("_group", r)
+		kwargs["canvas"].addtag_withtag("gid:" + str(i), r)
+		kwargs["canvas"].lower(r)
 	
 def devAddWin(s, **kwargs):
 	return { "Name" : "Group",
