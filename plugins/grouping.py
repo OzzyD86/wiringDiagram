@@ -222,9 +222,9 @@ def waypointAddComplete(**kwargs):
 	
 def waypointEditComplete(**kwargs):
 	if (kwargs["group"] != ""):
-		wpGroupComplete(group = kwargs["group"], wp=kwargs["wName"])
+		wpGroupComplete(group = kwargs["group"], wp=kwargs["wp"])
 	else:
-		wpGroupRemComplete(wp=kwargs["wName"])
+		wpGroupRemComplete(wp=kwargs["wp"])
 	return True
 	
 def wpGroupRemComplete(**kwargs):

@@ -3,7 +3,10 @@ _int = []
 class highlighting():
 	def highlightSet(self, val):
 		global _int
-		_int = [val]
+		if (type(val) is list):
+			_int = val
+		else:
+			_int = [val]
 		#raise Exception(val)
 		main.redraw()
 		
@@ -42,6 +45,15 @@ class highlighting():
 		if (kwargs["wid"] is not None):
 			menu.add_command(label="Highlight", command= lambda hl=kwargs["wid"]: self.highlightSet(hl))
 		return menu
+
+	def obc(self, menu, **kwargs):
+		if ("wire_list" in kwargs):
+			print(kwargs["wire_list"])
+			if (len(kwargs["wire_list"]) == 1):
+				menu.add_command(label="Highlight", command= lambda hl=kwargs["wire_list"]: self.highlightSet(hl))
+			elif (len(kwargs["wire_list"]) > 1):
+				menu.add_command(label="Highlight " + str(len(kwargs['wire_list'])), command= lambda hl=kwargs["wire_list"]: self.highlightSet(hl))
+		return menu
 		
 hl = highlighting()
 
@@ -49,6 +61,7 @@ MANIFEST = {
 	"order":1,
 	"events": {
 		"onWireClick": [hl.owc],
+		"onBridgeClick" : [hl.obc],
 		"onCanvasRedraw" : [hl.draw]
 	}
 }

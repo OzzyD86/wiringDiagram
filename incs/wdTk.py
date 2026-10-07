@@ -168,6 +168,13 @@ class wdTk(wdTkCore):
 		if ("_wire" in tags):
 			if (wid is not None):
 				d.add_command(label="Delete wire " + str(wid), command= lambda event=event: self.wireDelComplete(wid))
+
+			if ("wp_bridge" in tags):
+				wire_list = []
+				if (wwid is not None):
+					e = self.gpw(wwid[0], wwid[1])
+					for i,j in e.items():
+						wire_list.append(i)
 	
 			p = self.canvas.gettags(self.canvas.find_closest(up.x, up.y))
 			if ("_wp" in p):
@@ -178,9 +185,11 @@ class wdTk(wdTkCore):
 						pt = i.split(":")[1]
 					
 				if ("wp_bridge" in tags):
+					wire_list = []
 					if (wwid is not None):
 						e = self.gpw(wwid[0], wwid[1])
 						for i,j in e.items():
+							#wire_list.append(i)
 							d.add_command(label="Connect wire " + str(i) + " to waypoint " + str(pt) +" at order "+str(j+1), command= lambda pt=pt,wid=i,o=j+1 : self.routeAddComplete(wire=wid, wpn=pt, pos=o))
 		
 				if ("BEGIN" in tags):
@@ -220,13 +229,18 @@ class wdTk(wdTkCore):
 			rr = "Waypoint"
 			_pass["wp"] = dpt
 		elif ("_wire" in tags):
-			rr = "Wire"
-			_pass["wid"] = None
-			if (wid is not None):
-				_pass["wid"] = int(wid)
+			if ("wp_bridge" in tags):
+				rr = "Bridge"
+				_pass["wire_list"] = wire_list
+			else:
+				rr = "Wire"
+				_pass["wid"] = None
+				if (wid is not None):
+					_pass["wid"] = int(wid)
 		else:
 			rr = "Unknown"
 		
+		print("on" + rr + pd)
 		for i in self.cueEvts("on" + rr + pd, False):
 			d = i(d, **_pass) # NO! Just no!
 	
