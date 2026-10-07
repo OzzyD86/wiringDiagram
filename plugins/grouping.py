@@ -213,7 +213,7 @@ def waypointAddComplete(**kwargs):
 		if (kwargs['wName'] == i["name"]):
 			kwargs["wp"] = j
 			break
-	#raise Exception(kwargs)
+
 	if (kwargs["group"] != ""):
 		wpGroupComplete(group = kwargs["group"], wp=kwargs["wp"])
 	else:
@@ -221,10 +221,9 @@ def waypointAddComplete(**kwargs):
 	return True
 	
 def waypointEditComplete(**kwargs):
+	wpGroupRemComplete(wp=kwargs["wp"])
 	if (kwargs["group"] != ""):
 		wpGroupComplete(group = kwargs["group"], wp=kwargs["wp"])
-	else:
-		wpGroupRemComplete(wp=kwargs["wp"])
 	return True
 	
 def wpGroupRemComplete(**kwargs):
@@ -249,10 +248,9 @@ def wpGroupComplete(**kwargs):
 	return True
 	
 def wpAddComplete(**kwargs):
+	wpGroupRemComplete(wp=kwargs["wp"])
 	if (kwargs["group"] != ""):
 		wpGroupComplete(group = kwargs["group"], wp=kwargs["wp"])
-	else:
-		wpGroupRemComplete(wp=kwargs["wp"])
 	return True
 	
 def wpGroupAddWin(**kwargs):
