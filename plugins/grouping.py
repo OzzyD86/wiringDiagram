@@ -26,9 +26,9 @@ def model_data_loader():
 ### == This does all the device stuff
 			
 def odc(menu, **kwargs):
-	menu.add_separator()
-	menu.add_command(label="Add to group", command = lambda dev=kwargs["dev"].machName: groupAddWin(device=dev))
-	menu.add_command(label="Remove from group", command = lambda dev=kwargs["dev"].machName: groupRemComplete(device=dev))
+	#menu.add_separator()
+	menu.add_command("Groups", label="Add to group", command = lambda dev=kwargs["dev"].machName: groupAddWin(device=dev))
+	menu.add_command("Groups", label="Remove from group", command = lambda dev=kwargs["dev"].machName: groupRemComplete(device=dev))
 	return menu
 
 def groupRemComplete(**kwargs):
@@ -84,7 +84,7 @@ def checkGroupDrag(self, **kwargs):
 				id = i.split(":")[1]
 		down = kwargs["down"]
 		up = kwargs["up"]
-		self.add_command(label="Move group " + str(id) + " here", command = lambda id=id, delta=(down.x-up.x,down.y-up.y) : moveGroupId(id, delta))
+		self.add_command("Groups", label="Move group " + str(id) + " here", command = lambda id=id, delta=(down.x-up.x,down.y-up.y) : moveGroupId(id, delta))
 	
 	return self
 
@@ -275,13 +275,13 @@ def multiAddComplete(wp, **kwargs):
 	
 def osmm(menu, **kwargs):
 	a = "Group " + str(len(kwargs["sel"]["machs"])) + " devices and "+ str(len(kwargs["sel"]["wps"])) + " waypoints"
-	menu.add_command(label=a, command=lambda sel=kwargs["sel"]: multiAddWin(sel = sel))
+	menu.add_command("Groups", label=a, command=lambda sel=kwargs["sel"]: multiAddWin(sel = sel))
 	return menu
 	
 def owc(menu, **kwargs):
 	menu.add_separator()
-	menu.add_command(label="Add to group", command = lambda wp=kwargs["wp"]: wpGroupAddWin(wp=wp))
-	menu.add_command(label="Remove from group", command = lambda wp=kwargs["wp"]: wpGroupRemComplete(wp=wp))
+	menu.add_command("Groups", label="Add to group", command = lambda wp=kwargs["wp"]: wpGroupAddWin(wp=wp))
+	menu.add_command("Groups", label="Remove from group", command = lambda wp=kwargs["wp"]: wpGroupRemComplete(wp=wp))
 	return menu
 	
 MANIFEST = {

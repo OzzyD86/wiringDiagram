@@ -89,17 +89,17 @@ def tmpLoadWin(core, event):
 		pass
 	
 def odc(menu, **kwargs):
-	menu.add_separator()
+	#menu.add_separator()
 	tmp = {
 		"name": kwargs["dev"].name,
 		"connectors": kwargs["dev"].connectors,
 		"sz": kwargs["loc"][2:4]
 	}
-	menu.add_command(label="Save as template...", command = lambda : tmpSaveWin(tmp))
+	menu.add_command("Templating", label="Save as template...", command = lambda : tmpSaveWin(tmp))
 	return menu
 
 def oac(menu, **kwargs):
-	menu.add_command(label="Load device from template...", command = lambda: tmpLoadWin(kwargs["core"], kwargs["event"]))
+	menu.add_command("Templating", label="Load device from template...", command = lambda: tmpLoadWin(kwargs["core"], kwargs["event"]))
 	return menu
 	
 MANIFEST = {

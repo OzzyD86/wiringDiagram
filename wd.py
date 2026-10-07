@@ -26,7 +26,8 @@ from tkinter.messagebox import showerror
 
 class config():
 	def __init__(self):
-		self.dev = Tk.BooleanVar(value=True)
+		self.dev = Tk.BooleanVar(value=False)
+		self.contextCollapse = Tk.BooleanVar(value=True)
 		
 def report_callback_exception(self, exc, val, tb):
 	d = pjaDialog()

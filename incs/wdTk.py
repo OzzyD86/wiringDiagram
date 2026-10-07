@@ -8,6 +8,7 @@ import math as maths
 from widgets.inputDialog import inputDialog
 from incs.wdTkCore import wdTkCore
 from copy import copy
+from widgets.megaMenu import megaMenu
 
 class wdTk(wdTkCore):
 	def resize_canvas(self, event):
@@ -63,7 +64,9 @@ class wdTk(wdTkCore):
 		self.b1_pressed = event
 		
 	def b1_up(self, event):
-		d = Tk.Menu()
+		d = megaMenu()
+		d.collapse(self.config.contextCollapse.get())
+		
 		down = self.b1_pressed
 		up = copy(event)
 		
@@ -251,7 +254,7 @@ class wdTk(wdTkCore):
 			
 		#raise Exception(p)
 		#d.add_command(label= d.keys())
-		d.tk_popup(self.canvas.winfo_rootx()+int(event.x/self.sc.get()), self.canvas.winfo_rooty()+int(event.y/self.sc.get()))
+		d.compile().tk_popup(self.canvas.winfo_rootx()+int(event.x/self.sc.get()), self.canvas.winfo_rooty()+int(event.y/self.sc.get()))
 		#d.tk_popup(self.canvas.winfo_rootx()+ up.x, self.canvas.winfo_rooty()+up.y)
 
 		self.b1_pressed = None
