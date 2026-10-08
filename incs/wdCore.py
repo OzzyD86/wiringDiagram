@@ -17,6 +17,9 @@ class wdCore():
 		return 2
 		
 	def open_file(self, file):
+		if (self.struct is not None):
+			self.struct.cur.close()
+			self.struct = None
 		
 		f = diagramStructure(file)
 		f.build()

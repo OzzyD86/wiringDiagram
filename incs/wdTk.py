@@ -62,8 +62,51 @@ class wdTk(wdTkCore):
 		
 	def b1_down(self, event):
 		self.b1_pressed = event
+		self.move = None
+	
+	def b1_move(self, event):
+		if (self.b1_pressed is not None):
+			if (self.move is None):
+				x1 = self.canvas.canvasx(self.b1_pressed.x)
+				y1 = self.canvas.canvasy(self.b1_pressed.y)
+				self.move = {
+					"old_event" : self.canvas.find_closest(x1,y1),
+				}
+				
+				c = self.canvas.coords(self.move["old_event"])
+				w = self.canvas.itemconfig(self.move["old_event"], "width")[4]
+				self.move["c"] = c
+				self.move["w"] = w
+				self.move["t"] = self.canvas.gettags(self.move["old_event"])
+				if ("_wire" in self.move["t"]):
+					self.move["new_event"] = {
+						1: [c[0], c[1], self.canvas.create_line(c[0], c[1], event.x, event.y, width =w)],
+						2: [c[2], c[3], self.canvas.create_line(c[2], c[3], event.x, event.y, width=w)]
+					}
+					for i in self.move["new_event"].values():
+						self.canvas.addtag_withtag("_alter", i[2])
+					self.canvas.delete(self.move["old_event"])
+				else:
+					self.move["new_event"] = {}
+			else:
+				if ("_wire" in self.move["t"]):
+					for i in self.move["new_event"].values():
+						self.canvas.coords(i[2],i[0],i[1],event.x, event.y)
+					pass
 		
 	def b1_up(self, event):
+		if (self.move is not None):
+			if ("_wire" in self.move["t"]):
+				self.canvas.delete("_alter")
+				c = self.move["c"]
+				w = self.move["w"]
+			
+			
+				o = self.canvas.create_line(c,width=w)
+				for i in self.move["t"]:
+					self.canvas.addtag_withtag(i,o)
+				self.move = None
+
 		d = megaMenu()
 		d.collapse(self.config.contextCollapse.get())
 		
@@ -251,9 +294,7 @@ class wdTk(wdTkCore):
 		for i in self.cueEvts("onAny" + pd, False):
 			#p.append(i)
 			d = i(d, core = self, event=up, **_pass)
-			
-		#raise Exception(p)
-		#d.add_command(label= d.keys())
+
 		d.compile().tk_popup(self.canvas.winfo_rootx()+int(event.x/self.sc.get()), self.canvas.winfo_rooty()+int(event.y/self.sc.get()))
 		#d.tk_popup(self.canvas.winfo_rootx()+ up.x, self.canvas.winfo_rooty()+up.y)
 
@@ -294,6 +335,7 @@ class wdTk(wdTkCore):
 		self.window.columnconfigure(0, weight=1)
 		self.canvas.bind("<Button-3>", self.click_call)
 		self.canvas.bind("<Button-1>", self.b1_down)
+		self.canvas.bind("<B1-Motion>", self.b1_move)
 		self.canvas.bind("<ButtonRelease-1>", self.b1_up)
 		#self.canvas.bind("<Motion>", self.motion)
 		#self.window.bind('<Configure>', self.resize_canvas)
