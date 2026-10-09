@@ -9,11 +9,17 @@ class megaMenu(Tk.Menu):
 	def collapse(self, collapse):
 		self._collapsed = collapse
 	
+	def add_separator(self, op = "default", **kwargs):
+		if (op not in self.ops):
+			self.ops[op] = {"opers" : {}, "menus" : [] }
+		self.ops[op]["menus"].append({"type": "sep"} )
+		return #super().add_separator()
+		
 	def add_command(self, op = "default", **kwargs):
 		if (op not in self.ops):
 			self.ops[op] = {"opers" : {}, "menus" : [] }
 			
-		self.ops[op]["menus"].append(kwargs)
+		self.ops[op]["menus"].append({ "type": "menu", "kwargs": kwargs})
 		
 		return #super().add_command(**kwargs)
 		
@@ -23,13 +29,19 @@ class megaMenu(Tk.Menu):
 			if (self._collapsed and i not in ["default"]):
 				e = Tk.Menu(self)
 				for l in j["menus"]:
-					e.add_command(**l)
+					if (l["type"] == "menu"):
+						e.add_command(**l["kwargs"])
+					elif(l["type"] == "sep"):
+						e.add_separator()
 				super().add_cascade(label=i, menu=e)
 				
 			else:
 				super().add_command(label="section:" + str(i), state="disabled")
 				for l in j["menus"]:
-					super().add_command(**l)
+					if (l["type"] == "menu"):
+						super().add_command(**l["kwargs"])
+					elif(l["type"] == "sep"):
+						super().add_separator()
 				super().add_separator()
 		return self
 		
