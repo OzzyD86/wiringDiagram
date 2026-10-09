@@ -91,7 +91,7 @@ class wdTk(wdTkCore):
 			else:
 				if ("_wire" in self.move["t"]):
 					for i in self.move["new_event"].values():
-						self.canvas.coords(i[2],i[0],i[1],event.x, event.y)
+						self.canvas.coords(i[2],i[0],i[1],self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
 					pass
 		
 	def b1_up(self, event):
@@ -100,7 +100,6 @@ class wdTk(wdTkCore):
 				self.canvas.delete("_alter")
 				c = self.move["c"]
 				w = self.move["w"]
-			
 			
 				o = self.canvas.create_line(c,width=w)
 				for i in self.move["t"]:
@@ -135,12 +134,12 @@ class wdTk(wdTkCore):
 	
 #		d.add_separator()
 		if (self.config.dev.get()):
-			d.add_command(label="Start: " + str((down.x, down.y)), state="disabled")
-			d.add_command(label="Finish: " + str((up.x, up.y)), state="disabled")
-			d.add_separator()
-			d.add_command(label="Canvas Start: " + str((self.canvas.canvasx(down.x), self.canvas.canvasy(down.y))), state="disabled")
-			d.add_command(label="Canvas Finish: " + str((self.canvas.canvasx(up.x), self.canvas.canvasy(up.y))), state="disabled")
-			d.add_separator()
+			d.add_command("debug", label="Start: " + str((down.x, down.y)), state="disabled")
+			d.add_command("debug", label="Finish: " + str((up.x, up.y)), state="disabled")
+			d.add_separator("debug")
+			d.add_command("debug", label="Canvas Start: " + str((self.canvas.canvasx(down.x), self.canvas.canvasy(down.y))), state="disabled")
+			d.add_command("debug", label="Canvas Finish: " + str((self.canvas.canvasx(up.x), self.canvas.canvasy(up.y))), state="disabled")
+			#d.add_separator("debug")
 		
 #	d.add_command(label=str(self.canvas.find_closest(x,y)))
 	
@@ -151,7 +150,7 @@ class wdTk(wdTkCore):
 		for i in self.canvas.gettags(self.canvas.find_closest(down.x,down.y)):
 			tags.append(i)
 			if (self.config.dev.get()):
-				d.add_command(label=i)
+				d.add_command("technical", label=i)
 			if (i.split(":")[0] == "mn"):
 				name = i.split(":")[1]
 			if (i.split(":")[0] == "wn"):
@@ -163,7 +162,7 @@ class wdTk(wdTkCore):
 			if (i.split(":")[0] == "c"):
 				conn = i.split(":")[1].split(".")
 				
-		d.add_separator()
+		#d.add_separator()
 		
 		if ("_conn" in tags):
 			if ("_conn" in self.canvas.gettags(self.canvas.find_closest(up.x, up.y))):
