@@ -660,6 +660,8 @@ class wdTk(wdTkCore):
 							#print(q)
 							if ((cs[m], cs[m+1]) in olines):
 								olines[cs[m], cs[m+1]] += 1
+							elif ((cs[m+1], cs[m]) in olines):
+								olines[cs[m+1], cs[m]] += 1
 							else:
 								olines[cs[m], cs[m+1]] = 1
 					else:
