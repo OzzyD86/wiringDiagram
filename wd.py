@@ -205,7 +205,7 @@ except Exception as e:
 	d.title("Error")
 	Tk.Label(d, text=app + " ran into an error", font="Arial 8 bold").grid(sticky="w")
 	
-		Tk.Label(d, text=str(type(e).__name__) + ": " +str(e), font= [*font, "bold"]).grid()
+	Tk.Label(d, text=str(type(e).__name__) + ": " +str(e), font= [*font, "bold"]).grid()
 	d.rowconfigure(0, weight=1)
 	d.columnconfigure(0, weight=1)
 	d.mainloop()
