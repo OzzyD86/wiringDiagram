@@ -57,7 +57,7 @@ def moveGroupId(gid, alter):
 	for i in main.core.struct.cur.execute("select `name` from `group_residents` where `type` = 'device' and group_id = ?", (gid,)).fetchall():
 		p = main.core.dia.locs[i[0]]
 		main.core.updateDevice(i[0],
-			(p[0] - alter[0], p[1] - alter[1], p[2], p[3])
+			(p[0] - (alter[0]/main.sc.get()), p[1] - (alter[1]/main.sc.get()), p[2], p[3])
 		)
 		#main.core.dia.locateDevice(i[0],
 		#	(p[0] - alter[0], p[1] - alter[1]),
