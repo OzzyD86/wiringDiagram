@@ -356,6 +356,7 @@ class wdTk(wdTkCore):
 			"plugins": Tk.Menu()
 		}
 		
+		
 		self.sc = Tk.IntVar()
 		self.sc.set(1)
 		mf = self.menu["file"]
@@ -428,7 +429,7 @@ class wdTk(wdTkCore):
 		if (m>0):
 			y.add_cascade(label="Plugins", menu=self.menu["plugins"])
 		y.add_cascade(label="Export", menu=self.menu["export"])
-
+		#y.add_command("Configure", command= self.config.open)
 		self.window.config(menu=self.menu["root"])
 	
 	def set_export_vars(self, *args, **kwargs):
