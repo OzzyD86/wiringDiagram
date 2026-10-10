@@ -27,7 +27,7 @@ from tkinter.messagebox import showerror
 class config():
 	def __init__(self):
 		self.dev = Tk.BooleanVar(value=False)
-		self.contextCollapse = Tk.BooleanVar(value=True)
+		self.contextCollapse = Tk.BooleanVar(value=False)
 		
 def report_callback_exception(self, exc, val, tb):
 	d = pjaDialog()
@@ -38,11 +38,6 @@ def report_callback_exception(self, exc, val, tb):
 	d.top.columnconfigure(0, weight=1)
 	
 	d.go()
-	#showerror("Error", message=str(traceback.extract_stack()) + "\n" + str(val))
-
-#Tk.Tk.report_callback_exception = report_callback_exception
-
-#from incs.wdCore omport wdCore
 
 class pjaDialog():
 	def __init__(self):
@@ -210,14 +205,9 @@ except Exception as e:
 	d.title("Error")
 	Tk.Label(d, text=app + " ran into an error", font="Arial 8 bold").grid(sticky="w")
 	
-	'''text_box = Tk.Text(d, wrap=Tk.WORD, width=40, height=10)
-	text_box.insert("0.0", e)
-	text_box.grid(row=0, column=0, rowspan=3, padx=10, pady=10, sticky="nsew")'''
-	Tk.Label(d, text=str(type(e).__name__) + ": " +str(e), font= [*font, "bold"]).grid()
+		Tk.Label(d, text=str(type(e).__name__) + ": " +str(e), font= [*font, "bold"]).grid()
 	d.rowconfigure(0, weight=1)
 	d.columnconfigure(0, weight=1)
-	#d.go()
 	d.mainloop()
 
-#t.core.dia.exportPng().save("mx2.png")
 t.window.mainloop()
