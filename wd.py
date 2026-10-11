@@ -31,9 +31,20 @@ class config():
 			"dev" : Tk.BooleanVar(value=False),
 			"contextCollapse": Tk.BooleanVar(value=False)
 		}
+		self.outerPolicies = {}
+		self.innerPolicies = {}
 		self.dev = self.policy["dev"]
 		self.contextCollapse = self.policy["contextCollapse"]
 	
+	def addOption(self, placement, key, data = {}, **kwargs):
+		if (not placement in self.outerPolicies):
+			self.outerPolicies[placement] = {}
+		
+		self.policy[key] = Tk.StringVar()
+		self.outerPolicies[placement][key] = data
+		if ("value" in data):
+			self.policy[key].set(data["value"])
+		
 	def open(self):
 		v = inputDialog(data={
 			"dev":{
@@ -47,13 +58,17 @@ class config():
 				"value": self.contextCollapse.get()
 			}
 		})
+		for i,j in self.outerPolicies.items():
+			v.addNb(i,j)
+		for i,j in self.policy.items():
+			v.set(i,j.get())
 		v.addButton("OK", "ok")
 		v.passFunc("ok", self.ok)
 		pass
 		
 	def ok(self, **kwargs):
 		for i,j in kwargs.items():
-			self.policy[i] = j
+			self.policy[i].set(j)
 			
 		self.dev.set(kwargs["dev"] == "1")
 		self.contextCollapse.set(kwargs["contextCollapse"] == "1")
@@ -228,7 +243,7 @@ try:
 	
 	#p = pjaDialog().go()
 	t.cueEvts("onInitialise", win=t) # good to go!
-	t.open_file("f.db")
+	#t.open_file("f.db")
 	#t.redraw()
 	
 except Exception as e:
