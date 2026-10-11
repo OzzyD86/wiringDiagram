@@ -304,19 +304,29 @@ class wdTk(wdTkCore):
 		self.canvas.itemconfig(self.canvas.find_withtag("current"), fill="yellow")
 		
 	def __init__(self, master = None, **kwargs):
+		offs = 0
 		self.app_name = "WiringDiagram"
 		self._open_file = None
 		
+		coo = kwargs['c']
+		del kwargs['c']
+
+		# Start the window
 		super().__init__(master, **kwargs)
 		self.window = self #Tk.Tk()
+
+		# Compile the configuration system
+		self.conf = coo()
+		if (self.conf.roPols["mode"]):
+			offs = 1
+		
 		self.pluginLoad()
 		
 		self.window.title(self.app_name)
 		self.core = wdCore(self.window)
 		self.window.protocol('WM_DELETE_WINDOW', self.quit)
 		self.window.geometry("860x660")
-		#frame = Tk.Frame(self.window, height=900,width=700)
-		#frame.grid(column=0,row=0)
+
 		self.nb = ttk.Notebook(self.window)
 		nw = Tk.Frame(self.nb)
 		self.nb.add(nw, text="General")
@@ -365,7 +375,7 @@ class wdTk(wdTkCore):
 		mf.add_separator()
 		mf.add_command(label="Load", command=self.file_load)
 		mf.add_command(label="Save", command= self.file_save, state="disabled")
-		self.loaded.append([mf, 3])
+		self.loaded.append([mf, 3+offs])
 		mf.add_command(label="Save As...", state=Tk.DISABLED)
 		mf.add_separator()
 		mf.add_command(label="Properties...", state=Tk.DISABLED)
@@ -426,16 +436,16 @@ class wdTk(wdTkCore):
 		y = self.menu["root"]
 		y.add_cascade(label="File", menu=self.menu["file"])
 		y.add_cascade(label="Add", menu=self.menu["add"], state="disabled")
-		self.loaded.append([self.menu["root"], 1])
-		self.loaded.append([self.menu["root"], 2])
-		self.loaded.append([y, 3])
+		self.loaded.append([self.menu["root"], 1+offs])
+		self.loaded.append([self.menu["root"], 2+offs])
+		self.loaded.append([self.menu["root"], 3+offs])
 		pp=0
 		y.add_cascade(label="Edit", menu=self.menu["edit"], state="disabled")
 		y.add_cascade(label="Delete", menu=self.menu["delete"], state="disabled")
 		if (m>0):
 			pp+=1
 			y.add_cascade(label="Plugins", menu=self.menu["plugins"])
-		self.loaded.append([y, 4+pp])
+		self.loaded.append([y, 4+offs+pp])
 		y.add_cascade(label="Export", menu=self.menu["export"], state="disabled")
 		#y.add_command("Configure", command= self.config.open)
 		self.window.config(menu=self.menu["root"])
@@ -759,4 +769,3 @@ class wdTk(wdTkCore):
 				title += "*"
 			title += "]"
 		self.window.title(title)
-		

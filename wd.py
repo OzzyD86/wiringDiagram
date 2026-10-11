@@ -24,12 +24,16 @@ import tkinter.filedialog
 import traceback
 from tkinter.messagebox import showerror
 from widgets.inputDialog import inputDialog
+import sys
 
 class config():
 	def __init__(self):
 		self.policy = {
 			"dev" : Tk.BooleanVar(value=False),
 			"contextCollapse": Tk.BooleanVar(value=False)
+		}
+		self.roPols = {
+			"mode" : Tk.BooleanVar(value = (hasattr(sys, "getandroidapilevel")))	
 		}
 		self.outerPolicies = {}
 		self.innerPolicies = {}
@@ -123,6 +127,7 @@ class loader():
 		return (mod in list(self.loaders.keys()))
 		
 class wdTk(incs.wdTk.wdTk):
+
 	def cueEvts(self, event = "", exec=True, **kwargs):
 		out = []
 		#print("Run events for " + event)
@@ -236,10 +241,10 @@ class wdTk(incs.wdTk.wdTk):
 		
 app = "wiringDiagram"
 try:
-	t = wdTk()
-	setattr(t, "config", config())
+	t = wdTk( c=config)
+	#setattr(t, "config", config())
 	#t.config.open()
-	t.menu["root"].add_command(label="Configure", command= t.config.open)
+	t.menu["root"].add_command(label="Configure", command= t.conf.open)
 	
 	#p = pjaDialog().go()
 	t.cueEvts("onInitialise", win=t) # good to go!
