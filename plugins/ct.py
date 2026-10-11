@@ -4,6 +4,10 @@ import os
 
 class ct():
 	def init(self, **kwargs):
+		tt = {
+			"padx" : 5,
+			"pady" : 5
+		}
 		if (os.path.exists("store.d")):
 			f = open("store.d", "r")
 			d = int(f.read())
@@ -21,18 +25,18 @@ class ct():
 		fr = tk.Frame(nn)
 		self.ic_max = max(1,ct)
 		self.c_max = max(1, 0, d)
-		tk.Label(fr, text="Canvas ID").grid()
+		tk.Label(fr, text="Canvas ID").grid(**tt)
 		self.cid = tk.Label(fr, text="00")
-		self.cid.grid(row=0,column=1)
+		self.cid.grid(row=0,column=1, **tt)
 		self.p = ttk.Progressbar(fr, orient="horizontal")
-		self.p.grid(column=2, row=0, columnspan=1, sticky='news')
+		self.p.grid(column=2, row=0, columnspan=1, sticky='news', **tt)
 		self.p.configure(maximum = self.c_max)
 		self.qq = ttk.Progressbar(fr, orient="horizontal")
-		self.qq.grid(column=2, row=1, columnspan=1, sticky='news')
+		self.qq.grid(column=2, row=1, columnspan=1, sticky='news', **tt)
 
-		tk.Label(fr, text="Item count").grid(row=1,column=0)
+		tk.Label(fr, text="Item count").grid(row=1,column=0,**tt)
 		self.ic = tk.Label(fr, text=str(ct))
-		self.ic.grid(row=1,column=1)
+		self.ic.grid(row=1,column=1,**tt)
 	
 		fr.columnconfigure(2, weight=1)
 		nn.add(fr, text="Stats")
@@ -51,6 +55,7 @@ class ct():
 				tmp = i
 			ct+= 1
 		pass
+		
 		self.val = max(self.val, tmp)
 		self.ic_max = max(self.ic_max,ct)
 		self.c_max = max(self.c_max, self.val)

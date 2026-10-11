@@ -55,11 +55,20 @@ class highlighting():
 				menu.add_command("Highlighting", label="Highlight " + str(len(kwargs['wire_list'])), command= lambda hl=kwargs["wire_list"]: self.highlightSet(hl))
 		return menu
 		
+def me(t, **kwargs):
+	kwargs["win"].config.addOption('Highlighting', 'hlWidth', {
+		"type":"Entry",
+		"name":"Highlight Thickness",
+		"value": 4
+	})
+	pass
+	
 hl = highlighting()
 
 MANIFEST = {
 	"order":1,
 	"events": {
+		#"onInitialise": [me],
 		"onWireClick": [hl.owc],
 		"onBridgeClick" : [hl.obc],
 		"onCanvasRedraw" : [hl.draw]
