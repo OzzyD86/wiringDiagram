@@ -20,13 +20,14 @@ class wdTk(wdTkCore):
 		self.canvas.config(width=new_width, height=new_height)
 
 	def file_new(self):
-		if (self.core.struct.is_changed()):
-			a = Tk.messagebox.askyesnocancel(title="Unsaved Changes", message="There are unsaved changes. Save before clearing?")
-			#print(a)
-			if (a is None):
-				return None
-			elif (a is True):
-				self.file_save()
+		if (self._open_file is not None):
+			if (self.core.struct.is_changed()):
+				a = Tk.messagebox.askyesnocancel(title="Unsaved Changes", message="There are unsaved changes. Save before clearing?")
+				#print(a)
+				if (a is None):
+					return None
+				elif (a is True):
+					self.file_save()
 
 		files = [#('All Files', '*.*'), 
 			 ('Databases', '*.db')]
@@ -356,14 +357,15 @@ class wdTk(wdTkCore):
 			"plugins": Tk.Menu()
 		}
 		
-		
+		self.loaded = []
 		self.sc = Tk.IntVar()
 		self.sc.set(1)
 		mf = self.menu["file"]
 		mf.add_command(label="New", command= self.file_new)
 		mf.add_separator()
 		mf.add_command(label="Load", command=self.file_load)
-		mf.add_command(label="Save", command= self.file_save)
+		mf.add_command(label="Save", command= self.file_save, state="disabled")
+		self.loaded.append([mf, 3])
 		mf.add_command(label="Save As...", state=Tk.DISABLED)
 		mf.add_separator()
 		mf.add_command(label="Properties...", state=Tk.DISABLED)
@@ -423,12 +425,18 @@ class wdTk(wdTkCore):
 			
 		y = self.menu["root"]
 		y.add_cascade(label="File", menu=self.menu["file"])
-		y.add_cascade(label="Add", menu=self.menu["add"])
-		y.add_cascade(label="Edit", menu=self.menu["edit"])
-		y.add_cascade(label="Delete", menu=self.menu["delete"])
+		y.add_cascade(label="Add", menu=self.menu["add"], state="disabled")
+		self.loaded.append([self.menu["root"], 1])
+		self.loaded.append([self.menu["root"], 2])
+		self.loaded.append([y, 3])
+		pp=0
+		y.add_cascade(label="Edit", menu=self.menu["edit"], state="disabled")
+		y.add_cascade(label="Delete", menu=self.menu["delete"], state="disabled")
 		if (m>0):
+			pp+=1
 			y.add_cascade(label="Plugins", menu=self.menu["plugins"])
-		y.add_cascade(label="Export", menu=self.menu["export"])
+		self.loaded.append([y, 4+pp])
+		y.add_cascade(label="Export", menu=self.menu["export"], state="disabled")
 		#y.add_command("Configure", command= self.config.open)
 		self.window.config(menu=self.menu["root"])
 	
@@ -439,6 +447,7 @@ class wdTk(wdTkCore):
 		self.redraw()
 		
 	def open_file(self, file):
+		#raise Exception(self._open_file)
 		self.core.open_file(file)
 		self._open_file = file
 		self.cueEvts("onFileLoad")
@@ -447,13 +456,14 @@ class wdTk(wdTkCore):
 		self.updateWindowTitle()
 
 	def file_load(self):
-		if (self.core.struct.is_changed()):
-			a = Tk.messagebox.askyesnocancel(title="Unsaved Changed", message="There are unsaved changes. Save before load?")
-			#print(a)
-			if (a is None):
-				return None
-			elif (a is True):
-				self.file_save()
+		if (self._open_file is not None):
+			if (self.core.struct.is_changed()):
+				a = Tk.messagebox.askyesnocancel(title="Unsaved Changed", message="There are unsaved changes. Save before load?")
+				#print(a)
+				if (a is None):
+					return None
+				elif (a is True):
+					self.file_save()
 
 		files = [#('All Files', '*.*'), 
 			 ('Databases', '*.db')]
@@ -465,6 +475,8 @@ class wdTk(wdTkCore):
 		else:
 			a = a.name
 			self.core.open_file(a)
+			for i in self.loaded:
+				i[0].entryconfig(i[1], state="normal")
 			self.cueEvts("onFileLoad")
 			self.redraw()
 			self._open_file = a
@@ -479,22 +491,19 @@ class wdTk(wdTkCore):
 		pass
 		
 	def quit(self):
-		if (self.core.struct.is_changed()):
-			a = Tk.messagebox.askyesnocancel(title="Unsaved Changes", message="There are unsaved changes. Save before closing?")
-			if (a is None):
-				return None
-			elif (a is False):
-				self.cueEvts("onUninitialise", win=self)
-				exit(0)
-			elif (a is True):
-				self.file_save()
-				self.cueEvts("onUninitialise", win=self)
-				exit(0)
-		else:
-			if (Tk.messagebox.askquestion(title=None, message="Are you sure") == "yes"):
-				self.cueEvts("onUninitialise", win=self)
-				exit(0)
-			
+		if (self._open_file is not None):
+			if (self.core.struct.is_changed()):
+				a = Tk.messagebox.askyesnocancel(title="Unsaved Changes", message="There are unsaved changes. Save before closing?")
+				if (a is None):
+					return None
+				elif (a is True):
+					self.file_save()
+			else:
+				if not (Tk.messagebox.askquestion(title=None, message="Are you sure") == "yes"):
+					return None
+		self.cueEvts("onUninitialise", win=self)
+		exit(0)
+				
 	def getKeys(self):
 		KEYS = []
 		VALUES = []
