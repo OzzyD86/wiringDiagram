@@ -6,7 +6,7 @@ from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
 #import tkinter.messagebox
 
 class inputDialog(Tk.Toplevel):
-	def __init__(self, master, data={}, **kwargs):
+	def __init__(self, master=None, data={}, **kwargs):
 		if ("sf" in kwargs):
 			self.sf = kwargs["sf"]
 			del kwargs["sf"]
@@ -57,9 +57,12 @@ class inputDialog(Tk.Toplevel):
 				j["obj"] = SpinEntryWidget(nw, text=j["name"], min=1, max=32, variable=self.vars[i])
 			elif(j["type"] in ["Checkbox"]):
 				j["obj"] = Tk.Checkbutton(nw, text=j["name"], variable=self.vars[i], 
-					onvalue=1, offvalue=0, state=Tk.DISABLED)
-	
-			j["obj"].grid(padx=5, pady=(5,0), sticky='nsew')
+					onvalue=1, offvalue=0)
+			
+			if(j["type"] in ["Checkbox"]):
+				j["obj"].grid(padx=5, pady=(5,0), sticky='w')
+			else:
+				j["obj"].grid(padx=5, pady=(5,0), sticky='nsew')
 		nw.columnconfigure(0, weight=1)
 		return nw
 		

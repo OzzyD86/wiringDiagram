@@ -23,12 +23,42 @@ import tkinter.ttk as ttk
 import tkinter.filedialog
 import traceback
 from tkinter.messagebox import showerror
+from widgets.inputDialog import inputDialog
 
 class config():
 	def __init__(self):
-		self.dev = Tk.BooleanVar(value=False)
-		self.contextCollapse = Tk.BooleanVar(value=True)
+		self.policy = {
+			"dev" : Tk.BooleanVar(value=False),
+			"contextCollapse": Tk.BooleanVar(value=False)
+		}
+		self.dev = self.policy["dev"]
+		self.contextCollapse = self.policy["contextCollapse"]
+	
+	def open(self):
+		v = inputDialog(data={
+			"dev":{
+				"name":"Developer mode",
+				"type": "Checkbox",
+				"value": self.dev.get()
+			},
+			"contextCollapse":{
+				"name":"Collapse context menu",
+				"type": "Checkbox",
+				"value": self.contextCollapse.get()
+			}
+		})
+		v.addButton("OK", "ok")
+		v.passFunc("ok", self.ok)
+		pass
 		
+	def ok(self, **kwargs):
+		for i,j in kwargs.items():
+			self.policy[i] = j
+			
+		self.dev.set(kwargs["dev"] == "1")
+		self.contextCollapse.set(kwargs["contextCollapse"] == "1")
+		return True
+
 def report_callback_exception(self, exc, val, tb):
 	d = pjaDialog()
 	text_box = Tk.Text(d.top, wrap=Tk.WORD, width=80, height=10)
@@ -38,11 +68,6 @@ def report_callback_exception(self, exc, val, tb):
 	d.top.columnconfigure(0, weight=1)
 	
 	d.go()
-	#showerror("Error", message=str(traceback.extract_stack()) + "\n" + str(val))
-
-#Tk.Tk.report_callback_exception = report_callback_exception
-
-#from incs.wdCore omport wdCore
 
 class pjaDialog():
 	def __init__(self):
@@ -198,10 +223,13 @@ app = "wiringDiagram"
 try:
 	t = wdTk()
 	setattr(t, "config", config())
+	#t.config.open()
+	t.menu["root"].add_command(label="Configure", command= t.config.open)
+	
 	#p = pjaDialog().go()
 	t.cueEvts("onInitialise", win=t) # good to go!
 	t.open_file("f.db")
-	t.redraw()
+	#t.redraw()
 	
 except Exception as e:
 	#t.destroy()
@@ -210,14 +238,9 @@ except Exception as e:
 	d.title("Error")
 	Tk.Label(d, text=app + " ran into an error", font="Arial 8 bold").grid(sticky="w")
 	
-	'''text_box = Tk.Text(d, wrap=Tk.WORD, width=40, height=10)
-	text_box.insert("0.0", e)
-	text_box.grid(row=0, column=0, rowspan=3, padx=10, pady=10, sticky="nsew")'''
 	Tk.Label(d, text=str(type(e).__name__) + ": " +str(e), font= [*font, "bold"]).grid()
 	d.rowconfigure(0, weight=1)
 	d.columnconfigure(0, weight=1)
-	#d.go()
 	d.mainloop()
 
-#t.core.dia.exportPng().save("mx2.png")
 t.window.mainloop()
