@@ -30,7 +30,8 @@ class config():
 	def __init__(self):
 		self.policy = {
 			"dev" : Tk.BooleanVar(value=False),
-			"contextCollapse": Tk.BooleanVar(value=False)
+			"contextCollapse": Tk.BooleanVar(value=False),
+			"mode" : Tk.BooleanVar(value = (hasattr(sys, "getandroidapilevel")))
 		}
 		self.roPols = {
 			"mode" : Tk.BooleanVar(value = (hasattr(sys, "getandroidapilevel")))	
@@ -60,6 +61,11 @@ class config():
 				"name":"Collapse context menu",
 				"type": "Checkbox",
 				"value": self.contextCollapse.get()
+			},
+			"mode":{
+				"name":"Android menu mode",
+				"type": "Checkbox",
+				"value": (hasattr(sys, "getandroidapilevel"))
 			}
 		})
 		for i,j in self.outerPolicies.items():
