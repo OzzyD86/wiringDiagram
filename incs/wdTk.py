@@ -38,6 +38,8 @@ class wdTk(wdTkCore):
 		else:
 			self._open_file = a
 			self.core.open_file(a)
+			for i in self.loaded:
+				i[0].entryconfig(i[1], state="normal")
 			self.cueEvts("onFileLoad")
 			self.redraw()
 			self.updateWindowTitle()
