@@ -15,10 +15,10 @@ class diagram():
 		self.wp = {}
 		self.cwps = {}
 		self.wp_labelling = Tk.BooleanVar()
-		self.wp_labelling.set(False)
+		self.wp_labelling.set(True)
 		
 		self.conn_labelling = Tk.BooleanVar()
-		self.conn_labelling.set(True)
+		self.conn_labelling.set(False)
 		
 	def addWaypoint(self, key, name, loc):
 		self.wp[key] = { "name" : name, "loc" : loc }
