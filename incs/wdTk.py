@@ -317,7 +317,7 @@ class wdTk(wdTkCore):
 
 		# Compile the configuration system
 		self.conf = coo()
-		if (self.conf.roPols["mode"]):
+		if (self.conf.roPols["mode"].get() == False):
 			offs = 1
 		
 		self.pluginLoad()
@@ -405,11 +405,11 @@ class wdTk(wdTkCore):
 		delete.add_command(label="Waypoint", command= self.waypointDelWin)
 		delete.add_command(label="Waypoint Connector", command=self.routeDelWin)
 	
-		self.waypointing = Tk.BooleanVar()
-		self.waypointing.set(True)
+		self.waypointing = Tk.BooleanVar(value=True)
+		#self.waypointing.set(True)
 		self.waypointing.trace('w', self.set_export_vars)
-		self.wp_labels = Tk.BooleanVar()
-		self.wp_labels.set(False)
+		self.wp_labels = Tk.BooleanVar(value=False)
+		#self.wp_labels.set(False)
 		self.wp_labels.trace('w', self.set_export_vars)
 		self.conn_labelling = Tk.BooleanVar()
 		self.conn_labelling.set(False)
