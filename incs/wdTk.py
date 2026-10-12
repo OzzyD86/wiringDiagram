@@ -108,7 +108,7 @@ class wdTk(wdTkCore):
 				self.move = None
 
 		d = megaMenu()
-		d.collapse(self.config.contextCollapse.get())
+		d.collapse(self.conf.contextCollapse.get())
 		
 		down = self.b1_pressed
 		up = copy(event)
@@ -134,7 +134,7 @@ class wdTk(wdTkCore):
 #		d.add_command(label="Create Waypoint here", command= lambda event=event: self.waypointAddWin(p))
 	
 #		d.add_separator()
-		if (self.config.dev.get()):
+		if (self.conf.dev.get()):
 			d.add_command("debug", label="Start: " + str((down.x, down.y)), state="disabled")
 			d.add_command("debug", label="Finish: " + str((up.x, up.y)), state="disabled")
 			d.add_separator("debug")
@@ -150,7 +150,7 @@ class wdTk(wdTkCore):
 		wwis = None
 		for i in self.canvas.gettags(self.canvas.find_closest(down.x,down.y)):
 			tags.append(i)
-			if (self.config.dev.get()):
+			if (self.conf.dev.get()):
 				d.add_command("technical", label=i)
 			if (i.split(":")[0] == "mn"):
 				name = i.split(":")[1]
