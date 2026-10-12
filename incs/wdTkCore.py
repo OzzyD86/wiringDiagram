@@ -7,13 +7,15 @@ import tkinter.messagebox
 
 from widgets.inputDialog import inputDialog
 
-class wdTkCore():
+class wdTkCore(Tk.Tk):
 	
 	# === Device Adding
-	
+	def __init__(self, master = None, **kwargs):
+		super().__init__(master, **kwargs)
+		
 	def devAddWin(self, event = None):
 		d = getattr(event, "x", 0)
-
+			
 		self.aw = inputDialog(self.window, data={
 			"mName": {
 				"type" : "Entry",
@@ -33,10 +35,16 @@ class wdTkCore():
 				"name" : "Y Position",
 				"value": int(getattr(event, "y", 300) / float(self.sc.get()))
 			},
-		})
+		}, sf= self)
+		for i in self.cueEvts("onDeviceAddDialog"):
+			self.aw.addNb(i["Name"], i["Widgets"])
+			pass
+			
 		self.aw.addButton("Add", "add")
 		self.aw.passFunc("add", self.devAddComplete)
-
+		for i in self.cueEvts("onDeviceAddComplete", False):
+			self.aw.passFunc("add", i)
+	
 	def devAddComplete(self, **kwargs):
 		if (kwargs['mName'] in self.core.dia.listDevices()):
 			tkinter.messagebox.showerror(title="Cannot add device", message="The name of the device is already in use.")
@@ -109,7 +117,9 @@ class wdTkCore():
 		if (len(self.core.dia.listDevices())== 0):
 			Tk.messagebox.showerror(title="No devices", message="There are no devices to edit.")
 			return False
-		
+		for i in self.cueEvts("onDevEditWinPreDef", False):
+			preDefs = i(preDefs)
+			
 		self.aw = inputDialog(self.window, data={
 			"mName":{
 				"type" : "Combo",
@@ -130,11 +140,17 @@ class wdTkCore():
 				"type": "Entry", "name": "Height"
 			}
 		})
+		for i in self.cueEvts("onDeviceEditDialog"):
+			self.aw.addNb(i["Name"], i["Widgets"])
+			pass
 		#raise Exception(self.core.dia.listDevices())
 		self.aw.addButton("Edit", "edit")
 		self.aw.passFunc("edit", self.devEditComplete)
+		for i in self.cueEvts("onDeviceEditComplete", False):
+			self.aw.passFunc("edit", i)
+			
 		for i,j in preDefs.items():
-			self.aw.set("mName", j)
+			self.aw.set(i, j)
 			pass
 			
 	def devEditComplete(self, **kwargs):
@@ -407,15 +423,20 @@ class wdTkCore():
 				"value": int(float(getattr(event, "x", 0)) / self.sc.get())
 			},
 		})
+		for i in self.cueEvts("onWaypointAddDialog"):
+			self.aw.addNb(i["Name"], i["Widgets"])
+			pass
 		self.aw.addButton("Add", "add")
 		self.aw.passFunc("add", self.waypointAddComplete)
-
+		for i in self.cueEvts("onWaypointAddComplete", False):
+			self.aw.passFunc("add", i)
+			
 	def waypointAddComplete(self, **kwargs):
 		for i in self.core.dia.wp.values():
 			if (kwargs['wName'] == i["name"]):
 				tkinter.messagebox.showerror(title="Cannot add waypoint", message="The name of the waypoint is already in use.")
 				return False
-		
+		kwargs["test"] = "help"
 		self.core.addWaypoint(
 			kwargs['wName'],
 			(int(kwargs['left']),int(kwargs['top'])))
@@ -435,6 +456,9 @@ class wdTkCore():
 
 		win.set("top", int(d['loc'][1]))
 		win.set("left", int(d['loc'][0]))
+		for i in self.cueEvts("onWaypointNameSet", w=win, val=val, args=nope):
+			for j,k in i.items():
+				win.set(j,k)
 		
 	def waypointEditWin(self):
 		#if (len(self.core.dia.listDevices())== 0):
@@ -462,9 +486,14 @@ class wdTkCore():
 			}
 
 		})
+		for i in self.cueEvts("onWaypointEditDialog"):
+			self.aw.addNb(i["Name"], i["Widgets"])
+			pass
 		self.aw.addButton("Edit", "edit")
 		self.aw.passFunc("edit", self.waypointEditComplete)
-		
+		for i in self.cueEvts("onWaypointEditComplete", False):
+			self.aw.passFunc("edit", i)
+			
 	def waypointEditComplete(self, **kwargs):
 		obj = kwargs['wName']
 
