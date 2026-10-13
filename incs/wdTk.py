@@ -38,8 +38,6 @@ class wdTk(wdTkCore):
 		else:
 			self._open_file = a
 			self.core.open_file(a)
-			for i in self.loaded:
-				i[0].entryconfig(i[1], state="normal")
 			self.cueEvts("onFileLoad")
 			self.redraw()
 			self.updateWindowTitle()
@@ -110,7 +108,7 @@ class wdTk(wdTkCore):
 				self.move = None
 
 		d = megaMenu()
-		d.collapse(self.conf.contextCollapse.get())
+		d.collapse(self.conf.contextCollapse.get() == "1")
 		
 		down = self.b1_pressed
 		up = copy(event)
@@ -136,7 +134,9 @@ class wdTk(wdTkCore):
 #		d.add_command(label="Create Waypoint here", command= lambda event=event: self.waypointAddWin(p))
 	
 #		d.add_separator()
-		if (self.conf.dev.get()):
+		#self.conf.open()
+		#raise Exception(self.conf.dev.get())
+		if (self.conf.dev.get() == "1"):
 			d.add_command("debug", label="Start: " + str((down.x, down.y)), state="disabled")
 			d.add_command("debug", label="Finish: " + str((up.x, up.y)), state="disabled")
 			d.add_separator("debug")
@@ -152,7 +152,7 @@ class wdTk(wdTkCore):
 		wwis = None
 		for i in self.canvas.gettags(self.canvas.find_closest(down.x,down.y)):
 			tags.append(i)
-			if (self.conf.dev.get()):
+			if (self.conf.dev.get() == "1"):
 				d.add_command("technical", label=i)
 			if (i.split(":")[0] == "mn"):
 				name = i.split(":")[1]
@@ -673,12 +673,12 @@ class wdTk(wdTkCore):
 				if (self.waypointing.get()):
 					if (len(cs) > 1):
 						#print(cs)
-						r = self.canvas.create_line(st,n[0:2], fill="green")
+						r = self.canvas.create_line(st,n[0:2], fill="black")
 						self.canvas.addtag_withtag("_wire", r)
 						self.canvas.addtag_withtag("BEGIN", r)
 						self.canvas.addtag_withtag("wid:" + str(k), r)
 						self.canvas.addtag_withtag(st,r)
-						r = self.canvas.create_line(n[-2:] ,fn, fill="green")
+						r = self.canvas.create_line(n[-2:] ,fn, fill="black")
 						self.canvas.addtag_withtag("_wire", r)
 						self.canvas.addtag_withtag("END", r)
 						self.canvas.addtag_withtag("wid:" + str(k), r)
