@@ -31,12 +31,27 @@ class config():
 		self.policy = {
 			"dev" : Tk.BooleanVar(value=False),
 			"contextCollapse": Tk.BooleanVar(value=False),
-			"mode" : Tk.BooleanVar(value = (hasattr(sys, "getandroidapilevel")))
+			#"mode" : Tk.BooleanVar(value = (hasattr(sys, "getandroidapilevel")))
 		}
+		self.outerPolicies = {}
 		self.roPols = {
 			"mode" : Tk.BooleanVar(value = (hasattr(sys, "getandroidapilevel")))	
 		}
-		self.outerPolicies = {}
+		self.addOption("General", "dev",{
+			"name":"Developer mode",
+			"type": "Checkbox",
+			"value": self.policy["dev"].get()
+		})
+		self.addOption("General", "contextCollapse",{
+				"name":"Collapse context menu",
+				"type": "Checkbox",
+				"value": self.policy["contextCollapse"].get()
+		})
+		self.addOption("General", "mode",{
+				"name":"Android mode",
+				"type": "Checkbox",
+				"value": (hasattr(sys, "getandroidapilevel"))
+		})
 		self.innerPolicies = {}
 		self.dev = self.policy["dev"]
 		self.contextCollapse = self.policy["contextCollapse"]
@@ -51,24 +66,16 @@ class config():
 			self.policy[key].set(data["value"])
 		
 	def open(self):
-		v = inputDialog(data={
-			"dev":{
-				"name":"Developer mode",
-				"type": "Checkbox",
-				"value": self.dev.get()
-			},
-			"contextCollapse":{
-				"name":"Collapse context menu",
-				"type": "Checkbox",
-				"value": self.contextCollapse.get()
-			},
-			"mode":{
-				"name":"Android menu mode",
-				"type": "Checkbox",
-				"value": (hasattr(sys, "getandroidapilevel"))
-			}
-		})
-		for i,j in self.outerPolicies.items():
+		p = self.outerPolicies.copy()
+		if ("General" in p):
+			d = p["General"]
+			del p["General"]
+		else:
+			d={}
+		v = inputDialog(data=d)
+		#if ("" in self.outerPolicies):
+		#	del self.outerPolicies[""]
+		for i,j in p.items():
 			v.addNb(i,j)
 		for i,j in self.policy.items():
 			v.set(i,j.get())
@@ -80,8 +87,10 @@ class config():
 		for i,j in kwargs.items():
 			self.policy[i].set(j)
 			
-		self.dev.set(kwargs["dev"] == "1")
-		self.contextCollapse.set(kwargs["contextCollapse"] == "1")
+		#raise Exception(kwargs)
+		self.dev.set(self.policy["dev"].get())
+		#raise Exception(self.policy["dev"].get() == 1)
+		self.contextCollapse.set(self.policy["contextCollapse"].get())
 		return True
 
 def report_callback_exception(self, exc, val, tb):
