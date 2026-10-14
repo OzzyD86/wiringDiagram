@@ -9,6 +9,7 @@ from widgets.inputDialog import inputDialog
 from incs.wdTkCore import wdTkCore
 from copy import copy
 from widgets.megaMenu import megaMenu
+import os
 
 class wdTk(wdTkCore):
 	def resize_canvas(self, event):
@@ -28,7 +29,6 @@ class wdTk(wdTkCore):
 					return None
 				elif (a is True):
 					self.file_save()
-
 		files = [#('All Files', '*.*'), 
 			 ('Databases', '*.db')]
 	
@@ -36,9 +36,14 @@ class wdTk(wdTkCore):
 		if (len(a) == 0):
 			print("Cancelled?")
 		else:
+			if (os.path.exists(a)):
+				os.rename(a, a + ".bak")
+				
 			self._open_file = a
 			self.core.open_file(a)
 			self.cueEvts("onFileLoad")
+			for i in self.loaded:
+				i[0].entryconfig(i[1], state="normal")
 			self.redraw()
 			self.updateWindowTitle()
 			self.core.struct.clear_changed()
@@ -62,10 +67,16 @@ class wdTk(wdTkCore):
 		pass
 		
 	def b1_down(self, event):
+		if (self._open_file is None):
+			return None
 		self.b1_pressed = event
 		self.move = None
 	
 	def b1_move(self, event):
+		if (self._open_file is None):
+			return None
+		if (len(self.canvas.find_all()) == 0):
+			return None
 		if (self.b1_pressed is not None):
 			if (self.move is None):
 				x1 = self.canvas.canvasx(self.b1_pressed.x)
@@ -74,12 +85,14 @@ class wdTk(wdTkCore):
 					"old_event" : self.canvas.find_closest(x1,y1),
 				}
 				
+					
 				c = self.canvas.coords(self.move["old_event"])
 				w = self.canvas.itemconfig(self.move["old_event"], "width")[4]
 				self.move["c"] = c
 				self.move["w"] = w
 				self.move["t"] = self.canvas.gettags(self.move["old_event"])
-				if ("_wire" in self.move["t"]):
+				
+				if ("t" in self.move and "_wire" in self.move["t"]):
 					self.move["new_event"] = {
 						1: [c[0], c[1], self.canvas.create_line(c[0], c[1], event.x, event.y, width =w)],
 						2: [c[2], c[3], self.canvas.create_line(c[2], c[3], event.x, event.y, width=w)]
@@ -90,14 +103,16 @@ class wdTk(wdTkCore):
 				else:
 					self.move["new_event"] = {}
 			else:
-				if ("_wire" in self.move["t"]):
+				if ("t" in self.move and "_wire" in self.move["t"]):
 					for i in self.move["new_event"].values():
 						self.canvas.coords(i[2],i[0],i[1],self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
 					pass
 		
 	def b1_up(self, event):
+		if (self._open_file is None):
+			return None
 		if (self.move is not None):
-			if ("_wire" in self.move["t"]):
+			if ("t" in self.move and "_wire" in self.move["t"]):
 				self.canvas.delete("_alter")
 				c = self.move["c"]
 				w = self.move["w"]
@@ -125,17 +140,7 @@ class wdTk(wdTkCore):
 			click = True
 		else:
 			click=False
-		#print(self.canvas.find_closest(event.x,event.y))
-		#print(event)
-		#p = copy(event)
-		#p.x = x
-		#p.y = y
-#		d.add_command(label="Create Device here", command= lambda event=event: self.devAddWin(p))
-#		d.add_command(label="Create Waypoint here", command= lambda event=event: self.waypointAddWin(p))
-	
-#		d.add_separator()
-		#self.conf.open()
-		#raise Exception(self.conf.dev.get())
+			
 		if (self.conf.dev.get() == "1"):
 			d.add_command("debug", label="Start: " + str((down.x, down.y)), state="disabled")
 			d.add_command("debug", label="Finish: " + str((up.x, up.y)), state="disabled")
