@@ -34,36 +34,17 @@ def report_callback_exception(self, exc, val, tb):
 	text_box.grid(row=0, column=0, rowspan=3, padx=10, pady=10, sticky="nsew")
 	d.top.rowconfigure(0, weight=1)
 	d.top.columnconfigure(0, weight=1)
-	
 	d.go()
 
-class pjaDialog():
-	def __init__(self):
-		self.top = Tk.Toplevel()
-		#self.master = master
-		self.top.protocol('WM_DELETE_WINDOW', self.cancel_command)
+tkinter.Tk.report_callback_exception = report_callback_exception
 
-		#self.tree = ttk.Treeview(self.top)
-		#self.tree.grid(column=0, row=0, sticky='news')	
-		#bt = Tk.Button(self.top, text='Select', command=self.ok)
-		#bt.grid(column=0, row=1)
-
-	def ok(self):
-		self.quit(self.tree.selection())
-
-	def quit(self, answer=None):
-		self.how = answer
-		self.top.destroy()
-
-	def cancel_command(self):
-		print("Cancel?")
-		self.quit(None)		
-
-	def go(self):
-		self.top.wait_visibility() # window needs to be visible for the grab
-		self.how = None
-		self.top.wait_window(self.top)
-		return self.how
+class version(Tk.Toplevel):
+	def __init__(self, master, a = [], *args, **kwargs):
+		super().__init__(master, *args, **kwargs)
+		d = Tk.Label(self, text="WiringDiagram v0.0.1", font=("Arial 15"))
+		d.grid(sticky="snew", padx=5)
+		for i in a:
+			Tk.Label(self, text="* " + i, font="Arial 6").grid(sticky="w", padx=5)
 
 import incs.wdTk
 import os, importlib
@@ -197,6 +178,15 @@ try:
 	
 	#p = pjaDialog().go()
 	t.cueEvts("onInitialise", win=t) # good to go!
+	ch = [
+		#"Prevent canvas menu spawn crash when no file loaded",
+		"New file enables menu items",
+		"New file replaces existing file, but backs it up",
+		"Canvas prevents drag crashes and errors when empty",
+		"Updates to highlighting plugin",
+		"Config now in its own file",
+	]
+	version(t, ch)
 	#t.open_file("f.db")
 	#t.redraw()
 	
@@ -204,6 +194,7 @@ except Exception as e:
 	#t.destroy()
 	d = Tk.Tk()
 	font = ("Arial", 6)
+	
 	d.title("Error")
 	Tk.Label(d, text=app + " ran into an error", font="Arial 8 bold").grid(sticky="w")
 	
