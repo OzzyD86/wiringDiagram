@@ -4,6 +4,7 @@ import tkinter as Tk
 #from widgets.connector_points import connector_points
 #from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
 import tkinter.messagebox
+from copy import deepcopy
 
 from widgets.inputDialog import inputDialog
 
@@ -14,15 +15,21 @@ class inputDialogWithCanvas(inputDialog):
 		self.c.grid(column=1, row=0, sticky='news')
 	
 	def check(self, *args, **kwargs):
-		print(args, kwargs, self.vars[kwargs['a']].get())
-		
+		#print(args, kwargs, self.vars[kwargs['a']].get())
+		v = int(self.vars['val'].get())
 		#print(args[0].get())
 		p = self.nametowidget(".").core.dia # Aha! That's how to do it!
 		self.c.delete("all")
 		
 		mm = self.data['mhName']["obj"].get_key_of_value(self.vars['mhName'].get())
 		x = (p.locs[mm])
-		aa = p.objMk(self.c, p.getDevice(mm), (250, 150, x[2], x[3]))
+		y = deepcopy(p.getDevice(mm))
+		
+		for i in range(v):
+			y.addConnector("tmp" + str(i), direction = self.vars['ddName'].get())
+
+		aa = p.objMk(self.c, y, (250, 150, x[2], x[3]))
+		
 		print(type(p))
 		
 	def addItems(self, items = {}):
