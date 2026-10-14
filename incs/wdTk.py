@@ -424,8 +424,8 @@ class wdTk(wdTkCore):
 		self.core.dia.conn_labelling.trace('w', self.set_export_vars)
 		
 		self.scale = Tk.Menu(self.menu["export"])
-		self.scale.add_checkbutton(label="1x", onvalue=1,variable=self.sc)
-		self.scale.add_checkbutton(label="2x", onvalue=2,variable=self.sc)
+		self.scale.add_radiobutton(label="1x", value=1,variable=self.sc)
+		self.scale.add_radiobutton(label="2x", value=2,variable=self.sc)
 		self.sc.trace('w', self.set_export_vars)
 		
 		#self.wp_labelling = False
