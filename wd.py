@@ -45,7 +45,7 @@ class version(Tk.Toplevel):
 		d.grid(sticky="snew", padx=5)
 		for i in a:
 			Tk.Label(self, text="* " + i, font="Arial 6").grid(sticky="w", padx=5)
-
+		Tk.Button(self, text="Ok", command = self.destroy).grid(pady=5)
 import incs.wdTk
 import os, importlib
 
@@ -185,8 +185,9 @@ try:
 		"Canvas prevents drag crashes and errors when empty",
 		"Updates to highlighting plugin",
 		"Config now in its own file",
+		"Scale is radio button not check box"
 	]
-	version(t, ch)
+	#version(t, ch)
 	#t.open_file("f.db")
 	#t.redraw()
 	
