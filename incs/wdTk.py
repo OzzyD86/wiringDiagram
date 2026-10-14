@@ -675,12 +675,12 @@ class wdTk(wdTkCore):
 				if (self.waypointing.get()):
 					if (len(cs) > 1):
 						#print(cs)
-						r = self.canvas.create_line(st,n[0:2], fill="green")
+						r = self.canvas.create_line(st,n[0:2], fill="black")
 						self.canvas.addtag_withtag("_wire", r)
 						self.canvas.addtag_withtag("BEGIN", r)
 						self.canvas.addtag_withtag("wid:" + str(k), r)
 						self.canvas.addtag_withtag(st,r)
-						r = self.canvas.create_line(n[-2:] ,fn, fill="green")
+						r = self.canvas.create_line(n[-2:] ,fn, fill="black")
 						self.canvas.addtag_withtag("_wire", r)
 						self.canvas.addtag_withtag("END", r)
 						self.canvas.addtag_withtag("wid:" + str(k), r)

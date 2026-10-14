@@ -15,7 +15,15 @@ class inputDialogWithCanvas(inputDialog):
 	
 	def check(self, *args, **kwargs):
 		print(args, kwargs, self.vars[kwargs['a']].get())
+		
 		#print(args[0].get())
+		p = self.nametowidget(".").core.dia # Aha! That's how to do it!
+		self.c.delete("all")
+		
+		mm = self.data['mhName']["obj"].get_key_of_value(self.vars['mhName'].get())
+		x = (p.locs[mm])
+		aa = p.objMk(self.c, p.getDevice(mm), (250, 150, x[2], x[3]))
+		print(type(p))
 		
 	def addItems(self, items = {}):
 		nw = super().addItems(items)
