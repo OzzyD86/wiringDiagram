@@ -65,10 +65,10 @@ class connector_points(Tk.Frame):
 		self.c.heading("ConnIn", text="Input Connector")
 		#tree.pack(fill=tk.BOTH, expand=True)
 		self.c.grid()
-		self.c.bind('<Button-1>', self.get)
+		#self.c.bind('<Button-1>', self.get)
 		return self
 		
 	def get(self, *args):
 		print (self.mName.get(), self.cName.get(), self.c.item(self.c.focus()))
-		
+		return  (self.mName.get(), self.cName.get(), self.c.item(self.c.selection()[0]))
 	pass

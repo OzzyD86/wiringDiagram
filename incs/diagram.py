@@ -2,6 +2,10 @@ from colours import colourDirection
 from PIL import Image, ImageDraw, ImageFont
 import tkinter as Tk
 
+i18n = {
+	"font_small" : ('Arial', 6),
+	"font_large" : ('Arial', 8)
+}
 class diagram():
 	def __init__(self):
 		self.bounds = [0,0,0,0]
@@ -11,20 +15,33 @@ class diagram():
 		self.wp = {}
 		self.cwps = {}
 		self.wp_labelling = Tk.BooleanVar()
-		self.wp_labelling.set(False)
+		self.wp_labelling.set(True)
 		
 		self.conn_labelling = Tk.BooleanVar()
-		self.conn_labelling.set(True)
+		self.conn_labelling.set(False)
 		
 	def addWaypoint(self, key, name, loc):
 		self.wp[key] = { "name" : name, "loc" : loc }
 		pass
 	
 	def addConnectionWaypoint(self, conn, wpid, order):
+		# THIS WILL NOT WORK! If any values have an order >= order above, then they'll need shifting!
+		# Fixed??
+		p = []
+		if (conn in self.cwps):
+			for i in self.cwps[conn]:
+				j = i
+				if (j["order"] >= order):
+					j["order"] += 1
+				p.append(j)
+			self.cwps[conn] = p
+		
 		if (conn in self.cwps):
 			self.cwps[conn].append({ "wpid" : wpid, "order": order})
 		else:
 			self.cwps[conn] = [{ "wpid" : wpid, "order": order}]
+			
+		self.cwps[conn] = sorted(self.cwps[conn], key=lambda x: x["order"])
 		pass
 		
 	def buildWaypointLists(self):
@@ -43,7 +60,12 @@ class diagram():
 	def addDevice(self, key, dev):
 		self.dev[key] = dev
 		
-	def listDevices(self):
+	def listDevices(self, rel = False):
+		if (rel):
+			x = {}
+			for i,j in self.dev.items():
+				x[i] = j.name
+			return x
 		return list(self.dev.keys())
 	
 	def locateDevice(self, dName, pos = (0,0), sz = (50,50)):
@@ -76,6 +98,9 @@ class diagram():
 				print("Deleted", i)
 		self.conns = _tmp
 	
+	def deleteConnectionByID(self, a):
+		del self.conns[a]
+		
 	def addConnection(self, id, a, b):
 		if (a[0] not in self.dev):
 			return False
@@ -102,21 +127,23 @@ class diagram():
 		for i in self.locs.items():
 			#print(i[1])
 			e = i[1]
-			if (e[0] < bbox[0]):
-				bbox[0] = e[0]
+			if (e[0] - (e[2] /2)< bbox[0]):
+				bbox[0] = e[0] - (e[2] /2)
 				
-			if (e[2] > bbox[2]):
-				bbox[2] = e[2]
+			if (e[0] + (e[2]/2) > bbox[2]):
+				bbox[2] = e[0]+(e[2]/2)
 				
-			if (e[1] < bbox[1]):
-				bbox[1] = e[1]
+			if (e[1] - (e[3]/2) < bbox[1]):
+				bbox[1] = e[1] - (e[3]/2)
 				
-			if (e[3] > bbox[3]):
-				bbox[3] = e[3]
+			if (e[1] + (e[3] /2) > bbox[3]):
+				bbox[3] = e[1] + (e[3] / 2)
 			#pass
 		
 		for i in self.wp.items():
 			e =(i[1]["loc"])
+			#print(e)
+			#print(bbox)
 			#e = i[1]
 			if (e[0] < bbox[0]):
 				bbox[0] = e[0]
@@ -134,6 +161,7 @@ class diagram():
 		#for i in bbox:
 		#	i = i * 
 		return bbox
+		#return [bbox[0]-100, bbox[1] -100, bbox[2]+100,bbox[3]+100]
 		
 	def objMk(self, dr, p, dms = (0,0,1,1), _type = 1, honour_db = False, offset = (0,0)):
 		try:
@@ -219,10 +247,12 @@ class diagram():
 				elif (a==2):
 					op = dr.create_rectangle(lf-2.5, tp-2.5, lf + 2.5, tp+2.5, outline=c)
 					dr.addtag_withtag("_conn", op)
-					dr.addtag_withtag(fc, op)
+					dr.addtag_withtag("c:"+p.machName+"."+fc, op)
 					if (self.conn_labelling.get()):
-						dr.create_text(lf+to[0],tp+to[1],text=fc,font=('Arial',2),angle=ro,anchor=an)
-				#print(fc)
+						otx = dr.create_text(lf+to[0],tp+to[1],text=fc,font=i18n["font_small"],angle=ro,anchor=an)
+						dr.addtag_withtag("_conn", otx)
+						dr.addtag_withtag("c:"+p.machName+"."+fc, otx)
+					#print(fc)
 				ct += 1
 				outmap[fc] = (lf,tp)
 
@@ -232,7 +262,7 @@ class diagram():
 				dms[0]+(dms[2]/2)+offset[0], dms[1] + (dms[3]/2)+offset[1]),
 				outline=(0,0,0)
 			)
-			dr.text((dms[0]+offset[0],dms[1]+offset[1]), p.name,font=f,fill=(0,0,0))
+			dr.text((dms[0]+offset[0],dms[1]+offset[1]), p.name,font=f,fill=(0,0,0), anchor="mm")
 	
 		elif (a == 2):
 			rct = dr.create_rectangle(
@@ -240,21 +270,30 @@ class diagram():
 				dms[0]+(dms[2]/2), dms[1] + (dms[3]/2),
 				outline="black"
 			)
-			dr.addtag_withtag(p.name, rct)
+			dr.addtag_withtag("mn:"+p.machName, rct)
 			dr.addtag_withtag("_dev", rct)
-			dr.create_text(dms[0],dms[1],text=p.name,font=('Arial',4))
+			tx = dr.create_text(dms[0],dms[1],text=p.name,font=i18n["font_large"])
+			dr.addtag_withtag("mn:"+p.machName, tx)
+			dr.addtag_withtag("_dev", tx)
+		#dr.bind("<Button-1>", self.down)
+		#dr.bind("<ButtonRelease-1>", self.test)
+
 		#dr.tag_bind(rct, "<Button-1>", drag_start)
 		#dr.tag_bind(rct, "<B1-Motion>", drag_motion)
 
 		return outmap
 		
-	def exportPng(self):
+	def exportPng(self, ancs = []):
+			
 		olines = {}
 		a = self.buildWaypointLists()
 		#print(a)
 		w = int(self.bounds[2] - self.bounds[0])
 		h = int(self.bounds[3] - self.bounds[1])
 		im = Image.new("RGB", (w,h), (255,255,255))
+		for i in ancs:
+			im = i(im, (self.bounds[0], self.bounds[1]))
+			
 		f = ImageFont.load_default_imagefont()
 		dr = ImageDraw.Draw(im)
 		for i in self.listDevices():
@@ -300,7 +339,7 @@ class diagram():
 					if (len(cs) > 1):
 						#print(cs)
 						dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],n[0]-self.bounds[0],n[1]-self.bounds[1]), fill=(0,0,0))
-						dr.line((n[-2]-self.bounds[0], n[-1] ,fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill=(0,0,0))
+						dr.line((n[-2]-self.bounds[0], n[-1]-self.bounds[1] ,fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill=(0,0,0))
 	
 						for m in range(len(cs)-1):
 							q = (cs[m], cs[m+1])
@@ -318,7 +357,7 @@ class diagram():
 							dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],n[0]-self.bounds[0],n[1]-self.bounds[1]), fill="black")
 							dr.line((n[0]-self.bounds[0], n[1]-self.bounds[1],fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill="black")
 				else:
-					dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill=(0,0,0))
+					dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill=(0,0,0), anchor="mm")
 		
 		if (self.waypointing.get()):
 			for m,n in olines.items():
@@ -329,7 +368,7 @@ class diagram():
 		
 		if (self.wp_labelling.get()):
 			for i,j in self.wp.items():
-				dr.text((j["loc"][0]-self.bounds[0],j["loc"][1]+self.bounds[1]), j["name"],font=f,fill=(0,0,0))
+				dr.text((j["loc"][0]-self.bounds[0],j["loc"][1]+self.bounds[1]), j["name"],font=f,fill=(0,0,0), anchor="mm")
 
 		#print(m,n)
 		'''for i in self.conns.values():

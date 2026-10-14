@@ -1,8 +1,8 @@
 from copy import copy
 from PIL import Image, ImageDraw, ImageFont
-from incs.diagram import diagram
-from dev import device
-
+#forom incs.diagram import diagram
+#forom dev import device
+		
 def drag_start(event):
 	widget = event.widget
 	widget._drag_start_x = event.x
@@ -21,8 +21,78 @@ def check_current_version():
 import tkinter as Tk
 import tkinter.ttk as ttk
 import tkinter.filedialog
+import traceback
+from tkinter.messagebox import showerror
+from widgets.inputDialog import inputDialog
+import sys
 
-#from incs.wdCore omport wdCore
+class config():
+	def __init__(self):
+		self.policy = {
+			"dev" : Tk.BooleanVar(value=False),
+			"contextCollapse": Tk.BooleanVar(value=False),
+			"mode" : Tk.BooleanVar(value = (hasattr(sys, "getandroidapilevel")))
+		}
+		self.roPols = {
+			"mode" : Tk.BooleanVar(value = (hasattr(sys, "getandroidapilevel")))	
+		}
+		self.outerPolicies = {}
+		self.innerPolicies = {}
+		self.dev = self.policy["dev"]
+		self.contextCollapse = self.policy["contextCollapse"]
+	
+	def addOption(self, placement, key, data = {}, **kwargs):
+		if (not placement in self.outerPolicies):
+			self.outerPolicies[placement] = {}
+		
+		self.policy[key] = Tk.StringVar()
+		self.outerPolicies[placement][key] = data
+		if ("value" in data):
+			self.policy[key].set(data["value"])
+		
+	def open(self):
+		v = inputDialog(data={
+			"dev":{
+				"name":"Developer mode",
+				"type": "Checkbox",
+				"value": self.dev.get()
+			},
+			"contextCollapse":{
+				"name":"Collapse context menu",
+				"type": "Checkbox",
+				"value": self.contextCollapse.get()
+			},
+			"mode":{
+				"name":"Android menu mode",
+				"type": "Checkbox",
+				"value": (hasattr(sys, "getandroidapilevel"))
+			}
+		})
+		for i,j in self.outerPolicies.items():
+			v.addNb(i,j)
+		for i,j in self.policy.items():
+			v.set(i,j.get())
+		v.addButton("OK", "ok")
+		v.passFunc("ok", self.ok)
+		pass
+		
+	def ok(self, **kwargs):
+		for i,j in kwargs.items():
+			self.policy[i].set(j)
+			
+		self.dev.set(kwargs["dev"] == "1")
+		self.contextCollapse.set(kwargs["contextCollapse"] == "1")
+		return True
+
+def report_callback_exception(self, exc, val, tb):
+	d = pjaDialog()
+	text_box = Tk.Text(d.top, wrap=Tk.WORD, width=80, height=10)
+	text_box.insert("0.0", str(traceback.extract_stack()) + "\n" + str(val))
+	text_box.grid(row=0, column=0, rowspan=3, padx=10, pady=10, sticky="nsew")
+	d.top.rowconfigure(0, weight=1)
+	d.top.columnconfigure(0, weight=1)
+	
+	d.go()
 
 class pjaDialog():
 	def __init__(self):
@@ -30,10 +100,10 @@ class pjaDialog():
 		#self.master = master
 		self.top.protocol('WM_DELETE_WINDOW', self.cancel_command)
 
-		self.tree = ttk.Treeview(self.top)
-		self.tree.grid(column=0, row=0, sticky='news')	
-		bt = Tk.Button(self.top, text='Select', command=self.ok)
-		bt.grid(column=0, row=1)
+		#self.tree = ttk.Treeview(self.top)
+		#self.tree.grid(column=0, row=0, sticky='news')	
+		#bt = Tk.Button(self.top, text='Select', command=self.ok)
+		#bt.grid(column=0, row=1)
 
 	def ok(self):
 		self.quit(self.tree.selection())
@@ -53,39 +123,150 @@ class pjaDialog():
 		return self.how
 
 import incs.wdTk
+import os, importlib
+
+class loader():
+	def __init__(self):
+		self.loaders = {}
 	
+	def is_loaded(self, mod):
+		return (mod in list(self.loaders.keys()))
+		
 class wdTk(incs.wdTk.wdTk):
+
+	def cueEvts(self, event = "", exec=True, **kwargs):
+		out = []
+		#print("Run events for " + event)
+		if (event in self.events):
+			for i in self.events[event]:
+				if (exec):
+					out.append(i(self, **kwargs))
+				else:
+					out.append(i)
+					
+		return out
+		
+	def pluginLoad(self):
+		self.events = {}
+		mods = {}
+		loaders = {}
+		setattr(self, "loaders", loader())
+
+		for i in os.scandir("plugins"):
+			if (os.path.isfile("plugins/" + i.name)):
+				mods[i.name.split(".")[0]] = importlib.import_module("plugins." + i.name.split(".")[0])
+				nm= i.name.split(".")[0]
+				a = mods[nm]
+				
+				d = getattr(a, i.name.split(".")[0])
+				setattr(a, "main", self) # Does this work?
+				if (hasattr(a, "MANIFEST")):
+					if (a.MANIFEST["order"] in loaders):
+						loaders[a.MANIFEST["order"]].append(a.MANIFEST)
+					else:
+						loaders[a.MANIFEST["order"]] = [a.MANIFEST]
+					self.loaders.loaders[nm] = True
+		#			#displayText.insert(tkinter.END, str(d) + "\n")
+		#		else:
+		#			notebook.add( d(notebook), text=i.name.split(".")[0])
+
+		#displayText.insert(tkinter.END, win.core.loaders.loaders)
+		for i in sorted(loaders.keys()):
+			for k in loaders[i]:
+				for l,m in k["events"].items():
+					if (not l in self.events):
+						self.events[l] = []
+					for n in m:
+						self.events[l].append(n)
+					pass
+		#		notebook.add(k["call"](notebook), text=k["name"])
+		
 	def click_call(self, event):
+		x = self.canvas.canvasx(event.x)
+		y = self.canvas.canvasy(event.y)
 		#print(self.canvas.find_closest(event.x,event.y))
 		#print(event)
+		p = copy(event)
+		p.x = x
+		p.y = y
 		d = Tk.Menu()
-		d.add_command(label="Hello")
-		d.add_command(label=str(self.canvas.find_closest(event.x,event.y)))
+		d.add_command(label="Create Device here", command= lambda event=event: self.devAddWin(p))
+		d.add_command(label="Create Waypoint here", command= lambda event=event: self.waypointAddWin(p))
+	
 		d.add_separator()
-		for i in self.canvas.gettags(self.canvas.find_closest(event.x,event.y)):
+		d.add_command(label="Hello", state="disabled")
+		d.add_command(label=str(self.canvas.find_closest(x,y)))
+		d.add_separator()
+		tags = []
+
+		for i in self.canvas.gettags(self.canvas.find_closest(x,y)):
+			tags.append(i)
 			d.add_command(label=i)
+
+		if ("_dev" in tags):
+			d.add_command(label="Edit device " + str(self.canvas.find_closest(x,y)[0]))
+			pass
 		d.tk_popup(self.canvas.winfo_rootx()+event.x, self.canvas.winfo_rooty()+event.y)
 		pass
 	
-	def setmName(self, *nope):
+	'''def setmName(self, *nope):
 		KEYS, VALUES = self.getKeys()
 		obj = KEYS[VALUES.index(self.mName.get())]
 		left, top, width, height = self.core.dia.locs[obj]
 		self.top.set(top)
 		self.left.set(left)
 		self.width.set(width)
-		self.height.set(height)
-		#print(d.locs)
-				
+		self.height.set(height)'''
+		
+	def contextDevMove(self, obj, x,y):
+		p = self.core.dia.locs[obj]
+		_,_,w,h = p
+
+		self.devEditComplete(**{
+			"mName": obj,
+			"left": x,
+			"top": y,
+			"width": w,
+			"height": h
+		})
+		
+	def setmName2(self, w, val, *args):
+		p = w.data['mName']["obj"].get_key_of_value(args[0])
+		left, top, width, height = self.core.dia.locs[p]
+		w.set("top", top)
+		w.set("left", left)
+		w.set("width", width)
+		w.set("height", height)
+		for i in self.cueEvts("onMachineNameSet", w=w, val=val, args=args):
+			for j,k in i.items():
+				w.set(j,k)
+		
 	def setM2(self, *args):
+		#showerror(args, args)
 		pass
 		
-t = wdTk()
+app = "wiringDiagram"
+try:
+	t = wdTk( c=config)
+	#setattr(t, "config", config())
+	#t.config.open()
+	t.menu["root"].add_command(label="Configure", command= t.conf.open)
+	
+	#p = pjaDialog().go()
+	t.cueEvts("onInitialise", win=t) # good to go!
+	#t.open_file("f.db")
+	#t.redraw()
+	
+except Exception as e:
+	#t.destroy()
+	d = Tk.Tk()
+	font = ("Arial", 6)
+	d.title("Error")
+	Tk.Label(d, text=app + " ran into an error", font="Arial 8 bold").grid(sticky="w")
+	
+	Tk.Label(d, text=str(type(e).__name__) + ": " +str(e), font= [*font, "bold"]).grid()
+	d.rowconfigure(0, weight=1)
+	d.columnconfigure(0, weight=1)
+	d.mainloop()
 
-#p = pjaDialog().go()
-
-t.open_file("f.db")
-t.redraw()
-
-#t.core.dia.exportPng().save("mx2.png")
 t.window.mainloop()
