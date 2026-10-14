@@ -254,7 +254,7 @@ try:
 	
 	#p = pjaDialog().go()
 	t.cueEvts("onInitialise", win=t) # good to go!
-	#t.open_file("f.db")
+	t.open_file("f.db")
 	#t.redraw()
 	
 except Exception as e:

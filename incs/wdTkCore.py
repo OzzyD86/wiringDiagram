@@ -7,6 +7,23 @@ import tkinter.messagebox
 
 from widgets.inputDialog import inputDialog
 
+class inputDialogWithCanvas(inputDialog):
+	def __init__(self, master, *args, **kwargs):
+		super().__init__(master, **kwargs)
+		self.c = Tk.Canvas(self)
+		self.c.grid(column=1, row=0, sticky='news')
+	
+	def check(self, *args, **kwargs):
+		print(args, kwargs, self.vars[kwargs['a']].get())
+		#print(args[0].get())
+		
+	def addItems(self, items = {}):
+		nw = super().addItems(items)
+		for i in items.keys():
+			print(i)
+			self.vars[i].trace_add("write", lambda *args, x=i, **kwargs: self.check(a = x))
+		return nw
+		
 class wdTkCore(Tk.Tk):
 	
 	# === Device Adding
@@ -219,7 +236,7 @@ class wdTkCore(Tk.Tk):
 	# == Plug Adding
 	
 	def connAddWin(self):
-		self.aw = inputDialog(self.window, data={
+		self.aw = inputDialogWithCanvas(self.window, data={
 			"mhName": {
 				"type" : "Combo",
 				"name": "Machine Name",

@@ -461,6 +461,8 @@ class wdTk(wdTkCore):
 	def open_file(self, file):
 		#raise Exception(self._open_file)
 		self.core.open_file(file)
+		for i in self.loaded:
+			i[0].entryconfig(i[1], state="normal")
 		self._open_file = file
 		self.cueEvts("onFileLoad")
 		self.canvas.config(scrollregion=(self.core.dia.bounds))
