@@ -9,6 +9,7 @@ from widgets.inputDialog import inputDialog
 from incs.wdTkCore import wdTkCore
 from copy import copy
 from widgets.megaMenu import megaMenu
+import os
 
 class wdTk(wdTkCore):
 	def resize_canvas(self, event):
@@ -28,7 +29,6 @@ class wdTk(wdTkCore):
 					return None
 				elif (a is True):
 					self.file_save()
-
 		files = [#('All Files', '*.*'), 
 			 ('Databases', '*.db')]
 	
@@ -36,11 +36,14 @@ class wdTk(wdTkCore):
 		if (len(a) == 0):
 			print("Cancelled?")
 		else:
+			if (os.path.exists(a)):
+				os.rename(a, a + ".bak")
+				
 			self._open_file = a
 			self.core.open_file(a)
+			self.cueEvts("onFileLoad")
 			for i in self.loaded:
 				i[0].entryconfig(i[1], state="normal")
-			self.cueEvts("onFileLoad")
 			self.redraw()
 			self.updateWindowTitle()
 			self.core.struct.clear_changed()
@@ -64,10 +67,16 @@ class wdTk(wdTkCore):
 		pass
 		
 	def b1_down(self, event):
+		if (self._open_file is None):
+			return None
 		self.b1_pressed = event
 		self.move = None
 	
 	def b1_move(self, event):
+		if (self._open_file is None):
+			return None
+		if (len(self.canvas.find_all()) == 0):
+			return None
 		if (self.b1_pressed is not None):
 			if (self.move is None):
 				x1 = self.canvas.canvasx(self.b1_pressed.x)
@@ -76,12 +85,14 @@ class wdTk(wdTkCore):
 					"old_event" : self.canvas.find_closest(x1,y1),
 				}
 				
+					
 				c = self.canvas.coords(self.move["old_event"])
 				w = self.canvas.itemconfig(self.move["old_event"], "width")[4]
 				self.move["c"] = c
 				self.move["w"] = w
 				self.move["t"] = self.canvas.gettags(self.move["old_event"])
-				if ("_wire" in self.move["t"]):
+				
+				if ("t" in self.move and "_wire" in self.move["t"]):
 					self.move["new_event"] = {
 						1: [c[0], c[1], self.canvas.create_line(c[0], c[1], event.x, event.y, width =w)],
 						2: [c[2], c[3], self.canvas.create_line(c[2], c[3], event.x, event.y, width=w)]
@@ -92,14 +103,16 @@ class wdTk(wdTkCore):
 				else:
 					self.move["new_event"] = {}
 			else:
-				if ("_wire" in self.move["t"]):
+				if ("t" in self.move and "_wire" in self.move["t"]):
 					for i in self.move["new_event"].values():
 						self.canvas.coords(i[2],i[0],i[1],self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
 					pass
 		
 	def b1_up(self, event):
+		if (self._open_file is None):
+			return None
 		if (self.move is not None):
-			if ("_wire" in self.move["t"]):
+			if ("t" in self.move and "_wire" in self.move["t"]):
 				self.canvas.delete("_alter")
 				c = self.move["c"]
 				w = self.move["w"]
@@ -110,7 +123,7 @@ class wdTk(wdTkCore):
 				self.move = None
 
 		d = megaMenu()
-		d.collapse(self.conf.contextCollapse.get())
+		d.collapse(self.conf.contextCollapse.get() == "1")
 		
 		down = self.b1_pressed
 		up = copy(event)
@@ -127,16 +140,8 @@ class wdTk(wdTkCore):
 			click = True
 		else:
 			click=False
-		#print(self.canvas.find_closest(event.x,event.y))
-		#print(event)
-		#p = copy(event)
-		#p.x = x
-		#p.y = y
-#		d.add_command(label="Create Device here", command= lambda event=event: self.devAddWin(p))
-#		d.add_command(label="Create Waypoint here", command= lambda event=event: self.waypointAddWin(p))
-	
-#		d.add_separator()
-		if (self.conf.dev.get()):
+			
+		if (self.conf.dev.get() == "1"):
 			d.add_command("debug", label="Start: " + str((down.x, down.y)), state="disabled")
 			d.add_command("debug", label="Finish: " + str((up.x, up.y)), state="disabled")
 			d.add_separator("debug")
@@ -152,7 +157,7 @@ class wdTk(wdTkCore):
 		wwis = None
 		for i in self.canvas.gettags(self.canvas.find_closest(down.x,down.y)):
 			tags.append(i)
-			if (self.conf.dev.get()):
+			if (self.conf.dev.get() == "1"):
 				d.add_command("technical", label=i)
 			if (i.split(":")[0] == "mn"):
 				name = i.split(":")[1]
@@ -419,8 +424,8 @@ class wdTk(wdTkCore):
 		self.core.dia.conn_labelling.trace('w', self.set_export_vars)
 		
 		self.scale = Tk.Menu(self.menu["export"])
-		self.scale.add_checkbutton(label="1x", onvalue=1,variable=self.sc)
-		self.scale.add_checkbutton(label="2x", onvalue=2,variable=self.sc)
+		self.scale.add_radiobutton(label="1x", value=1,variable=self.sc)
+		self.scale.add_radiobutton(label="2x", value=2,variable=self.sc)
 		self.sc.trace('w', self.set_export_vars)
 		
 		#self.wp_labelling = False
@@ -673,12 +678,12 @@ class wdTk(wdTkCore):
 				if (self.waypointing.get()):
 					if (len(cs) > 1):
 						#print(cs)
-						r = self.canvas.create_line(st,n[0:2], fill="green")
+						r = self.canvas.create_line(st,n[0:2], fill="black")
 						self.canvas.addtag_withtag("_wire", r)
 						self.canvas.addtag_withtag("BEGIN", r)
 						self.canvas.addtag_withtag("wid:" + str(k), r)
 						self.canvas.addtag_withtag(st,r)
-						r = self.canvas.create_line(n[-2:] ,fn, fill="green")
+						r = self.canvas.create_line(n[-2:] ,fn, fill="black")
 						self.canvas.addtag_withtag("_wire", r)
 						self.canvas.addtag_withtag("END", r)
 						self.canvas.addtag_withtag("wid:" + str(k), r)

@@ -219,6 +219,11 @@ class wdTkCore(Tk.Tk):
 	# == Plug Adding
 	
 	def connAddWin(self):
+		x = self.conf.outerPolicies["General"]["connector_context"]["value"]
+		tkinter.messagebox.showerror("", x)
+		cs = {}
+		for i,j in x.items():
+			cs[i] =j["name"]
 		self.aw = inputDialog(self.window, data={
 			"mhName": {
 				"type" : "Combo",
@@ -232,7 +237,7 @@ class wdTkCore(Tk.Tk):
 			"ddName": {
 				"type": "Combo",
 				"name": "Data Direction",
-				"values": {"None" : "None", "In": "In", "Out":"Out","Both":"Both" },
+				"values": cs #{"None" : "None", "In": "In", "Out":"Out","Both":"Both" },
 			},
 			"val" :{
 				"type":"Spin",

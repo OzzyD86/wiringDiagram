@@ -8,6 +8,14 @@ i18n = {
 }
 class diagram():
 	def __init__(self):
+		
+		self.connector_context = {
+			"In": ["left"],
+			"Out": ["right"],
+			"None": ["left", "right"],
+			"Both": ["left", "right"],
+			None: ["left", "right", "top", "bottom"]
+		}
 		self.bounds = [0,0,0,0]
 		self.dev = {}
 		self.conns = {}
@@ -186,21 +194,28 @@ class diagram():
 				ct = 0
 				nat = ["left", "right"]
 				for i in p.connectors.keys():
-					poss[nat[ct%2]].append(i)
+					poss[nat[ct%len(nat)]].append(i)
 					ct+=1
 			#print(poss)
 
 			if (_type == 1):
 				ct = 0
-				nat = ["left", "right"]
+				#nat = ["left", "right"]
 				for i in p.connectors.keys():
-					if (p.connectors[i]['direction'] in ["In", "in"]):
-						poss["left"].append(i)
-					elif (p.connectors[i]['direction'] in ["Out", "out"]):
-						poss["right"].append(i)
+					if (p.connectors[i]['direction'] in self.connector_context):
+						x = self.connector_context[p.connectors[i]['direction']]
+						
 					else:
-						poss[nat[ct%2]].append(i)
-						ct+=1
+						x = self.connector_context[None]
+						
+					#if (p.connectors[i]['direction'] in ["In", "in"]):
+					#	poss["left"].append(i)
+					#elif (p.connectors[i]['direction'] in ["Out", "out"]):
+					#	poss["right"].append(i)
+					#else:
+					#	poss[nat[ct%len(nat)]].append(i)
+					poss[x[ct%len(x)]].append(i)
+					ct+=1
 			#print(poss)
 		
 		else:
