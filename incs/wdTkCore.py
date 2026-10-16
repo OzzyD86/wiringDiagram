@@ -101,7 +101,7 @@ class wdTkCore(Tk.Tk):
 	# == Device Duplication
 	
 	def dupDevAddWin(self, **preDefs):
-		self.aw = inputDialog(self.window, data={
+		self.aw = inputDialogWithCanvas(self.window, checker=incs.checkers.devDupCheck, data={
 			"dName": {
 				"type" : "Combo",
 				"name": "Existing Machine to Duplicate",
