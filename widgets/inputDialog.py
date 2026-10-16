@@ -2,6 +2,7 @@ import tkinter as Tk
 import tkinter.ttk as ttk
 #from incs.wdCore import wdCore
 #from widgets.connector_points import connector_points
+from widgets.treeViewWithSearch import treeViewWithSearch
 from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
 #import tkinter.messagebox
 
@@ -58,7 +59,10 @@ class inputDialog(Tk.Toplevel):
 			elif(j["type"] in ["Checkbox"]):
 				j["obj"] = Tk.Checkbutton(nw, text=j["name"], variable=self.vars[i], 
 					onvalue=1, offvalue=0)
-			
+			elif (j["type"] in ["TreeView"]):
+				j["obj"] = treeViewWithSearch(nw)
+				for l,k in j["value"].items():
+					j["obj"].add([l, *k.values()])
 			if(j["type"] in ["Checkbox"]):
 				j["obj"].grid(padx=5, pady=(5,0), sticky='w')
 			else:
