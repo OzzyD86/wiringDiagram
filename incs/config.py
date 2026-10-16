@@ -31,7 +31,7 @@ class config():
 		})
 		self.addOption("General", "connector_context", {
 			"name": "Connector Contexts",
-			"type": "Entry",
+			"type": "TreeView",
 			"value": {
 				"None": {
 					"name" : "None",
@@ -43,7 +43,7 @@ class config():
 					"colour" : "red",
 					"pos" : ["left"]
 				},
-				"Out": { "name" : "Out", "colour" : "red", "pos" : ["right"] },
+				"Out": { "name" : "Out", "colour" : "blue", "pos" : ["right"] },
 				"Both": {
 					"name" : "Both",
 					"colour" : "purple",
