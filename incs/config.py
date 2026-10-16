@@ -3,12 +3,53 @@ import tkinter as Tk
 from copy import copy
 import sys
 
+def addOk(*args, **kwargs):
+	Tk.messagebox.showerror("", kwargs)
+	
+def doop(*args, **kwargs):
+	x = inputDialog(args[0], data={
+		"name": {
+			"name":"Name",
+			"type": "Entry",
+		},
+		"colour": {
+			"name":"Colour",
+			"type": "Combo",
+			"values": {
+				"black":"Black",
+			},
+		},
+		"pos_left":{
+			"name":"Left",
+			"type": "Checkbox",
+			"value": 1
+		},
+		"pos_top":{
+			"name":"Top",
+			"type": "Checkbox",
+			"value": 1#.policy["contextCollapse"].get()
+		},
+		"pos_right":{
+			"name":"Right",
+			"type": "Checkbox",
+			"value": 1#.policy["contextCollapse"].get()
+		},
+		"pos_bottom":{
+			"name":"Bottom",
+			"type": "Checkbox",
+			"value": 1#.policy["contextCollapse"].get()
+		}
+	})
+	x.addButton("OK", "ok")
+	x.passFunc("ok", lambda **kwargs: addOk(**kwargs))
+	#Tk.messagebox.showerror("add",args)
+	
 class config():
 	def __init__(self):
 		self.policy = {
 			"dev" : Tk.BooleanVar(value=False),
 			"contextCollapse": Tk.BooleanVar(value=False),
-			#"mode" : Tk.BooleanVar(value = (hasattr(sys, "getandroidapilevel")))
+			"mode" : Tk.BooleanVar(value = (hasattr(sys, "getandroidapilevel")))
 		}
 		self.outerPolicies = {}
 		self.roPols = {
@@ -32,6 +73,8 @@ class config():
 		self.addOption("General", "connector_context", {
 			"name": "Connector Contexts",
 			"type": "TreeView",
+			"onAdd" : [doop],
+			
 			"value": {
 				"None": {
 					"name" : "None",

@@ -220,7 +220,6 @@ class wdTkCore(Tk.Tk):
 	
 	def connAddWin(self):
 		x = self.conf.outerPolicies["General"]["connector_context"]["value"]
-		#tkinter.messagebox.showerror("", x)
 		cs = {}
 		for i,j in x.items():
 			cs[i] =j["name"]
