@@ -163,7 +163,7 @@ class diagram():
 		return bbox
 		#return [bbox[0]-100, bbox[1] -100, bbox[2]+100,bbox[3]+100]
 		
-	def objMk(self, dr, p, dms = (0,0,1,1), _type = 1, honour_db = False, offset = (0,0)):
+	def objMk(self, dr, p, dms = (0,0,1,1), _type = 1, honour_db = False, offset = (0,0), connector_names = False):
 		try:
 			f = ImageFont.load_default_imagefont()
 		except:
@@ -248,7 +248,7 @@ class diagram():
 					op = dr.create_rectangle(lf-2.5, tp-2.5, lf + 2.5, tp+2.5, outline=c)
 					dr.addtag_withtag("_conn", op)
 					dr.addtag_withtag("c:"+p.machName+"."+fc, op)
-					if (self.conn_labelling.get()):
+					if (connector_names):
 						otx = dr.create_text(lf+to[0],tp+to[1],text=fc,font=i18n["font_small"],angle=ro,anchor=an)
 						dr.addtag_withtag("_conn", otx)
 						dr.addtag_withtag("c:"+p.machName+"."+fc, otx)

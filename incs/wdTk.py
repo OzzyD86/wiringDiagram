@@ -638,7 +638,7 @@ class wdTk(wdTkCore):
 		self.canvas.delete("_conn")
 		for i in d.listDevices():
 			if (i in d.locs):
-				aa = d.objMk(self.canvas, d.getDevice(i), d.locs[i])
+				aa = d.objMk(self.canvas, d.getDevice(i), d.locs[i], connector_names = self.conn_labelling.get())
 				d.getDevice(i).drwConnPos = aa
 
 		self.canvas.delete("_wire")
