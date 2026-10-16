@@ -6,35 +6,38 @@ import tkinter as Tk
 import tkinter.messagebox
 from copy import deepcopy
 from dev import device
-
 from widgets.inputDialog import inputDialog
+import incs.checkers
 
 class inputDialogWithCanvas(inputDialog):
-	def __init__(self, master, *args, **kwargs):
+	def __init__(self, master, checker = None, *args, **kwargs):
 		super().__init__(master, **kwargs)
 		self.c = Tk.Canvas(self)
+		self.checker = checker
 		self.c.grid(column=1, row=0, sticky='news')
 	
 	def check(self, *args, **kwargs):
-		#print(args, kwargs, self.vars[kwargs['a']].get())
-		v = int(self.vars['val'].get())
-		#print(args[0].get())
-		p = self.nametowidget(".").core.dia # Aha! That's how to do it!
-		self.c.delete("all")
-		
-		mm = self.data['mhName']["obj"].get_key_of_value(self.vars['mhName'].get())
-		x = (p.locs[mm])
-		y = deepcopy(p.getDevice(mm))
-		
-		if (v == 1):
-			y.addConnector(self.vars['cName'].get(), direction = self.vars['ddName'].get())
-		elif (v > 1):
-			for i in range(v):
-				y.addConnector(self.vars['cName'].get() + "_" + str(i+1), direction = self.vars['ddName'].get())
+		if (self.checker is None):
+			#print(args, kwargs, self.vars[kwargs['a']].get())
+			v = int(self.vars['val'].get())
+			#print(args[0].get())
+			p = self.nametowidget(".").core.dia # Aha! That's how to do it!
+			self.c.delete("all")
+			
+			mm = self.data['mhName']["obj"].get_key_of_value(self.vars['mhName'].get())
+			x = (p.locs[mm])
+			y = deepcopy(p.getDevice(mm))
+			
+			if (v == 1):
+				y.addConnector(self.vars['cName'].get(), direction = self.vars['ddName'].get())
+			elif (v > 1):
+				for i in range(v):
+					y.addConnector(self.vars['cName'].get() + "_" + str(i+1), direction = self.vars['ddName'].get())
 
-		aa = p.objMk(self.c, y, (250, 150, x[2], x[3]), connector_names = True)
-		
-		print(type(p))
+			aa = p.objMk(self.c, y, (250, 150, x[2], x[3]), connector_names = True)
+		else:
+			self.checker(self, *args, **kwargs)
+		#print(type(p))
 		
 	def addItems(self, items = {}):
 		nw = super().addItems(items)
@@ -42,42 +45,6 @@ class inputDialogWithCanvas(inputDialog):
 			print(i)
 			self.vars[i].trace_add("write", lambda *args, x=i, **kwargs: self.check(a = x))
 		return nw
-
-class deviceAdd(inputDialogWithCanvas):
-	def check(self, *args, **kwargs):
-		print(args, kwargs, self.vars[kwargs['a']].get())
-		#v = int(self.vars['val'].get())
-		#print(args[0].get())
-		p = self.nametowidget(".").core.dia # Aha! That's how to do it!
-		self.c.delete("all")
-		
-		#mm = self.data['mhName']["obj"].get_key_of_value(self.vars['mhName'].get())
-		#x = (p.locs[mm])
-		#y = deepcopy(p.getDevice(mm))
-		y = device(self.vars['mName'].get(), self.vars['hName'].get())
-		#if (v == 1):
-		#	y.addConnector(self.vars['cName'].get(), direction = self.vars['ddName'].get())
-		#elif (v > 1):
-		#	for i in range(v):
-		#		y.addConnector(self.vars['cName'].get() + "_" + str(i+1), direction = self.vars['ddName'].get())
-
-		aa = p.objMk(self.c, y, (250, 150, 50, 50), connector_names = True)
-
-class deviceEdit(inputDialogWithCanvas):
-	def check(self, *args, **kwargs):
-		print(args, kwargs, self.vars[kwargs['a']].get())
-		#print(args[0].get())
-		p = self.nametowidget(".").core.dia # Aha! That's how to do it!
-		self.c.delete("all")
-		
-		mm = self.data['mName']["obj"].get_key_of_value(self.vars['mName'].get())
-		x = (p.locs[mm])
-		y = deepcopy(p.getDevice(mm))
-		
-		try:
-			aa = p.objMk(self.c, y, (250, 150, int(self.vars['width'].get()), int(self.vars['height'].get())), connector_names = True)
-		except ValueError:
-			pass
 			
 class wdTkCore(Tk.Tk):
 	
@@ -88,7 +55,7 @@ class wdTkCore(Tk.Tk):
 	def devAddWin(self, event = None):
 		d = getattr(event, "x", 0)
 			
-		self.aw = deviceAdd(self.window, data={
+		self.aw = inputDialogWithCanvas(self.window, checker=incs.checkers.devAddCheck, data={
 			"mName": {
 				"type" : "Entry",
 				"name" : "New Machine Name",
@@ -192,7 +159,7 @@ class wdTkCore(Tk.Tk):
 		for i in self.cueEvts("onDevEditWinPreDef", False):
 			preDefs = i(preDefs)
 			
-		self.aw = deviceEdit(self.window, data={
+		self.aw = inputDialogWithCanvas(self.window, checker=incs.checkers.devEditCheck, data={
 			"mName":{
 				"type" : "Combo",
 				"name": "Edit Machine",
