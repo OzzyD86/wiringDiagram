@@ -2,7 +2,7 @@ from copy import copy
 from PIL import Image, ImageDraw, ImageFont
 #forom incs.diagram import diagram
 #forom dev import device
-		
+	
 def drag_start(event):
 	widget = event.widget
 	widget._drag_start_x = event.x
@@ -28,13 +28,13 @@ import sys
 from incs.config import config
 
 def report_callback_exception(self, exc, val, tb):
-	d = pjaDialog()
-	text_box = Tk.Text(d.top, wrap=Tk.WORD, width=80, height=10)
+	d = Tk.Toplevel()
+	text_box = Tk.Text(d, wrap=Tk.WORD, width=80, height=10)
 	text_box.insert("0.0", str(traceback.extract_stack()) + "\n" + str(val))
 	text_box.grid(row=0, column=0, rowspan=3, padx=10, pady=10, sticky="nsew")
-	d.top.rowconfigure(0, weight=1)
-	d.top.columnconfigure(0, weight=1)
-	d.go()
+	d.rowconfigure(0, weight=1)
+	d.columnconfigure(0, weight=1)
+	#d.go()
 
 tkinter.Tk.report_callback_exception = report_callback_exception
 
@@ -46,6 +46,7 @@ class version(Tk.Toplevel):
 		for i in a:
 			Tk.Label(self, text="* " + i, font="Arial 6").grid(sticky="w", padx=5)
 		Tk.Button(self, text="Ok", command = self.destroy).grid(pady=5)
+
 import incs.wdTk
 import os, importlib
 
@@ -172,6 +173,11 @@ class wdTk(incs.wdTk.wdTk):
 app = "wiringDiagram"
 try:
 	t = wdTk( c=config)
+	s = ttk.Style()
+
+	if hasattr(sys, 'getandroidapilevel'):
+		s.configure('Treeview', rowheight=48+8)
+
 	#setattr(t, "config", config())
 	#t.config.open()
 	t.menu["root"].add_command(label="Configure", command= t.conf.open)
@@ -188,8 +194,9 @@ try:
 		"Scale is radio button not check box"
 	]
 	#version(t, ch)
-	t.open_file("f.db")
+	#t.open_file("f.db")
 	#t.redraw()
+	t.window.mainloop()
 	
 except Exception as e:
 	#t.destroy()
@@ -204,4 +211,3 @@ except Exception as e:
 	d.columnconfigure(0, weight=1)
 	d.mainloop()
 
-t.window.mainloop()
