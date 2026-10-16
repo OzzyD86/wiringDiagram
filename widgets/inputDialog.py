@@ -60,7 +60,7 @@ class inputDialog(Tk.Toplevel):
 				j["obj"] = Tk.Checkbutton(nw, text=j["name"], variable=self.vars[i], 
 					onvalue=1, offvalue=0)
 			elif (j["type"] in ["TreeView"]):
-				j["obj"] = treeViewWithSearch(nw)
+				j["obj"] = treeViewWithSearch(nw, adds = j["onAdd"])
 				for l,k in j["value"].items():
 					j["obj"].add([l, *k.values()])
 			if(j["type"] in ["Checkbox"]):

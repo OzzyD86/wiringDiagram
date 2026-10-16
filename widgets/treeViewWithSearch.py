@@ -1,6 +1,6 @@
 import tkinter
 from tkinter import ttk
-#from tkinter.messagebox import showerror
+from tkinter.messagebox import showerror
 
 class treeViewWithSearch(tkinter.Frame):
 	
@@ -93,9 +93,7 @@ class treeViewWithSearch(tkinter.Frame):
 		self.storage[what][0] = where 
 
 	def delete(self, id):
-#		print(id)
-		#print(list(self.storage.keys()))
-#		return
+		
 		if (type(id) in [list, tuple]):
 			for i in id:
 				if (i in self.storage):
@@ -137,11 +135,25 @@ class treeViewWithSearch(tkinter.Frame):
 		#elif event.type == "36" or "Close" in str(event):  # <<TreeviewClose>>
 		#	self.opens.discard(item_id)
 		#showerror(event.type, self.opens)
-        
+      
+	def doAdd(self):
+		o = []
+		for i in self.adds:
+			o.append(i(self))
+		return o
+    	
 	def __init__(self, master, storeSize = 2, **kw):
 		self.storage = {}
 		self.opens = set()
+		
+		self.adds = []
+		if ("adds" in kw):
+			self.adds = kw["adds"]
+			del kw["adds"]
 		super().__init__(master, **kw)
+		p = tkinter.Frame(self)
+		tkinter.Button(p, text="Add", command=self.doAdd).grid(row=0, column=0)
+		
 		self.tt = tkinter.StringVar()
 
 		self.search_label = tkinter.Label(self, text="search")
@@ -162,3 +174,8 @@ class treeViewWithSearch(tkinter.Frame):
 		self.sb.grid(column=2,row=1,sticky="ns")
 		self.sb.config(command=self.tv.yview)
 		self.tv.config(yscrollcommand=self.sb.set)
+		
+		p.grid(row=2, columnspan=3)
+		#tkinter.Button(p, text="Edit", state="disabled").grid(row=0, column=1)
+		#tkinter.Button(p, text="Remove", state="disabled").grid(row=0, column=2)
+	
