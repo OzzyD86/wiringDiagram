@@ -196,6 +196,7 @@ class wdTk(wdTkCore):
 	
 			else:
 				d.add_command(label="Edit device...", command = lambda dName=name: self.devEditWin(mName=dName))
+				d.add_command(label="Add plugs...", command= lambda : self.connAddWin(mhName=name))
 				d.add_command(label="Delete device", command= lambda : self.devDelComplete(dhName=name))
 		
 		if ("_wp" in tags):

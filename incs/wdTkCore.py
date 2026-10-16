@@ -290,7 +290,7 @@ class wdTkCore(Tk.Tk):
 	
 	# == Plug Adding
 	
-	def connAddWin(self):
+	def connAddWin(self, **preDefs):
 		self.aw = inputDialogWithCanvas(self.window, data={
 			"mhName": {
 				"type" : "Combo",
@@ -313,6 +313,8 @@ class wdTkCore(Tk.Tk):
 		})
 		self.aw.addButton("Add", "add")
 		self.aw.passFunc("add", self.connAddComplete)
+		for i,j in preDefs.items():
+			self.aw.set(i, j)
 
 	def connAddComplete(self, **kwargs):
 		p = self.core.dia.listDevices(True)
