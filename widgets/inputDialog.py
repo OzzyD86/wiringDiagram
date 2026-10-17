@@ -5,6 +5,7 @@ import tkinter.ttk as ttk
 from widgets.treeViewWithSearch import treeViewWithSearch
 from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
 #import tkinter.messagebox
+#from incs.config import dataWrapper
 
 class inputDialog(Tk.Toplevel):
 	def __init__(self, master=None, data={}, **kwargs):
@@ -91,12 +92,18 @@ class inputDialog(Tk.Toplevel):
 			snd['s'] = self.sf
 		#print("Do stuff here") 
 		for i,j in self.vars.items():
+			#Tk.messagebox.showerror(i, type(j))
 			if (type(j) is Tk.StringVar):
 				if (self.data[i]["type"] in ["Combo"] and type(self.data[i]["values"]) is dict):
 					snd[i] = self.data[i]["obj"].get_key_of_value(j.get())
 				else:
 					snd[i] = j.get()
+			elif (str(type(j)).find("incs.config.dataWrapper") >= 0):
+				#Tk.messagebox.showerror("", "dataWrapper")
+				snd[i] = self.data[i]["obj"].get()
+				j.set(self.data[i]["obj"].get())
 			else:
+				Tk.messagebox.showerror("", j)
 				print("Slight panic:", i, j)
 		
 		for i in self.funcs[mode]:

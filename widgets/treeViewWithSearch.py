@@ -145,7 +145,7 @@ class treeViewWithSearch(tkinter.Frame):
 	def __init__(self, master, storeSize = 2, **kw):
 		self.storage = {}
 		self.opens = set()
-		
+		self.master = master
 		self.adds = []
 		if ("adds" in kw):
 			self.adds = kw["adds"]
@@ -179,3 +179,8 @@ class treeViewWithSearch(tkinter.Frame):
 		#tkinter.Button(p, text="Edit", state="disabled").grid(row=0, column=1)
 		#tkinter.Button(p, text="Remove", state="disabled").grid(row=0, column=2)
 	
+	def get(self):
+		o = {}
+		for i,j in self.storage.items():
+			o[i] = j[1]
+		return o
