@@ -69,7 +69,8 @@ class dataWrapper():
 		return json.dumps(self.data)
 		
 class config():
-	def __init__(self):
+	def __init__(self, master=None):
+		self.master = master
 		self.policy = {
 			"dev" : Tk.BooleanVar(value=False),
 			"contextCollapse": Tk.BooleanVar(value=False),
@@ -143,17 +144,24 @@ class config():
 		pass
 		
 	def ok(self, **kwargs):
+		cur = self.master.nametowidget(".").core.struct.cur # Aha! That's how to do it!
+	
 		#Tk.messagebox.showerror("", kwargs["connector_context"])
 		for i,j in kwargs.items():
 			self.policy[i].set(j)
-			
-		Tk.messagebox.showerror("co", self.policy["connector_context"].get())
+			y = self.policy[i].get()
+			if (type(y) is dict):
+				y = json.dumps(y)
+			cur.execute("replace into config (`key`, `value`) values (?,?)", (i, y))
+		#Tk.messagebox.showerror("co", self.policy["connector_context"].get())
+		
 		d = dataWrapper()
 		for i,j in kwargs["connector_context"].items():
-			Tk.messagebox.showerror(i, j)
+			#Tk.messagebox.showerror(i, j)
 			d.data[i] = {"name": j[0], "colour": j[1], "pos": j[2] }
 		self.policy["connector_context"] = d
 		self.outerPolicies["General"]["connector_context"]["value"] = d.get()
 		self.dev.set(self.policy["dev"].get())
 		self.contextCollapse.set(self.policy["contextCollapse"].get())
+
 		return True

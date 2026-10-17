@@ -323,7 +323,7 @@ class wdTk(wdTkCore):
 		self.window = self #Tk.Tk()
 
 		# Compile the configuration system
-		self.conf = coo()
+		self.conf = coo(self)
 		if (self.conf.roPols["mode"].get() == False):
 			offs = 1
 		
