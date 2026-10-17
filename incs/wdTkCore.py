@@ -219,7 +219,7 @@ class wdTkCore(Tk.Tk):
 	# == Plug Adding
 	
 	def connAddWin(self):
-		x = self.conf.outerPolicies["General"]["connector_context"]["value"]
+		x = self.conf.policy["connector_context"].get() #outerPolicies["General"]["connector_context"]["value"]
 		cs = {}
 		for i,j in x.items():
 			cs[i] =j["name"]
