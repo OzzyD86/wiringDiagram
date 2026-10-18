@@ -387,7 +387,7 @@ class wdTkCore(Tk.Tk):
 			Tk.messagebox.showerror(val[0]["target"], args)
 
 	def wireAddWin(self, **preDefs):
-		self.aw = inputDialog(self.window, data={
+		self.aw = inputDialogWithCanvas(self.window, checker=incs.checkers.wireAddCheck, data={
 			"outdName" : {
 				"type":"Combo",
 				"name":"Output Device Name",
