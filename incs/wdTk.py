@@ -492,6 +492,17 @@ class wdTk(wdTkCore):
 		else:
 			a = a.name
 			self.core.open_file(a)
+			for i in self.core.struct.cur.execute("select * from config"):
+				if (i[0] in self.conf.policy):
+					if (hasattr(self.conf.policy[i[0]], "load")):
+						self.conf.policy[i[0]].load(i[1])
+					else:
+						self.conf.policy[i[0]].set(i[1])
+					#tkinter.messagebox.showerror("load", type(self.conf.policy[i[0]].get()))
+				
+					if (i[0] in self.conf.innerPolicies):
+						self.conf.innerPolicies[i[0]]["value"] = self.conf.policy[i[0]].get()
+							
 			for i in self.loaded:
 				i[0].entryconfig(i[1], state="normal")
 			self.cueEvts("onFileLoad")

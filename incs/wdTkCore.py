@@ -220,8 +220,10 @@ class wdTkCore(Tk.Tk):
 	
 	def connAddWin(self):
 		x = self.conf.policy["connector_context"].get() #outerPolicies["General"]["connector_context"]["value"]
+		
 		cs = {}
 		for i,j in x.items():
+			#raise Exception(j)
 			cs[i] =j["name"]
 		self.aw = inputDialog(self.window, data={
 			"mhName": {

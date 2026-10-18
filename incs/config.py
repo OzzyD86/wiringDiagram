@@ -12,6 +12,11 @@ def addOk(*args, **kwargs):
 		if (kwargs["pos_" + i] == "1"):
 			y.append(i)
 	kwargs["i"].add([kwargs["name"],kwargs["name"],kwargs["colour"],y])
+	x.innerPolicies["connector_context"]["value"][kwargs["name"]] = {
+		"name": kwargs["name"],
+		"colour": kwargs["colour"],
+		"pos": y
+	}
 	return True
 	
 def doop(*args, **kwargs):
@@ -83,6 +88,7 @@ class config():
 			}),
 		}
 		self.outerPolicies = {}
+		self.innerPolicies = {}
 		self.roPols = {
 			"mode" : Tk.BooleanVar(value = (hasattr(sys, "getandroidapilevel")))	
 		}
@@ -108,31 +114,41 @@ class config():
 			
 			"value": self.policy["connector_context"].get()
 		})
-		self.innerPolicies = {}
 		self.dev = self.policy["dev"]
 		self.contextCollapse = self.policy["contextCollapse"]
 	
 	def addOption(self, placement, key, data = {}, **kwargs):
 		if (not placement in self.outerPolicies):
-			self.outerPolicies[placement] = {}
+			self.outerPolicies[placement] = []
 		
+		self.outerPolicies[placement].append(key)
 		if (not key in self.policy):
-			self.policy[key] = Tk.StringVar()
+			if ("store" in data):
+				self.policy[key] = data["store"]
+			else:
+				self.policy[key] = Tk.StringVar()
 		
-		self.outerPolicies[placement][key] = data
+		self.innerPolicies[key] = data
+		
 		if ("value" in data):
 			self.policy[key].set(data["value"])
 		
 	def open(self):
-		p = self.outerPolicies.copy()
+		pages = {}
+		for i,j in self.outerPolicies.items():
+			pages[i] = {}
+			for k in j:
+				pages[i][k] = self.innerPolicies[k]
+				
+		p = pages #self.outerPolicies.copy()
 		if ("General" in p):
 			d = p["General"]
 			del p["General"]
 		else:
 			d={}
+		#raise Exception(d)
 		v = inputDialog(data=d)
-		#if ("" in self.outerPolicies):
-		#	del self.outerPolicies[""]
+		
 		for i,j in p.items():
 			v.addNb(i,j)
 		for i,j in self.policy.items():
@@ -145,22 +161,31 @@ class config():
 		
 	def ok(self, **kwargs):
 		cur = self.master.nametowidget(".").core.struct.cur # Aha! That's how to do it!
-	
-		#Tk.messagebox.showerror("", kwargs["connector_context"])
-		for i,j in kwargs.items():
-			self.policy[i].set(j)
-			y = self.policy[i].get()
-			if (type(y) is dict):
-				y = json.dumps(y)
-			cur.execute("replace into config (`key`, `value`) values (?,?)", (i, y))
-		#Tk.messagebox.showerror("co", self.policy["connector_context"].get())
-		
 		d = dataWrapper()
 		for i,j in kwargs["connector_context"].items():
 			#Tk.messagebox.showerror(i, j)
 			d.data[i] = {"name": j[0], "colour": j[1], "pos": j[2] }
+		kwargs["connector_context"] = d.get()
+		#Tk.messagebox.showerror("", kwargs["connector_context"])
+		for i,j in kwargs.items():
+			self.policy[i].set(j)
+			self.innerPolicies[i]["value"] = j#self.policy[i]
+			y=j
+			t=False
+			for k in self.outerPolicies.values():
+				if (i in k):
+					t = True
+			
+			if (t):
+				if (type(y) is dict):
+					y = json.dumps(y)
+					
+				cur.execute("replace into config (`key`, `value`) values (?,?)", (i, y))
+		#Tk.messagebox.showerror("co", self.policy["connector_context"].get())
+		
+		
 		self.policy["connector_context"] = d
-		self.outerPolicies["General"]["connector_context"]["value"] = d.get()
+		self.innerPolicies["connector_context"]["value"] = d.get()
 		self.dev.set(self.policy["dev"].get())
 		self.contextCollapse.set(self.policy["contextCollapse"].get())
 
