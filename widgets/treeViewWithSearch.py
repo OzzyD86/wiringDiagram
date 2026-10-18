@@ -142,11 +142,14 @@ class treeViewWithSearch(tkinter.Frame):
 			o.append(i(self))
 		return o
     	
-	def __init__(self, master, storeSize = 2, **kw):
+	def __init__(self, master, storeSize = 2, compile_keys = None, **kw):
 		self.storage = {}
 		self.opens = set()
 		self.master = master
 		self.adds = []
+		
+		self.compileKeys = compile_keys
+			
 		if ("adds" in kw):
 			self.adds = kw["adds"]
 			del kw["adds"]
@@ -180,7 +183,20 @@ class treeViewWithSearch(tkinter.Frame):
 		#tkinter.Button(p, text="Remove", state="disabled").grid(row=0, column=2)
 	
 	def get(self):
+		#if (self.compileKeys is not None):
+		#	return self.get_compile()
+			
 		o = {}
 		for i,j in self.storage.items():
 			o[i] = j[1]
+		return o
+		
+	def get_compile(self):
+		o = {}
+		for i,j in self.storage.items():
+			t = {}
+			for k in self.compileKeys:
+				t[k] = j.pop(0)
+			#o[i] = j[1]
+			o[i] = t
 		return o

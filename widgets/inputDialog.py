@@ -62,8 +62,12 @@ class inputDialog(Tk.Toplevel):
 					onvalue=1, offvalue=0)
 			elif (j["type"] in ["TreeView"]):
 				j["obj"] = treeViewWithSearch(nw, adds = j["onAdd"])
+				keys = None
 				for l,k in j["value"].items():
+					if (keys is None):
+						keys = k.keys()
 					j["obj"].add([l, *k.values()])
+				j["obj"].compileKeys = keys
 			if(j["type"] in ["Checkbox"]):
 				j["obj"].grid(padx=5, pady=(5,0), sticky='w')
 			else:
@@ -98,7 +102,7 @@ class inputDialog(Tk.Toplevel):
 					snd[i] = self.data[i]["obj"].get_key_of_value(j.get())
 				else:
 					snd[i] = j.get()
-			elif (str(type(j)).find("incs.config.dataWrapper") >= 0):
+			elif (hasattr(j, "load")):
 				#Tk.messagebox.showerror("", "dataWrapper")
 				snd[i] = self.data[i]["obj"].get()
 				j.set(self.data[i]["obj"].get())
