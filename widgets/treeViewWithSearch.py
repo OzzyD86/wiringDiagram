@@ -183,8 +183,8 @@ class treeViewWithSearch(tkinter.Frame):
 		#tkinter.Button(p, text="Remove", state="disabled").grid(row=0, column=2)
 	
 	def get(self):
-		#if (self.compileKeys is not None):
-		#	return self.get_compile()
+		if (self.compileKeys is not None):
+			return self.get_compile()
 			
 		o = {}
 		for i,j in self.storage.items():
@@ -193,10 +193,16 @@ class treeViewWithSearch(tkinter.Frame):
 		
 	def get_compile(self):
 		o = {}
+		#raise Exception(self.storage.items())
 		for i,j in self.storage.items():
-			t = {}
-			for k in self.compileKeys:
-				t[k] = j.pop(0)
-			#o[i] = j[1]
-			o[i] = t
+			
+			if (len(list(self.compileKeys)) != len(j[1])):
+				pass#raise Exception(j[1], self.compileKeys)
+			else:
+				t = {}
+				for k in self.compileKeys:
+					t[k] = j[1].pop(0)
+				#o[i] = j[1]
+				o[i] = t
+		#raise Exception(o)
 		return o
