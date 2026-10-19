@@ -4,19 +4,20 @@ from copy import copy
 import sys
 import json
 
-def addOk(*args, **kwargs):
+def addOk(s, *args, **kwargs):
 	x = kwargs["i"].nametowidget(".").conf # Aha! That's how to do it!
 	y = []
-	#Tk.messagebox.showerror("", kwargs)
+
 	for i in ["left", "top", "bottom", "right"]:
 		if (kwargs["pos_" + i] == "1"):
 			y.append(i)
 	kwargs["i"].add([kwargs["name"],kwargs["name"],kwargs["colour"],y])
+	s.data
 	x.innerPolicies["connector_context"]["value"][kwargs["name"]] = {
 		"name": kwargs["name"],
 		"colour": kwargs["colour"],
 		"pos": y
-	}
+	} # This shouldnt be done here!!
 	return True
 	
 def doop(*args, **kwargs):
@@ -54,7 +55,7 @@ def doop(*args, **kwargs):
 		}
 	})
 	x.addButton("OK", "ok")
-	x.passFunc("ok", lambda i=args[0], **kwargs: addOk(**kwargs, i =i))
+	x.passFunc("ok", lambda i=args[0], s=x, **kwargs: addOk(**kwargs, i =i,s=s))
 	#Tk.messagebox.showerror("add",args)
 
 class dataWrapper():
@@ -164,7 +165,7 @@ class config():
 		d = dataWrapper()
 		for i,j in kwargs["connector_context"].items():
 			#Tk.messagebox.showerror(i, j)
-			d.data[i] = {"name": j[0], "colour": j[1], "pos": j[2] }
+			d.data[i] = j#{"name": j["name"], "colour": j["colour"], "pos": j["pos"] }
 		kwargs["connector_context"] = d.get()
 		#Tk.messagebox.showerror("", kwargs["connector_context"])
 		for i,j in kwargs.items():
@@ -182,7 +183,6 @@ class config():
 					
 				cur.execute("replace into config (`key`, `value`) values (?,?)", (i, y))
 		#Tk.messagebox.showerror("co", self.policy["connector_context"].get())
-		
 		
 		self.policy["connector_context"] = d
 		self.innerPolicies["connector_context"]["value"] = d.get()
