@@ -1,7 +1,7 @@
 from incs.diagram import diagram
 from dev import device
 from incs.diagramStructure import diagramStructure
-
+import json
 from incs.wire import wire
 
 class wdCore():
@@ -22,6 +22,7 @@ class wdCore():
 			self.struct = None
 		
 		f = diagramStructure(file)
+		
 		f.build()
 		if (f.check_version() < self.check_current_version()):
 			print("Update needed")
@@ -32,10 +33,21 @@ class wdCore():
 
 		self.importStruct(f)
 		f.clear_changed()
-		
 		pass
 		
 	def load(self, resource):
+		# Do this in config elsewhere!
+		c=0
+		l = {}
+		for i in resource.cur.execute("select * from config where key = ?", ("connector_context",)):
+			c+= 1
+			p = json.loads(i[1])
+			
+			for j,k in p.items():
+				l[j] = k["pos"]
+		l[None] = ["left", "right", "top", "bottom"]
+		self.dia.connector_context = l
+		
 		for i in resource.cur.execute("select * from units"):
 		#print(dict(i))
 			self.dia.addDevice(i['iName'], device(i["iName"], i['proName']))

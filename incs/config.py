@@ -11,8 +11,8 @@ def addOk(s, *args, **kwargs):
 	for i in ["left", "top", "bottom", "right"]:
 		if (kwargs["pos_" + i] == "1"):
 			y.append(i)
-	kwargs["i"].add([kwargs["name"],kwargs["name"],kwargs["colour"],y])
-	s.data
+	kwargs["i"].add([kwargs["name"],{"name": kwargs["name"],"colour":kwargs["colour"], "pos":y}])
+	#s.data
 	x.innerPolicies["connector_context"]["value"][kwargs["name"]] = {
 		"name": kwargs["name"],
 		"colour": kwargs["colour"],
