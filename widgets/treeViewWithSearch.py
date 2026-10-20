@@ -98,11 +98,15 @@ class treeViewWithSearch(tkinter.Frame):
 			for i in id:
 				if (i in self.storage):
 					del self.storage[i]
+					del self.exter_storage[i]
 				elif(int(i) in self.storage):
 					del self.storage[int(i)]
+					del self.exter_storage[int(i)]
 				else:
+					del self.exter_storage[str(i)]
 					del self.storage[str(i)] # Is this not good enough for you?!
 		else:
+			del self.exter_storage[id]
 			del self.storage[id]
 		self.tv.delete(id)
 		# We need to solve recursive deletes here?
@@ -117,8 +121,9 @@ class treeViewWithSearch(tkinter.Frame):
 		self.tv.item(item, text=data[0], values= data[1:])
 
 	def add(self, data, parent = ""):
-		self.storage[data[0]] = [parent, data[1:]]
-		self.tv.insert(parent, "end", data[0], text=data[1], values= data[2:])
+		self.storage[data[0]] = [parent, data[1].values()]
+		self.exter_storage[data[0]] = data[1]
+		self.tv.insert(parent, "end", data[0], text=list(data[1].values())[0], values= list(data[1].values())[1:])
 
 	def update_closed_items(self, event):
 		tree = event.widget
@@ -141,9 +146,14 @@ class treeViewWithSearch(tkinter.Frame):
 		for i in self.adds:
 			o.append(i(self))
 		return o
-    	
+
+	def delSel(self):
+		if (self.selected() is not None):
+			self.delete(self.selected())
+	
 	def __init__(self, master, storeSize = 2, compile_keys = None, **kw):
 		self.storage = {}
+		self.exter_storage = {}
 		self.opens = set()
 		self.master = master
 		self.adds = []
@@ -180,9 +190,11 @@ class treeViewWithSearch(tkinter.Frame):
 		
 		p.grid(row=2, columnspan=3)
 		#tkinter.Button(p, text="Edit", state="disabled").grid(row=0, column=1)
-		#tkinter.Button(p, text="Remove", state="disabled").grid(row=0, column=2)
+		tkinter.Button(p, text="Remove", command=self.delSel).grid(row=0, column=2)
 	
 	def get(self):
+		
+		return self.exter_storage
 		if (self.compileKeys is not None):
 			return self.get_compile()
 			

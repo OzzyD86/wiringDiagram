@@ -66,7 +66,7 @@ class inputDialog(Tk.Toplevel):
 				for l,k in j["value"].items():
 					if (keys is None):
 						keys = k.keys()
-					j["obj"].add([l, *k.values()])
+					j["obj"].add([l, k])
 				j["obj"].compileKeys = keys
 			if(j["type"] in ["Checkbox"]):
 				j["obj"].grid(padx=5, pady=(5,0), sticky='w')
