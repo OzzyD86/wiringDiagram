@@ -87,6 +87,9 @@ class config():
 				"Out": { "name" : "Out", "colour" : "blue", "pos" : ["right"] },
 				"Both": { "name" : "Both", "colour" : "purple", "pos" : ["left", "right"] }
 			}),
+			"colours" : dataWrapper({
+				"Black": {"hex":"#000000","rgb":[0,0,0]},
+			})
 		}
 		self.outerPolicies = {}
 		self.innerPolicies = {}
@@ -114,6 +117,13 @@ class config():
 			"onAdd" : [doop],
 			
 			"value": self.policy["connector_context"].get()
+		})
+		self.addOption("Test", "colours", {
+			"name": "Connector Contexts",
+			"type": "TreeView",
+			"onAdd" : [],
+			"varStore": self.policy["colours"],
+			"value": self.policy["colours"].get()
 		})
 		self.dev = self.policy["dev"]
 		self.contextCollapse = self.policy["contextCollapse"]
