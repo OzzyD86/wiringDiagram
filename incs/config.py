@@ -5,6 +5,7 @@ import sys
 import json
 
 def addOk(s, *args, **kwargs):
+	
 	x = kwargs["i"].nametowidget(".").conf # Aha! That's how to do it!
 	y = []
 
@@ -17,6 +18,20 @@ def addOk(s, *args, **kwargs):
 		"name": kwargs["name"],
 		"colour": kwargs["colour"],
 		"pos": y
+	} # This shouldnt be done here!!
+	return True
+	
+def addPoodOk(s, *args, **kwargs):
+	x = kwargs["i"].nametowidget(".").conf # Aha! That's how to do it!
+	y = []
+
+	for i in ["r", "g", "b"]:
+		y.append(int(kwargs[i]))
+	kwargs["i"].add([kwargs["name"],{ "hex":kwargs["hex"], "rgb":y}])
+	#s.data
+	x.innerPolicies["colours"]["value"][kwargs["name"]] = {
+		"hex": kwargs["hex"],
+		"rgb": y
 	} # This shouldnt be done here!!
 	return True
 	
@@ -57,6 +72,32 @@ def doop(*args, **kwargs):
 	x.addButton("OK", "ok")
 	x.passFunc("ok", lambda i=args[0], s=x, **kwargs: addOk(**kwargs, i =i,s=s))
 	#Tk.messagebox.showerror("add",args)
+
+def pood(*args, **kwargs):
+	x = inputDialog(args[0], data={
+		"name": {
+			"name":"Name",
+			"type": "Entry",
+		},
+		"hex": {
+			"name":"Hexadecimal Value",
+			"type": "Entry",
+		},
+		"r":{
+			"name":"Red",
+			"type": "Entry",
+		},
+		"g":{
+			"name":"Green",
+			"type": "Entry",
+		},
+		"b":{
+			"name":"Blue",
+			"type": "Entry",
+		}
+	})
+	x.addButton("OK", "ok")
+	x.passFunc("ok", lambda i=args[0], s=x, **kwargs: addPoodOk(**kwargs, i =i,s=s))
 
 class dataWrapper():
 	def __init__(self, data = {}):
@@ -115,13 +156,13 @@ class config():
 			"name": "Connector Contexts",
 			"type": "TreeView",
 			"onAdd" : [doop],
-			
+			"varStore": self.policy["connector_context"],
 			"value": self.policy["connector_context"].get()
 		})
 		self.addOption("Test", "colours", {
-			"name": "Connector Contexts",
+			"name": "Colours",
 			"type": "TreeView",
-			"onAdd" : [],
+			"onAdd" : [pood],
 			"varStore": self.policy["colours"],
 			"value": self.policy["colours"].get()
 		})
