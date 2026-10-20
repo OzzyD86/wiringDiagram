@@ -31,7 +31,12 @@ class inputDialog(Tk.Toplevel):
 		
 		for i, j in items.items():
 			self.data[i] =j
-			self.vars[i] = Tk.StringVar(self)
+			if ("varStore" in j):
+				self.vars[i] = j["varStore"]
+			elif (j["type"] in ["TreeView"]):
+				raise Exception("Help needed in iD")
+			else:
+				self.vars[i] = Tk.StringVar(self)
 			#print(j)
 			if ("onUpdate" in j.keys()):
 				c = j['onUpdate']
@@ -63,9 +68,10 @@ class inputDialog(Tk.Toplevel):
 			elif (j["type"] in ["TreeView"]):
 				j["obj"] = treeViewWithSearch(nw, adds = j["onAdd"])
 				keys = None
+				#raise Exception(j["value"])
 				for l,k in j["value"].items():
-					if (keys is None):
-						keys = k.keys()
+				#	if (keys is None):
+				#		keys = k.keys()
 					j["obj"].add([l, k])
 				j["obj"].compileKeys = keys
 			if(j["type"] in ["Checkbox"]):
