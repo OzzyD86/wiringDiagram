@@ -130,6 +130,9 @@ class config():
 			}),
 			"colours" : dataWrapper({
 				"Black": {"hex":"#000000","rgb":[0,0,0]},
+				"Red": {"hex":"#FF0000","rgb":[255,0,0]},
+				"Blue": {"hex":"#0000FF","rgb":[0,0,255]},
+				"Purple": {"hex":"#FF00FF","rgb":[255,0,255]},
 			})
 		}
 		self.outerPolicies = {}
