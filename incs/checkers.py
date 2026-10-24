@@ -13,7 +13,7 @@ def devAddCheck(self, *args, **kwargs):
 	aa = p.objMk(self.c, y, (250, 150, 50, 50), connector_names = True)
 
 def devDupCheck(self, *args, **kwargs):
-	print(args, kwargs, self.vars[kwargs['a']].get())
+	#print(args, kwargs, self.vars[kwargs['a']].get())
 	#v = int(self.vars['val'].get())
 	#print(args[0].get())
 	p = self.nametowidget(".").core.dia # Aha! That's how to do it!
@@ -26,10 +26,10 @@ def devDupCheck(self, *args, **kwargs):
 	y.machName = self.vars['mName'].get()
 	y.name = self.vars['hName'].get()
 
-	aa = p.objMk(self.c, y, (250, 150, x[2], x[3]), connector_names = True)
+	aa = p.objMk(self.c, y, (self.size[0]/2, self.size[1]/2, x[2], x[3]), connector_names = True)
 
 def devEditCheck(self, *args, **kwargs):
-	print(args, kwargs, self.vars[kwargs['a']].get())
+	#print(args, kwargs, self.vars[kwargs['a']].get())
 	#print(args[0].get())
 	p = self.nametowidget(".").core.dia # Aha! That's how to do it!
 	self.c.delete("all")
@@ -39,12 +39,12 @@ def devEditCheck(self, *args, **kwargs):
 	y = deepcopy(p.getDevice(mm))
 	
 	try:
-		aa = p.objMk(self.c, y, (250, 150, int(self.vars['width'].get()), int(self.vars['height'].get())), connector_names = True)
+		aa = p.objMk(self.c, y, (self.size[0]/2, self.size[1]/2, int(self.vars['width'].get()), int(self.vars['height'].get())), connector_names = True)
 	except ValueError:
 		pass
 
 def wireAddCheck(self, *args, **kwargs):
-	print(args, kwargs, self.vars[kwargs['a']].get())
+	#print(args, kwargs, self.vars[kwargs['a']].get())
 	
 	##print(args[0].get())
 	p = self.nametowidget(".").core.dia # Aha! That's how to do it!
@@ -55,14 +55,14 @@ def wireAddCheck(self, *args, **kwargs):
 	if (dout is not None):
 		loc = p.locs[dout]
 		y = deepcopy(p.getDevice(dout))
-		aa = p.objMk(self.c, y, (200 - 50 - int(loc[2]), 150, int(loc[2]), int(loc[3])), connector_names = True)
+		aa = p.objMk(self.c, y, (self.size[0]/3, self.size[1]/2, int(loc[2]), int(loc[3])), connector_names = True)
 		pass
 
 	if (din is not None):
 		loc = p.locs[din]
 		y = deepcopy(p.getDevice(din))
 
-		ab = p.objMk(self.c, y, (200 + 50 + int(loc[2]), 150, int(loc[2]), int(loc[3])), connector_names = True)
+		ab = p.objMk(self.c, y, (self.size[0]/3*2, self.size[1]/2, int(loc[2]), int(loc[3])), connector_names = True)
 		pass
 
 	cout = self.data['outcName']['obj'].get().get()
@@ -72,9 +72,9 @@ def wireAddCheck(self, *args, **kwargs):
 		st = p.getDevice(dout).drwConnPos[cout]
 		fn = p.getDevice(din).drwConnPos[cin]
 		
-		r = self.c.create_line(st[0] - p.locs[dout][0] + 200 - 50 - int(p.locs[dout][2]), 
-			st[1] - p.locs[dout][1] + 150,
-			fn[0] - p.locs[din][0] + 200 + 50 + int(p.locs[din][2]), 
-			fn[1] - p.locs[din][1] + 150, fill="black")
+		r = self.c.create_line(st[0] - p.locs[dout][0] + (self.size[0]/3), 
+			st[1] - p.locs[dout][1] + (self.size[1]/2),
+			fn[0] - p.locs[din][0] + (self.size[0] / 3 * 2), 
+			fn[1] - p.locs[din][1] + (self.size[1]/2), fill="black")
 
 	pass

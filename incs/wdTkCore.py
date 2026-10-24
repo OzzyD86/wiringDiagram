@@ -10,12 +10,26 @@ from widgets.inputDialog import inputDialog
 import incs.checkers
 
 class inputDialogWithCanvas(inputDialog):
+	def resize_canvas(self, event):
+		new_width = event.width
+		new_height = event.height
+		self.size = (new_width, new_height)
+		self.check()
+		self.c.create_rectangle(5,5,new_width -5, new_height-5, outline="black")
+	
 	def __init__(self, master, checker = None, *args, **kwargs):
 		super().__init__(master, **kwargs)
 		self.c = Tk.Canvas(self)
 		self.checker = checker
-		self.c.grid(column=1, row=0, sticky='news')
-	
+		self.c.grid(column=1, row=0, rowspan=5, sticky='news')
+		self.c.bind("<Configure>", self.resize_canvas)
+		self.update()
+		self.size = (self.c.winfo_width(), self.c.winfo_height())
+		print(self.size)
+		
+		self.rowconfigure(0, weight=1)
+		self.columnconfigure(1, weight=1)
+			
 	def check(self, *args, **kwargs):
 		if (self.checker is None):
 			#print(args, kwargs, self.vars[kwargs['a']].get())
@@ -34,7 +48,7 @@ class inputDialogWithCanvas(inputDialog):
 				for i in range(v):
 					y.addConnector(self.vars['cName'].get() + "_" + str(i+1), direction = self.vars['ddName'].get())
 
-			aa = p.objMk(self.c, y, (250, 150, x[2], x[3]), connector_names = True)
+			aa = p.objMk(self.c, y, (self.size[0]/2, self.size[1]/2, x[2], x[3]), connector_names = True)
 		else:
 			self.checker(self, *args, **kwargs)
 		#print(type(p))
