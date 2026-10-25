@@ -35,13 +35,14 @@ def devEditCheck(self, *args, **kwargs):
 	self.c.delete("all")
 	
 	mm = self.data['mName']["obj"].get_key_of_value(self.vars['mName'].get())
-	x = (p.locs[mm])
-	y = deepcopy(p.getDevice(mm))
-	
-	try:
-		aa = p.objMk(self.c, y, (self.size[0]/2, self.size[1]/2, int(self.vars['width'].get()), int(self.vars['height'].get())), connector_names = True)
-	except ValueError:
-		pass
+	if (mm is not None):
+		x = (p.locs[mm])
+		y = deepcopy(p.getDevice(mm))
+		
+		try:
+			aa = p.objMk(self.c, y, (self.size[0]/2, self.size[1]/2, int(self.vars['width'].get()), int(self.vars['height'].get())), connector_names = True, highlight_connected = True)
+		except ValueError:
+			pass
 
 def wireAddCheck(self, *args, **kwargs):
 	#print(args, kwargs, self.vars[kwargs['a']].get())
@@ -78,3 +79,21 @@ def wireAddCheck(self, *args, **kwargs):
 			fn[1] - p.locs[din][1] + (self.size[1]/2), fill="black")
 
 	pass
+
+def connDelCheck(self, *args, **kwargs):
+	
+	#print(args, kwargs, self.vars[kwargs['a']].get())
+	#v = int(self.vars['val'].get())
+	#print(args[0].get())
+	p = self.nametowidget(".").core.dia # Aha! That's how to do it!
+	self.c.delete("all")
+	
+	mm = self.data['outdName']["obj"].get_key_of_value(self.vars['outdName'].get())
+	print(mm)
+	if (mm is not None):
+		x = (p.locs[mm])
+		y = deepcopy(p.getDevice(mm))
+		
+		y.delConnector(self.vars['outcName'].get())
+
+		aa = p.objMk(self.c, y, (self.size[0]/2, self.size[1]/2, x[2], x[3]), connector_names = True, highlight_connected = True)

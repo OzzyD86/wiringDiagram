@@ -343,7 +343,7 @@ class wdTkCore(Tk.Tk):
 		args[0].data['outcName']['values'] = list(ii)
 		
 	def connDelWin(self):
-		self.aw = inputDialog(self.window, data= {
+		self.aw = inputDialogWithCanvas(self.window, checker=incs.checkers.connDelCheck, data= {
 			"outdName": {
 				"type" : "Combo",
 				"name": "Machine Name",
