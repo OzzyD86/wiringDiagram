@@ -56,14 +56,14 @@ def wireAddCheck(self, *args, **kwargs):
 	if (dout is not None):
 		loc = p.locs[dout]
 		y = deepcopy(p.getDevice(dout))
-		aa = p.objMk(self.c, y, (self.size[0]/3, self.size[1]/2, int(loc[2]), int(loc[3])), connector_names = True)
+		aa = p.objMk(self.c, y, (self.size[0]/3, self.size[1]/2, int(loc[2]), int(loc[3])), connector_names = True, highlight_connected = True)
 		pass
 
 	if (din is not None):
 		loc = p.locs[din]
 		y = deepcopy(p.getDevice(din))
 
-		ab = p.objMk(self.c, y, (self.size[0]/3*2, self.size[1]/2, int(loc[2]), int(loc[3])), connector_names = True)
+		ab = p.objMk(self.c, y, (self.size[0]/3*2, self.size[1]/2, int(loc[2]), int(loc[3])), connector_names = True, highlight_connected = True)
 		pass
 
 	cout = self.data['outcName']['obj'].get().get()

@@ -231,7 +231,7 @@ class diagram():
 				os = (0,0)
 			
 			for fc in fb:
-				print(fc)
+				#print(fc)
 				if (fa in ["left", "right"]):
 					ro = 0
 					os = (os[0], (-dms[3] /2) + ((ct+1) / (ln+1) * dms[3]))
