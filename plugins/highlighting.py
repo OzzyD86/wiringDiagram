@@ -30,7 +30,7 @@ class highlighting():
 		
 	def draw(self, *args, **kwargs):
 		global _int
-		w = int(main.conf.policy['hlWidth'].get())
+		w = 4#int(main.conf.policy['hlWidth'].get())
 		#w = 5
 		kwargs["canvas"].delete("_highlight")
 		drw = {}
