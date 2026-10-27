@@ -1,4 +1,4 @@
-from colours import colourDirection
+from incs.colours import colourDirection
 from PIL import Image, ImageDraw, ImageFont
 import tkinter as Tk
 
