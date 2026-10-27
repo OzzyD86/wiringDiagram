@@ -201,6 +201,7 @@ class wdTk(wdTkCore):
 	
 			else:
 				d.add_command(label="Edit device...", command = lambda dName=name: self.devEditWin(mName=dName))
+				d.add_command(label="Add plugs...", command= lambda : self.connAddWin(mhName=name))
 				d.add_command(label="Delete device", command= lambda : self.devDelComplete(dhName=name))
 		
 		if ("_wp" in tags):
@@ -467,6 +468,8 @@ class wdTk(wdTkCore):
 	def open_file(self, file):
 		#raise Exception(self._open_file)
 		self.core.open_file(file)
+		for i in self.loaded:
+			i[0].entryconfig(i[1], state="normal")
 		self._open_file = file
 		self.cueEvts("onFileLoad")
 		self.canvas.config(scrollregion=(self.canvas.bbox("all")))
@@ -645,7 +648,7 @@ class wdTk(wdTkCore):
 		self.canvas.delete("_conn")
 		for i in d.listDevices():
 			if (i in d.locs):
-				aa = d.objMk(self.canvas, d.getDevice(i), d.locs[i])
+				aa = d.objMk(self.canvas, d.getDevice(i), d.locs[i], connector_names = self.conn_labelling.get())
 				d.getDevice(i).drwConnPos = aa
 
 		self.canvas.delete("_wire")
