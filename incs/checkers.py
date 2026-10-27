@@ -1,4 +1,4 @@
-from dev import device
+from incs.dev import device
 from copy import deepcopy
 
 def devAddCheck(self, *args, **kwargs):

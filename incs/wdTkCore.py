@@ -5,7 +5,7 @@ import tkinter as Tk
 #from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
 import tkinter.messagebox
 from copy import deepcopy
-from dev import device
+from incs.dev import device
 from widgets.inputDialog import inputDialog
 import incs.checkers
 
