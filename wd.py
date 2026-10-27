@@ -28,13 +28,13 @@ import sys
 from incs.config import config
 
 def report_callback_exception(self, exc, val, tb):
-	d = pjaDialog()
-	text_box = Tk.Text(d.top, wrap=Tk.WORD, width=80, height=10)
+	d = Tk.Tk()
+	text_box = Tk.Text(d, wrap=Tk.WORD, width=80, height=10)
 	text_box.insert("0.0", str(traceback.extract_stack()) + "\n" + str(val))
 	text_box.grid(row=0, column=0, rowspan=3, padx=10, pady=10, sticky="nsew")
-	d.top.rowconfigure(0, weight=1)
-	d.top.columnconfigure(0, weight=1)
-	d.go()
+	d.rowconfigure(0, weight=1)
+	d.columnconfigure(0, weight=1)
+	#d.go()
 
 tkinter.Tk.report_callback_exception = report_callback_exception
 
