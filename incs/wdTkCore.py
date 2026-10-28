@@ -48,7 +48,7 @@ class inputDialogWithCanvas(inputDialog):
 				for i in range(v):
 					y.addConnector(self.vars['cName'].get() + "_" + str(i+1), direction = self.vars['ddName'].get())
 
-			aa = p.objMk(self.c, y, (self.size[0]/2, self.size[1]/2, x[2], x[3]), connector_names = True)
+      aa = p.objMk(self.c, y, (self.size[0]/2, self.size[1]/2, x[2], x[3]), connector_names = True)
 		else:
 			self.checker(self, *args, **kwargs)
 		#print(type(p))
@@ -61,10 +61,26 @@ class inputDialogWithCanvas(inputDialog):
 		return nw
 			
 class wdTkCore(Tk.Tk):
+class op_conf():
+	def __init__(self):
+		self.ls = {}
+		
+	def register(self, ls, name, optionals = {}):
+		if (ls not in self.ls):
+			self.ls[ls] = {}
+			
+		self.ls[ls][name] = optionals
+		return True
+	
+	def getList(self, ls):
+		if (ls not in self.ls):
+			return []
+		return list(self.ls[ls].keys())
 	
 	# === Device Adding
 	def __init__(self, master = None, **kwargs):
 		super().__init__(master, **kwargs)
+		self.op_config = op_conf()
 		
 	def devAddWin(self, event = None):
 		d = getattr(event, "x", 0)
@@ -282,6 +298,11 @@ class wdTkCore(Tk.Tk):
 				"type": "Entry",
 				"name": "Connection Name"
 			},
+			"proto": {
+				"type": "Combo",
+				"name": "Protocol",
+				"values": self.op_config.getList("proto"),
+			},
 			"ddName": {
 				"type": "Combo",
 				"name": "Data Direction",
@@ -299,7 +320,7 @@ class wdTkCore(Tk.Tk):
 
 	def connAddComplete(self, **kwargs):
 		p = self.core.dia.listDevices(True)
-	
+		print(kwargs)
 		if (kwargs['mhName'] not in list(p.keys())):
 			Tk.messagebox.showerror(title="Device not found", message="There is no device to edit.")
 			return False
@@ -311,10 +332,10 @@ class wdTkCore(Tk.Tk):
 			return False
 		
 		if (int(kwargs['val']) == 1):
-			self.core.addConnector(obj, kwargs['cName'], dir= kwargs['ddName'])
+			self.core.addConnector(obj, kwargs['cName'],  proto = kwargs['proto'], dir= kwargs['ddName'])
 		elif (int(kwargs['val']) > 1):
 			for i in range(int(kwargs['val'])):
-				self.core.addConnector(obj, kwargs['cName']+"_"+str(i+1), dir= kwargs['ddName'])
+				self.core.addConnector(obj, kwargs['cName']+"_"+str(i+1), proto = kwargs['proto'], dir= kwargs['ddName'])
 		else:
 			Tk.messagebox.showerror(title="Cannot add plug", message="Invalid value.")
 			return False
