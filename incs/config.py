@@ -36,6 +36,16 @@ def addPoodOk(s, *args, **kwargs):
 	return True
 	
 def doop(*args, **kwargs):
+	dd = args[0].master.master.data
+	if ("colours" in dd):
+		vars = {}
+		#Tk.messagebox.showerror("",dd["colours"]["obj"].exter_storage)
+		for i,j in dd["colours"]["obj"].exter_storage.items():
+			vars[i] = i
+	else:
+		vars ={
+			"black":"Black"
+		}
 	x = inputDialog(args[0], data={
 		"name": {
 			"name":"Name",
@@ -44,9 +54,7 @@ def doop(*args, **kwargs):
 		"colour": {
 			"name":"Colour",
 			"type": "Combo",
-			"values": {
-				"black":"Black",
-			},
+			"values": vars
 		},
 		"pos_left":{
 			"name":"Left",
