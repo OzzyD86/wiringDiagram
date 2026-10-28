@@ -5,8 +5,8 @@ class eth():
 	
 	def mns(self, *args, **kwargs):
 		print(args)
-		print(kwargs)
-		#print(main.core.dia.getDevice(mName))
+		mn = (main.core.dia.getDeviceID(kwargs['args'][0]))
+		print(main.core.dia.getDevice(mn))
 		return {}
 		
 		

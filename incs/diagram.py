@@ -82,7 +82,13 @@ class diagram():
 			
 		if ((pos[1] + (sz[1] / 2) + 10) > self.bounds[3]):
 			self.bounds[3] = (pos[1] + (sz[1] / 2) + 10) 
-			
+	
+	def getDeviceID(self, p):
+		for j, i in self.dev.items():
+			if (i.name == p):
+				return j
+		return None
+		
 	def getDevice(self, key):
 		try:
 			return self.dev[key]
