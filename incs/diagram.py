@@ -240,7 +240,7 @@ class diagram():
 				to = (5,0)
 				os = ((dms[2]/2)+2.5, - (dms[3]/2))
 			elif (fa in ["bottom"]):
-				
+				an = Tk.N
 				os = (-(dms[2]/2), (dms[3]/2)+2.5)
 			else:
 				os = (0,0)
