@@ -15,57 +15,82 @@ class inputDialog(Tk.Toplevel):
 		self.data = {} #data # This will be useful later!
 		self.vars = {}
 		self.funcs = {}
+		self.frames = {}
 		nw = self.addItems( data)
 		self.p.add(nw, text="General")
+		self.frames["General"] = nw
+
 		self.p.grid(sticky="swen")
 		self.columnconfigure(0, weight=1)
 	
 	def addNb(self, called, items = {}):
 		nw = self.addItems(items)
+		self.frames[called] = nw
 		self.p.add(nw, text=called)
 		
+	def deleteItem(self, item):
+		if (item in self.data):
+			self.data[item]["obj"].destroy()
+			del self.data[item]
+			
 	def addItems(self, items = {}):
 		nw = Tk.Frame(self)
 		
 		for i, j in items.items():
-			self.data[i] =j
-			self.vars[i] = Tk.StringVar(self)
-			#print(j)
-			if ("onUpdate" in j.keys()):
-				c = j['onUpdate']
-			else:
-				c = None
-			if ("updateVars" in j.keys()):
-				cc = j["updateVars"]
-			else:
-				cc = []
-			if ("value" in j):
-				self.vars[i].set(j["value"])
-				
-			if (j["type"] in ["Entry"]):
-				j["obj"] = EntryWidget(nw, text=j["name"], variable=self.vars[i])#.grid(padx=5, pady=(5,0), sticky='nsew')
-			elif (j["type"] in ["Combo"]):
-				state = "readonly"
-				if ("editable" in j):
-					if (j["editable"]):
-						state = "normal"
-					pass
-				j["obj"] = ComboEntryWidget(nw, text=j["name"], variable=self.vars[i], values=j['values'], state=state, command= c, cArgs=(self, cc))#.grid(sticky='nsew')		
-			elif (j["type"] in ["Label", "Text"]):
-				j["obj"] = Tk.Label(nw, text= j["text"], wraplength=800) #.grid(padx=5,pady=(5,0), sticky='sewn')
-			elif (j["type"] in ["Spin"]):
-				j["obj"] = SpinEntryWidget(nw, text=j["name"], min=1, max=32, variable=self.vars[i])
-			elif(j["type"] in ["Checkbox"]):
-				j["obj"] = Tk.Checkbutton(nw, text=j["name"], variable=self.vars[i], 
-					onvalue=1, offvalue=0)
-			
-			if(j["type"] in ["Checkbox"]):
-				j["obj"].grid(padx=5, pady=(5,0), sticky='w')
-			else:
-				j["obj"].grid(padx=5, pady=(5,0), sticky='nsew')
+			pass
+			self.addItem(nw, i,j)
 		nw.columnconfigure(0, weight=1)
 		return nw
 		
+	def addItem(self, nw, i, j):
+		self.data[i] =j
+		if ("varStore" in j):
+			self.vars[i] = j["varStore"]
+		elif (j["type"] in ["TreeView"]):
+			raise Exception("Help needed in iD")
+		else:
+			self.vars[i] = Tk.StringVar(self)
+		#print(j)
+		if ("onUpdate" in j.keys()):
+			c = j['onUpdate']
+		else:
+			c = None
+		if ("updateVars" in j.keys()):
+			cc = j["updateVars"]
+		else:
+			cc = []
+		if ("value" in j):
+			self.vars[i].set(j["value"])
+				
+		if (j["type"] in ["Entry"]):
+			j["obj"] = EntryWidget(nw, text=j["name"], variable=self.vars[i])#.grid(padx=5, pady=(5,0), sticky='nsew')
+		elif (j["type"] in ["Combo"]):
+			state = "readonly"
+			if ("editable" in j):
+				if (j["editable"]):
+					state = "normal"
+				pass
+			j["obj"] = ComboEntryWidget(nw, text=j["name"], variable=self.vars[i], values=j['values'], state=state, command= c, cArgs=(self, cc))#.grid(sticky='nsew')		
+		elif (j["type"] in ["Label", "Text"]):
+			j["obj"] = Tk.Label(nw, text= j["text"], wraplength=800) #.grid(padx=5,pady=(5,0), sticky='sewn')
+		elif (j["type"] in ["Spin"]):
+			j["obj"] = SpinEntryWidget(nw, text=j["name"], min=1, max=32, variable=self.vars[i])
+		elif(j["type"] in ["Checkbox"]):
+			j["obj"] = Tk.Checkbutton(nw, text=j["name"], variable=self.vars[i], 
+					onvalue=1, offvalue=0)
+		elif (j["type"] in ["TreeView"]):
+			j["obj"] = treeViewWithSearch(nw, adds = j["onAdd"])
+			keys = None
+			#raise Exception(j["value"])
+			for l,k in j["value"].items():
+		
+				j["obj"].add([l, k])
+			j["obj"].compileKeys = keys
+		if(j["type"] in ["Checkbox"]):
+			j["obj"].grid(padx=5, pady=(5,0), sticky='w')
+		else:
+			j["obj"].grid(padx=5, pady=(5,0), sticky='nsew')
+			
 	def addButton(self, title, local_action = "add"):
 		self.funcs[local_action] = []
 		Tk.Button(self, text=title, command=lambda: self.button_press(local_action)).grid(padx=5, pady=(5, 0), sticky='swen')

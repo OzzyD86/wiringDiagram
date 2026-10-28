@@ -46,7 +46,7 @@ class wdCore():
 			#print(dict(i))
 			dv = self.dia.getDevice(i["dName"])
 			if (dv is not None):
-				dv.addConnector(i["cName"], proto="XLR", direction=i["direction"])
+				dv.addConnector(i["cName"], proto=i['proto'], direction=i["direction"])
 			else:
 				print("Connection called for", i["cName"],"on",i["dName"],"which does not exist.")
 				pass

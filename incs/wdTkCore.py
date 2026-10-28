@@ -278,7 +278,7 @@ class wdTkCore(Tk.Tk):
 			return False
 		
 		if (int(kwargs['val']) == 1):
-			self.core.addConnector(obj, kwargs['cName'], dir= kwargs['ddName'])
+			self.core.addConnector(obj, kwargs['cName'],  proto = kwargs['proto'], dir= kwargs['ddName'])
 		elif (int(kwargs['val']) > 1):
 			for i in range(int(kwargs['val'])):
 				self.core.addConnector(obj, kwargs['cName']+"_"+str(i+1), proto = kwargs['proto'], dir= kwargs['ddName'])
