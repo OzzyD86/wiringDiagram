@@ -48,7 +48,7 @@ class inputDialogWithCanvas(inputDialog):
 				for i in range(v):
 					y.addConnector(self.vars['cName'].get() + "_" + str(i+1), direction = self.vars['ddName'].get())
 
-      aa = p.objMk(self.c, y, (self.size[0]/2, self.size[1]/2, x[2], x[3]), connector_names = True)
+			aa = p.objMk(self.c, y, (self.size[0]/2, self.size[1]/2, x[2], x[3]), connector_names = True)
 		else:
 			self.checker(self, *args, **kwargs)
 		#print(type(p))
@@ -60,7 +60,6 @@ class inputDialogWithCanvas(inputDialog):
 			self.vars[i].trace_add("write", lambda *args, x=i, **kwargs: self.check(a = x))
 		return nw
 			
-class wdTkCore(Tk.Tk):
 class op_conf():
 	def __init__(self):
 		self.ls = {}
@@ -76,6 +75,8 @@ class op_conf():
 		if (ls not in self.ls):
 			return []
 		return list(self.ls[ls].keys())
+
+class wdTkCore(Tk.Tk):
 	
 	# === Device Adding
 	def __init__(self, master = None, **kwargs):
