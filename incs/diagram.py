@@ -13,6 +13,7 @@ i18n = {
 class local_conf():
 	def __init__(self, master=None):
 		self.master = master
+		print(" === STARTED === ", self)
 		self.policy = {
 			"connector_context" : dataWrapper({	"a" : {"a" :"b"}}),
 			"colours" : dataWrapper({})
@@ -73,6 +74,7 @@ class local_conf():
 	def open(self):
 		for i, j in self.policy.items():
 			print(i, j.get())
+			print(self.innerPolicies[i]['varStore'].get())
 			
 		pages = {}
 		for i,j in self.outerPolicies.items():

@@ -504,21 +504,15 @@ class wdTk(wdTkCore):
 					if (i[0] in self.conf.innerPolicies):
 						self.conf.innerPolicies[i[0]]["value"] = self.conf.policy[i[0]].get()
 
-				print(self.core.dia.conf)
-				print(i[0])
 				if (i[0] in self.core.dia.conf.policy):
-					print("YES!")
+					print(i[0], i[1])
 					if (hasattr(self.core.dia.conf.policy[i[0]], "load")):
-						print("Will this run?")
 						self.core.dia.conf.policy[i[0]].load(i[1])
 					else:
-						print("Or this?")
 						self.core.dia.conf.policy[i[0]].set(i[1])
 					#tkinter.messagebox.showerror("load", type(self.conf.policy[i[0]].get()))
 				
-					if (i[0] in self.conf.innerPolicies):
-						print("And this?")
-
+					if (i[0] in self.core.dia.conf.innerPolicies):
 						self.core.dia.conf.innerPolicies[i[0]]["value"] = self.core.dia.conf.policy[i[0]].get()
 			
 			#for i, j in self.core.dia.conf.policy.items():
