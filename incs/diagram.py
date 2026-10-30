@@ -1,13 +1,138 @@
 from colours import colourDirection
 from PIL import Image, ImageDraw, ImageFont
 import tkinter as Tk
-
+from incs.config import dataWrapper
+from widgets.inputDialog import inputDialog
+from incs.config import pood as pood, doop as doop
+import json
 i18n = {
 	"font_small" : ('Arial', 6),
 	"font_large" : ('Arial', 8)
 }
+
+class local_conf():
+	def __init__(self, master=None):
+		self.master = master
+		self.policy = {
+			"connector_context" : dataWrapper({	"a" : {"a" :"b"}}),
+			"colours" : dataWrapper({})
+		}
+		self.outerPolicies = {}
+		self.innerPolicies = {}
+		self.roPols = {
+		#	"mode" : Tk.BooleanVar(value = (hasattr(sys, "getandroidapilevel")))	
+		}
+		'''self.addOption("General", "dev",{
+			"name":"Developer mode",
+			"type": "Checkbox",
+			"value": self.policy["dev"].get()
+		})
+		self.addOption("General", "contextCollapse",{
+			"name":"Collapse context menu",
+			"type": "Checkbox",
+			"value": self.policy["contextCollapse"].get()
+		})
+		self.addOption("General", "mode",{
+			"name":"Android mode",
+			"type": "Checkbox",
+			"value": (hasattr(sys, "getandroidapilevel"))
+		})'''
+		self.addOption("General", "connector_context", {
+			"name": "Connector Contexts",
+			"type": "TreeView",
+			"onAdd" : [doop],
+			"varStore": self.policy["connector_context"],
+			"value": self.policy["connector_context"].get()
+		})
+		self.addOption("Test", "colours", {
+			"name": "Colours",
+			"type": "TreeView",
+			"onAdd" : [pood],
+			"varStore": self.policy["colours"],
+			"value": self.policy["colours"].get()
+		})
+		'''self.dev = self.policy["dev"]
+		self.contextCollapse = self.policy["contextCollapse"]'''
+	
+	def addOption(self, placement, key, data = {}, **kwargs):
+		if (not placement in self.outerPolicies):
+			self.outerPolicies[placement] = []
+		
+		self.outerPolicies[placement].append(key)
+		if (not key in self.policy):
+			if ("store" in data):
+				self.policy[key] = data["store"]
+			else:
+				self.policy[key] = Tk.StringVar()
+		
+		self.innerPolicies[key] = data
+		
+		if ("value" in data):
+			self.policy[key].set(data["value"])
+		
+	def open(self):
+		for i, j in self.policy.items():
+			print(i, j.get())
+			
+		pages = {}
+		for i,j in self.outerPolicies.items():
+			pages[i] = {}
+			for k in j:
+				pages[i][k] = self.innerPolicies[k]
+				
+		p = pages #self.outerPolicies.copy()
+		if ("General" in p):
+			d = p["General"]
+			del p["General"]
+		else:
+			d={}
+		#raise Exception(d)
+		v = inputDialog(data=d)
+		
+		for i,j in p.items():
+			v.addNb(i,j)
+		
+		for i,j in self.policy.items():
+			print(j.get())
+			v.set(i,j.get())
+		#v.vars["connector_context"] = self.policy["connector_context"]
+		
+		v.addButton("OK", "ok")
+		v.passFunc("ok", self.ok)
+		pass
+		
+	def ok(self, **kwargs):
+		cur = self.master.nametowidget(".").core.struct.cur # Aha! That's how to do it!
+		d = dataWrapper()
+		for i,j in kwargs["connector_context"].items():
+			#Tk.messagebox.showerror(i, j)
+			d.data[i] = j#{"name": j["name"], "colour": j["colour"], "pos": j["pos"] }
+		kwargs["connector_context"] = d.get()
+		#Tk.messagebox.showerror("", kwargs["connector_context"])
+		for i,j in kwargs.items():
+			self.policy[i].set(j)
+			self.innerPolicies[i]["value"] = j#self.policy[i]
+			y=j
+			t=False
+			for k in self.outerPolicies.values():
+				if (i in k):
+					t = True
+			if (t):
+				if (type(y) is dict):
+					y = json.dumps(y)
+					
+				cur.execute("replace into config (`key`, `value`) values (?,?)", (i, y))
+		
+		self.policy["connector_context"] = d
+		self.innerPolicies["connector_context"]["value"] = d.get()
+
+		return True
+
 class diagram():
-	def __init__(self):
+	def __init__(self, wdMaster):
+		self.master = wdMaster
+		self.conf = local_conf(wdMaster)
+		print(self.conf)
 		
 		self.connector_context = {
 			"In": ["left"],
@@ -63,7 +188,8 @@ class diagram():
 		return p
 		
 	def clear(self):
-		self.__init__() # Just makes sense
+		print("I AM CALLED!")
+		self.__init__(self.master) # Just makes sense
 		
 	def addDevice(self, key, dev):
 		self.dev[key] = dev

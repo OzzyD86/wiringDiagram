@@ -7,7 +7,7 @@ from incs.wire import wire
 class wdCore():
 	
 	def __init__(self, x = None):
-		self.dia = diagram()
+		self.dia = diagram(x)
 		self.struct = None #diagramStructure()
 
 		self.waypointing = True

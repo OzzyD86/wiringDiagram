@@ -36,7 +36,7 @@ def report_callback_exception(self, exc, val, tb):
 	d.columnconfigure(0, weight=1)
 	#d.go()
 
-tkinter.Tk.report_callback_exception = report_callback_exception
+#tkinter.Tk.report_callback_exception = report_callback_exception
 
 class version(Tk.Toplevel):
 	def __init__(self, master, a = [], *args, **kwargs):

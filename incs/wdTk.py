@@ -385,7 +385,8 @@ class wdTk(wdTkCore):
 		self.loaded.append([mf, 3+offs])
 		mf.add_command(label="Save As...", state=Tk.DISABLED)
 		mf.add_separator()
-		mf.add_command(label="Properties...", state=Tk.DISABLED)
+		mf.add_command(label="Properties...", state=Tk.DISABLED, command=self.core.dia.conf.open)
+		self.loaded.append([mf, 6+offs])
 		mf.add_separator()
 		mf.add_command(label="Quit", command=self.quit)
 			
@@ -502,7 +503,27 @@ class wdTk(wdTkCore):
 				
 					if (i[0] in self.conf.innerPolicies):
 						self.conf.innerPolicies[i[0]]["value"] = self.conf.policy[i[0]].get()
-							
+
+				print(self.core.dia.conf)
+				print(i[0])
+				if (i[0] in self.core.dia.conf.policy):
+					print("YES!")
+					if (hasattr(self.core.dia.conf.policy[i[0]], "load")):
+						print("Will this run?")
+						self.core.dia.conf.policy[i[0]].load(i[1])
+					else:
+						print("Or this?")
+						self.core.dia.conf.policy[i[0]].set(i[1])
+					#tkinter.messagebox.showerror("load", type(self.conf.policy[i[0]].get()))
+				
+					if (i[0] in self.conf.innerPolicies):
+						print("And this?")
+
+						self.core.dia.conf.innerPolicies[i[0]]["value"] = self.core.dia.conf.policy[i[0]].get()
+			
+			#for i, j in self.core.dia.conf.policy.items():
+			#	print(i, j.get())
+			
 			for i in self.loaded:
 				i[0].entryconfig(i[1], state="normal")
 			self.cueEvts("onFileLoad")
