@@ -13,7 +13,7 @@ i18n = {
 class local_conf():
 	def __init__(self, master=None):
 		self.master = master
-		print(" === STARTED === ", self)
+		print(" DEFINATELY STARTED HERE ", self)
 		self.policy = {
 			"connector_context" : dataWrapper({	"a" : {"a" :"b"}}),
 			"colours" : dataWrapper({})
@@ -70,11 +70,25 @@ class local_conf():
 		
 		if ("value" in data):
 			self.policy[key].set(data["value"])
-		
+
+	def portData(self, policy, data):
+		if (policy in self.policy):
+			print("CHANGE POLICY")
+			if (hasattr(self.policy[policy], "load")):
+				self.policy[policy].load(data)
+			else:
+				self.policy[policy].set(data)
+				#tkinter.messagebox.showerror("load", type(self.conf.policy[i[0]].get()))
+				
+		#if (policy in self.innerPolicies):
+			self.innerPolicies[policy]["value"] = self.policy[policy].get()
+	
 	def open(self):
+		print("DEFINATELY LOADING HERE")
 		for i, j in self.policy.items():
-			print(i, j.get())
-			print(self.innerPolicies[i]['varStore'].get())
+			#print(i, j.get())
+			#print(self.innerPolicies[i]['varStore'].get())
+			self.innerPolicies[i]['value'] = j.get()
 			
 		pages = {}
 		for i,j in self.outerPolicies.items():
