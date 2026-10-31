@@ -3,6 +3,7 @@ import tkinter as Tk
 from copy import copy
 import sys
 import json
+import sqlite3
 
 def addOk(s, *args, **kwargs):
 	
@@ -125,6 +126,9 @@ class dataWrapper():
 		
 class config():
 	def __init__(self, master=None):
+		self.db = sqlite3.connect("incs/core.db")
+		self.cur = self.db.cursor()
+		
 		self.master = master
 		self.policy = {
 			"dev" : Tk.BooleanVar(value=False),

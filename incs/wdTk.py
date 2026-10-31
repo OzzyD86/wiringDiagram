@@ -506,7 +506,7 @@ class wdTk(wdTkCore):
 
 				self.core.dia.conf.portData(i[0], i[1])
 			
-			self.core.dia.conf.
+			#self.core.dia.conf.
 			#for i, j in self.core.dia.conf.policy.items():
 			#	print(i, j.get())
 			

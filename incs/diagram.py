@@ -79,9 +79,12 @@ class local_conf():
 			else:
 				self.policy[policy].set(data)
 				#tkinter.messagebox.showerror("load", type(self.conf.policy[i[0]].get()))
-				
-		#if (policy in self.innerPolicies):
+
 			self.innerPolicies[policy]["value"] = self.policy[policy].get()
+		else:
+			print("NO POLICY FOR " + policy + "!")
+		
+		#if (policy in self.innerPolicies):
 	
 	def open(self):
 		print("DEFINATELY LOADING HERE")
@@ -147,7 +150,10 @@ class local_conf():
 class diagram():
 	def __init__(self, wdMaster):
 		self.master = wdMaster
-		self.conf = local_conf(wdMaster)
+		if not (hasattr(self, "conf")):
+			self.conf = local_conf(wdMaster)
+		else:
+			print("Not initialising again!")
 		print(self.conf)
 		
 		self.connector_context = {
