@@ -125,11 +125,17 @@ class dataWrapper():
 		return json.dumps(self.data)
 		
 class config():
+	def save(self):
+		self.db.commit()
+		
 	def __init__(self, master=None):
 		self.db = sqlite3.connect("incs/core.db")
 		self.cur = self.db.cursor()
-		
+		self.cur.execute("create table if not exists `config` (`key` text not null primary key, `value` text)")
 		self.master = master
+		#d = self.master.nametowidget(".")
+		#d.events["onUnitialise"].append(self.save)
+
 		self.policy = {
 			"dev" : Tk.BooleanVar(value=False),
 			"contextCollapse": Tk.BooleanVar(value=False),
@@ -227,7 +233,6 @@ class config():
 		pass
 		
 	def ok(self, **kwargs):
-		cur = self.master.nametowidget(".").core.struct.cur # Aha! That's how to do it!
 		d = dataWrapper()
 		for i,j in kwargs["connector_context"].items():
 			#Tk.messagebox.showerror(i, j)
@@ -247,12 +252,13 @@ class config():
 				if (type(y) is dict):
 					y = json.dumps(y)
 					
-				cur.execute("replace into config (`key`, `value`) values (?,?)", (i, y))
+				self.cur.execute("replace into config (`key`, `value`) values (?,?)", (i, y))
 		#Tk.messagebox.showerror("co", self.policy["connector_context"].get())
 		
 		self.policy["connector_context"] = d
 		self.innerPolicies["connector_context"]["value"] = d.get()
 		self.dev.set(self.policy["dev"].get())
 		self.contextCollapse.set(self.policy["contextCollapse"].get())
-
+		self.db.commit()
+		#self.save()
 		return True

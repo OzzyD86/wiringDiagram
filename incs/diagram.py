@@ -74,6 +74,8 @@ class local_conf():
 	def portData(self, policy, data):
 		if (policy in self.policy):
 			print("CHANGE POLICY")
+			if (hasattr(data, "save")):
+				data = data.save()
 			if (hasattr(self.policy[policy], "load")):
 				self.policy[policy].load(data)
 			else:

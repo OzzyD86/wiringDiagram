@@ -44,6 +44,8 @@ class wdTk(wdTkCore):
 			self.cueEvts("onFileLoad")
 			for i in self.loaded:
 				i[0].entryconfig(i[1], state="normal")
+			for i,j in self.conf.policy.items():
+				self.core.dia.conf.portData(i,j)
 			self.redraw()
 			self.updateWindowTitle()
 			self.core.struct.clear_changed()
@@ -493,19 +495,23 @@ class wdTk(wdTkCore):
 		else:
 			a = a.name
 			self.core.open_file(a)
+			for i,j in self.conf.policy.items(): #Reset the config stack
+				self.core.dia.conf.portData(i,j)
+				
 			for i in self.core.struct.cur.execute("select * from config"):
-				if (i[0] in self.conf.policy):
-					if (hasattr(self.conf.policy[i[0]], "load")):
-						self.conf.policy[i[0]].load(i[1])
-					else:
-						self.conf.policy[i[0]].set(i[1])
+				#if (i[0] in self.conf.policy):
+				#	if (hasattr(self.conf.policy[i[0]], "load")):
+				#		self.conf.policy[i[0]].load(i[1])
+				#	else:
+				#		self.conf.policy[i[0]].set(i[1])
 					#tkinter.messagebox.showerror("load", type(self.conf.policy[i[0]].get()))
 				
-					if (i[0] in self.conf.innerPolicies):
-						self.conf.innerPolicies[i[0]]["value"] = self.conf.policy[i[0]].get()
+				#	if (i[0] in self.conf.innerPolicies):
+				#		self.conf.innerPolicies[i[0]]["value"] = self.conf.policy[i[0]].get()
 
 				self.core.dia.conf.portData(i[0], i[1])
-			
+		
+					
 			#self.core.dia.conf.
 			#for i, j in self.core.dia.conf.policy.items():
 			#	print(i, j.get())
