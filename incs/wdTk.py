@@ -7,9 +7,10 @@ import tkinter.messagebox
 import math as maths
 from widgets.inputDialog import inputDialog
 from incs.wdTkCore import wdTkCore
-from copy import copy
+from copy import copy, deepcopy
 from widgets.megaMenu import megaMenu
 import os
+import sys
 
 class wdTk(wdTkCore):
 	def resize_canvas(self, event):
@@ -326,6 +327,12 @@ class wdTk(wdTkCore):
 
 		# Compile the configuration system
 		self.conf = coo(self)
+		
+		self.conf.addOption("Moved", "mode", {
+			"name":"Android mode",
+			"type": "Checkbox",
+			"value": (hasattr(sys, "getandroidapilevel"))
+		})
 		if (self.conf.roPols["mode"].get() == False):
 			offs = 1
 		
@@ -496,19 +503,9 @@ class wdTk(wdTkCore):
 			a = a.name
 			self.core.open_file(a)
 			for i,j in self.conf.policy.items(): #Reset the config stack
-				self.core.dia.conf.portData(i,j)
+				self.core.dia.conf.portData(i, j)
 				
 			for i in self.core.struct.cur.execute("select * from config"):
-				#if (i[0] in self.conf.policy):
-				#	if (hasattr(self.conf.policy[i[0]], "load")):
-				#		self.conf.policy[i[0]].load(i[1])
-				#	else:
-				#		self.conf.policy[i[0]].set(i[1])
-					#tkinter.messagebox.showerror("load", type(self.conf.policy[i[0]].get()))
-				
-				#	if (i[0] in self.conf.innerPolicies):
-				#		self.conf.innerPolicies[i[0]]["value"] = self.conf.policy[i[0]].get()
-
 				self.core.dia.conf.portData(i[0], i[1])
 		
 					

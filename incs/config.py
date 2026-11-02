@@ -5,6 +5,69 @@ import sys
 import json
 import sqlite3
 
+class config2():
+	def __init__(self):
+		self.outerPolicies = {}
+		self.innerPolicies = {}
+		pass
+		
+	def addOption(self, placement, key, data = {}, **kwargs):
+		if (not placement in self.outerPolicies):
+			self.outerPolicies[placement] = []
+		
+		self.outerPolicies[placement].append(key)
+		if (not key in self.policy):
+			if ("store" in data):
+				self.policy[key] = data["store"]
+			else:
+				self.policy[key] = Tk.StringVar()
+		
+		self.innerPolicies[key] = data
+		
+		if ("value" in data):
+			self.policy[key].set(data["value"])
+	
+	def portData(self, policy, data):
+		if (policy in self.policy):
+			print("CHANGE POLICY")
+			if (hasattr(data, "save")):
+				data = data.save()
+			if (hasattr(self.policy[policy], "load")):
+				self.policy[policy].load(copy(data))
+			else:
+				self.policy[policy].set(copy(data))
+				#tkinter.messagebox.showerror("load", type(self.conf.policy[i[0]].get()))
+
+			self.innerPolicies[policy]["value"] = self.policy[policy].get()
+		else:
+			print("NO POLICY FOR " + policy + "!")
+
+	def open(self):
+		pages = {}
+		for i,j in self.outerPolicies.items():
+			pages[i] = {}
+			for k in j:
+				pages[i][k] = self.innerPolicies[k]
+				
+		p = pages
+		if ("General" in p):
+			d = p["General"]
+			del p["General"]
+		else:
+			d={}
+
+		v = inputDialog(data=d)
+		
+		for i,j in p.items():
+			v.addNb(i,j)
+		for i,j in self.policy.items():
+			v.set(i,j.get())
+		v.vars["connector_context"] = self.policy["connector_context"]
+		
+		v.addButton("OK", "ok")
+		v.passFunc("ok", self.ok)
+	
+		
 def addOk(s, *args, **kwargs):
 	
 	x = kwargs["i"].nametowidget(".").conf # Aha! That's how to do it!
@@ -19,7 +82,7 @@ def addOk(s, *args, **kwargs):
 		"name": kwargs["name"],
 		"colour": kwargs["colour"],
 		"pos": y
-	} # This shouldnt be done here!!
+	} 
 	return True
 	
 def addPoodOk(s, *args, **kwargs):
@@ -111,6 +174,9 @@ def pood(*args, **kwargs):
 class dataWrapper():
 	def __init__(self, data = {}):
 		self.data = data
+	
+	def __copy__(self):
+		return dataWrapper(copy(self.data))
 		
 	def get(self):
 		return self.data
@@ -124,18 +190,17 @@ class dataWrapper():
 	def save(self):
 		return json.dumps(self.data)
 		
-class config():
+class config(config2):
 	def save(self):
 		self.db.commit()
 		
 	def __init__(self, master=None):
+		super().__init__()
 		self.db = sqlite3.connect("incs/core.db")
 		self.cur = self.db.cursor()
 		self.cur.execute("create table if not exists `config` (`key` text not null primary key, `value` text)")
 		self.master = master
-		#d = self.master.nametowidget(".")
-		#d.events["onUnitialise"].append(self.save)
-
+		
 		self.policy = {
 			"dev" : Tk.BooleanVar(value=False),
 			"contextCollapse": Tk.BooleanVar(value=False),
@@ -153,8 +218,6 @@ class config():
 				"Purple": {"hex":"#FF00FF","rgb":[255,0,255]},
 			})
 		}
-		self.outerPolicies = {}
-		self.innerPolicies = {}
 		self.roPols = {
 			"mode" : Tk.BooleanVar(value = (hasattr(sys, "getandroidapilevel")))	
 		}
@@ -168,14 +231,11 @@ class config():
 			"type": "Checkbox",
 			"value": self.policy["contextCollapse"].get()
 		})
-		self.addOption("General", "mode",{
-			"name":"Android mode",
-			"type": "Checkbox",
-			"value": (hasattr(sys, "getandroidapilevel"))
-		})
+		
 		self.addOption("General", "connector_context", {
 			"name": "Connector Contexts",
 			"type": "TreeView",
+			"headings": { "name":"Name","colour":"Colour", "dir": "Sides"},
 			"onAdd" : [doop],
 			"varStore": self.policy["connector_context"],
 			"value": self.policy["connector_context"].get()
@@ -189,48 +249,6 @@ class config():
 		})
 		self.dev = self.policy["dev"]
 		self.contextCollapse = self.policy["contextCollapse"]
-	
-	def addOption(self, placement, key, data = {}, **kwargs):
-		if (not placement in self.outerPolicies):
-			self.outerPolicies[placement] = []
-		
-		self.outerPolicies[placement].append(key)
-		if (not key in self.policy):
-			if ("store" in data):
-				self.policy[key] = data["store"]
-			else:
-				self.policy[key] = Tk.StringVar()
-		
-		self.innerPolicies[key] = data
-		
-		if ("value" in data):
-			self.policy[key].set(data["value"])
-		
-	def open(self):
-		pages = {}
-		for i,j in self.outerPolicies.items():
-			pages[i] = {}
-			for k in j:
-				pages[i][k] = self.innerPolicies[k]
-				
-		p = pages #self.outerPolicies.copy()
-		if ("General" in p):
-			d = p["General"]
-			del p["General"]
-		else:
-			d={}
-		#raise Exception(d)
-		v = inputDialog(data=d)
-		
-		for i,j in p.items():
-			v.addNb(i,j)
-		for i,j in self.policy.items():
-			v.set(i,j.get())
-		v.vars["connector_context"] = self.policy["connector_context"]
-		
-		v.addButton("OK", "ok")
-		v.passFunc("ok", self.ok)
-		pass
 		
 	def ok(self, **kwargs):
 		d = dataWrapper()

@@ -3,41 +3,26 @@ from PIL import Image, ImageDraw, ImageFont
 import tkinter as Tk
 from incs.config import dataWrapper
 from widgets.inputDialog import inputDialog
-from incs.config import pood as pood, doop as doop
+from incs.config import pood as pood, doop as doop, config2
 import json
+from copy import copy
+
 i18n = {
 	"font_small" : ('Arial', 6),
 	"font_large" : ('Arial', 8)
 }
 
-class local_conf():
+class local_conf(config2):
 	def __init__(self, master=None):
 		self.master = master
+		super().__init__()
 		print(" DEFINATELY STARTED HERE ", self)
 		self.policy = {
 			"connector_context" : dataWrapper({	"a" : {"a" :"b"}}),
 			"colours" : dataWrapper({})
 		}
-		self.outerPolicies = {}
-		self.innerPolicies = {}
-		self.roPols = {
-		#	"mode" : Tk.BooleanVar(value = (hasattr(sys, "getandroidapilevel")))	
-		}
-		'''self.addOption("General", "dev",{
-			"name":"Developer mode",
-			"type": "Checkbox",
-			"value": self.policy["dev"].get()
-		})
-		self.addOption("General", "contextCollapse",{
-			"name":"Collapse context menu",
-			"type": "Checkbox",
-			"value": self.policy["contextCollapse"].get()
-		})
-		self.addOption("General", "mode",{
-			"name":"Android mode",
-			"type": "Checkbox",
-			"value": (hasattr(sys, "getandroidapilevel"))
-		})'''
+		
+		self.roPols = {}
 		self.addOption("General", "connector_context", {
 			"name": "Connector Contexts",
 			"type": "TreeView",
@@ -54,74 +39,7 @@ class local_conf():
 		})
 		'''self.dev = self.policy["dev"]
 		self.contextCollapse = self.policy["contextCollapse"]'''
-	
-	def addOption(self, placement, key, data = {}, **kwargs):
-		if (not placement in self.outerPolicies):
-			self.outerPolicies[placement] = []
-		
-		self.outerPolicies[placement].append(key)
-		if (not key in self.policy):
-			if ("store" in data):
-				self.policy[key] = data["store"]
-			else:
-				self.policy[key] = Tk.StringVar()
-		
-		self.innerPolicies[key] = data
-		
-		if ("value" in data):
-			self.policy[key].set(data["value"])
-
-	def portData(self, policy, data):
-		if (policy in self.policy):
-			print("CHANGE POLICY")
-			if (hasattr(data, "save")):
-				data = data.save()
-			if (hasattr(self.policy[policy], "load")):
-				self.policy[policy].load(data)
-			else:
-				self.policy[policy].set(data)
-				#tkinter.messagebox.showerror("load", type(self.conf.policy[i[0]].get()))
-
-			self.innerPolicies[policy]["value"] = self.policy[policy].get()
-		else:
-			print("NO POLICY FOR " + policy + "!")
-		
-		#if (policy in self.innerPolicies):
-	
-	def open(self):
-		print("DEFINATELY LOADING HERE")
-		for i, j in self.policy.items():
-			#print(i, j.get())
-			#print(self.innerPolicies[i]['varStore'].get())
-			self.innerPolicies[i]['value'] = j.get()
 			
-		pages = {}
-		for i,j in self.outerPolicies.items():
-			pages[i] = {}
-			for k in j:
-				pages[i][k] = self.innerPolicies[k]
-				
-		p = pages #self.outerPolicies.copy()
-		if ("General" in p):
-			d = p["General"]
-			del p["General"]
-		else:
-			d={}
-		#raise Exception(d)
-		v = inputDialog(data=d)
-		
-		for i,j in p.items():
-			v.addNb(i,j)
-		
-		for i,j in self.policy.items():
-			print(j.get())
-			v.set(i,j.get())
-		#v.vars["connector_context"] = self.policy["connector_context"]
-		
-		v.addButton("OK", "ok")
-		v.passFunc("ok", self.ok)
-		pass
-		
 	def ok(self, **kwargs):
 		cur = self.master.nametowidget(".").core.struct.cur # Aha! That's how to do it!
 		d = dataWrapper()
@@ -156,7 +74,6 @@ class diagram():
 			self.conf = local_conf(wdMaster)
 		else:
 			print("Not initialising again!")
-		print(self.conf)
 		
 		self.connector_context = {
 			"In": ["left"],
