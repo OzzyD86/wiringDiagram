@@ -1,3 +1,8 @@
+import sys
+import traceback
+
+sys.stderr = open("tkinter_error_log.txt", "w")
+
 from copy import copy
 from PIL import Image, ImageDraw, ImageFont
 #forom incs.diagram import diagram
@@ -21,10 +26,8 @@ def check_current_version():
 import tkinter as Tk
 import tkinter.ttk as ttk
 import tkinter.filedialog
-import traceback
 from tkinter.messagebox import showerror
 from widgets.inputDialog import inputDialog
-import sys
 from incs.config import config
 
 def report_callback_exception(self, exc, val, tb):
@@ -36,7 +39,7 @@ def report_callback_exception(self, exc, val, tb):
 	d.columnconfigure(0, weight=1)
 	#d.go()
 
-#tkinter.Tk.report_callback_exception = report_callback_exception
+tkinter.Tk.report_callback_exception = report_callback_exception
 
 class version(Tk.Toplevel):
 	def __init__(self, master, a = [], *args, **kwargs):
@@ -59,6 +62,15 @@ class loader():
 		
 class wdTk(incs.wdTk.wdTk):
 
+	def registerEvt(self, event, call):
+		if (not hasattr(self, "events")):
+			self.events = {}
+			
+		if (event not in self.events):
+			self.events[event] = []
+			
+		self.events[event].append(call)
+	
 	def cueEvts(self, event = "", exec=True, **kwargs):
 		out = []
 		#print("Run events for " + event)
@@ -72,7 +84,8 @@ class wdTk(incs.wdTk.wdTk):
 		return out
 		
 	def pluginLoad(self):
-		self.events = {}
+		if (not hasattr(self, "events")):
+			self.events = {}
 		mods = {}
 		loaders = {}
 		setattr(self, "loaders", loader())
