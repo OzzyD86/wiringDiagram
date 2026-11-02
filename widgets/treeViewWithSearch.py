@@ -151,7 +151,9 @@ class treeViewWithSearch(tkinter.Frame):
 		if (self.selected() is not None):
 			self.delete(self.selected())
 	
-	def __init__(self, master, storeSize = 2, compile_keys = None, **kw):
+	def __init__(self, master, storeSize = 2, compile_keys = None, headings = None, **kw):
+		#Headings may relieve both storeSize (definite).and compile_keys (maybe)
+		
 		self.storage = {}
 		self.exter_storage = {}
 		self.opens = set()
@@ -177,8 +179,16 @@ class treeViewWithSearch(tkinter.Frame):
 		self.rowconfigure(1, weight=1)
 	
 		self.search_box.grid(column=1, columnspan=2, row=0,sticky="ew")
-		
-		self.tv = ttk.Treeview(self,columns=list(range(1,storeSize+1)),show="tree headings")
+		if (headings is not None):
+			columns = list(headings.keys())[1:]
+		else:
+			columns = list(range(1,storeSize+1))
+			pass
+		self.tv = ttk.Treeview(self,columns=columns,show="tree headings")
+		if (headings is not None):
+			self.tv.heading("#0", text=headings[list(headings.keys())[0]])
+			for i in list(headings.keys())[1:]:
+				self.tv.heading(i, text=headings[i])
 		self.tv.bind("<<TreeviewOpen>>", self.update_open_items)
 		self.tv.bind("<<TreeviewClose>>", self.update_closed_items)
 
