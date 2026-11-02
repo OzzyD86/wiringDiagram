@@ -66,8 +66,7 @@ class config2():
 		
 		v.addButton("OK", "ok")
 		v.passFunc("ok", self.ok)
-	
-		
+			
 def addOk(s, *args, **kwargs):
 	
 	x = kwargs["i"].nametowidget(".").conf # Aha! That's how to do it!
@@ -221,12 +220,21 @@ class config(config2):
 		self.roPols = {
 			"mode" : Tk.BooleanVar(value = (hasattr(sys, "getandroidapilevel")))	
 		}
-		self.addOption("General", "dev",{
+		
+		for i in self.cur.execute("SELECT * FROM `config`"):
+			print(type(self.policy[i[0]]))
+			if (hasattr(self.policy[i[0]], "load")):
+				self.policy[i[0]].load(i[1])
+			else:
+				self.policy[i[0]].set(i[1])
+			#print(i[0], i[1])
+			
+		self.addOption("Working General", "dev",{
 			"name":"Developer mode",
 			"type": "Checkbox",
 			"value": self.policy["dev"].get()
 		})
-		self.addOption("General", "contextCollapse",{
+		self.addOption("Working General", "contextCollapse",{
 			"name":"Collapse context menu",
 			"type": "Checkbox",
 			"value": self.policy["contextCollapse"].get()
@@ -243,6 +251,7 @@ class config(config2):
 		self.addOption("Test", "colours", {
 			"name": "Colours",
 			"type": "TreeView",
+			"headings": { "hex":"Hex","rgb":"RGB"},
 			"onAdd" : [pood],
 			"varStore": self.policy["colours"],
 			"value": self.policy["colours"].get()

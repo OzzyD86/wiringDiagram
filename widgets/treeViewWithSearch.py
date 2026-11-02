@@ -1,6 +1,7 @@
 import tkinter
 from tkinter import ttk
 from tkinter.messagebox import showerror
+from copy import copy
 
 class treeViewWithSearch(tkinter.Frame):
 	
@@ -154,6 +155,8 @@ class treeViewWithSearch(tkinter.Frame):
 	def __init__(self, master, storeSize = 2, compile_keys = None, headings = None, **kw):
 		#Headings may relieve both storeSize (definite).and compile_keys (maybe)
 		
+		self.headings = headings
+		
 		self.storage = {}
 		self.exter_storage = {}
 		self.opens = set()
@@ -203,28 +206,14 @@ class treeViewWithSearch(tkinter.Frame):
 		tkinter.Button(p, text="Remove", command=self.delSel).grid(row=0, column=2)
 	
 	def get(self):
-		
-		return self.exter_storage
-		if (self.compileKeys is not None):
-			return self.get_compile()
-			
 		o = {}
-		for i,j in self.storage.items():
-			o[i] = j[1]
-		return o
+		for i in self.storage:
+			o[i] = {}
+			#print(list(self.storage[i][-1]))
+			d = copy(list(self.storage[i][-1]))
+			for j in list(self.headings.keys()):
+				#print(i, j, d)
+				o[i][j] = d.pop(0)
 		
-	def get_compile(self):
-		o = {}
-		#raise Exception(self.storage.items())
-		for i,j in self.storage.items():
-			
-			if (len(list(self.compileKeys)) != len(j[1])):
-				pass#raise Exception(j[1], self.compileKeys)
-			else:
-				t = {}
-				for k in self.compileKeys:
-					t[k] = j[1].pop(0)
-				#o[i] = j[1]
-				o[i] = t
-		#raise Exception(o)
+		print(o)
 		return o

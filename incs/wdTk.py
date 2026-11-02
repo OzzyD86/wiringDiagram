@@ -114,6 +114,7 @@ class wdTk(wdTkCore):
 	def b1_up(self, event):
 		if (self._open_file is None):
 			return None
+			
 		if (self.move is not None):
 			if ("t" in self.move and "_wire" in self.move["t"]):
 				self.canvas.delete("_alter")
@@ -126,7 +127,7 @@ class wdTk(wdTkCore):
 				self.move = None
 
 		d = megaMenu()
-		d.collapse(self.conf.contextCollapse.get() == "1")
+		d.collapse(self.conf.contextCollapse.get() in ["1", True])
 		
 		down = self.b1_pressed
 		up = copy(event)
@@ -143,8 +144,9 @@ class wdTk(wdTkCore):
 			click = True
 		else:
 			click=False
-			
-		if (self.conf.dev.get() == "1"):
+		
+		print(self.conf.dev.get())
+		if (self.conf.dev.get() in ["1", True]):
 			d.add_command("debug", label="Start: " + str((down.x, down.y)), state="disabled")
 			d.add_command("debug", label="Finish: " + str((up.x, up.y)), state="disabled")
 			d.add_separator("debug")
@@ -328,7 +330,7 @@ class wdTk(wdTkCore):
 		# Compile the configuration system
 		self.conf = coo(self)
 		
-		self.conf.addOption("Moved", "mode", {
+		self.conf.addOption("Working General", "mode", {
 			"name":"Android mode",
 			"type": "Checkbox",
 			"value": (hasattr(sys, "getandroidapilevel"))
