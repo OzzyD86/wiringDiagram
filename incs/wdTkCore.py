@@ -288,8 +288,14 @@ class wdTkCore(Tk.Tk):
 	
 	# == Plug Adding
 	
-	def connAddWin(self, **preDefs):
-		self.aw = inputDialogWithCanvas(self.window, data={
+	def connAddWin(self):
+		x = self.core.dia.conf.policy["connector_context"].get() #outerPolicies["General"]["connector_context"]["value"]
+		
+		cs = {}
+		for i,j in x.items():
+			#raise Exception(j)
+			cs[i] =j["name"]
+		self.aw = inputDialog(self.window, data={
 			"mhName": {
 				"type" : "Combo",
 				"name": "Machine Name",
@@ -307,7 +313,7 @@ class wdTkCore(Tk.Tk):
 			"ddName": {
 				"type": "Combo",
 				"name": "Data Direction",
-				"values": {"None" : "None", "In": "In", "Out":"Out","Both":"Both" },
+				"values": cs #{"None" : "None", "In": "In", "Out":"Out","Both":"Both" },
 			},
 			"val" :{
 				"type":"Spin",

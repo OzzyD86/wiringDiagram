@@ -7,9 +7,10 @@ import tkinter.messagebox
 import math as maths
 from widgets.inputDialog import inputDialog
 from incs.wdTkCore import wdTkCore
-from copy import copy
+from copy import copy, deepcopy
 from widgets.megaMenu import megaMenu
 import os
+import sys
 
 class wdTk(wdTkCore):
 	def resize_canvas(self, event):
@@ -44,6 +45,8 @@ class wdTk(wdTkCore):
 			self.cueEvts("onFileLoad")
 			for i in self.loaded:
 				i[0].entryconfig(i[1], state="normal")
+			for i,j in self.conf.policy.items():
+				self.core.dia.conf.portData(i,j)
 			self.redraw()
 			self.updateWindowTitle()
 			self.core.struct.clear_changed()
@@ -111,6 +114,7 @@ class wdTk(wdTkCore):
 	def b1_up(self, event):
 		if (self._open_file is None):
 			return None
+			
 		if (self.move is not None):
 			if ("t" in self.move and "_wire" in self.move["t"]):
 				self.canvas.delete("_alter")
@@ -123,7 +127,7 @@ class wdTk(wdTkCore):
 				self.move = None
 
 		d = megaMenu()
-		d.collapse(self.conf.contextCollapse.get() == "1")
+		d.collapse(self.conf.contextCollapse.get() in ["1", True])
 		
 		down = self.b1_pressed
 		up = copy(event)
@@ -140,8 +144,9 @@ class wdTk(wdTkCore):
 			click = True
 		else:
 			click=False
-			
-		if (self.conf.dev.get() == "1"):
+		
+		print(self.conf.dev.get())
+		if (self.conf.dev.get() in ["1", True]):
 			d.add_command("debug", label="Start: " + str((down.x, down.y)), state="disabled")
 			d.add_command("debug", label="Finish: " + str((up.x, up.y)), state="disabled")
 			d.add_separator("debug")
@@ -324,7 +329,13 @@ class wdTk(wdTkCore):
 		self.window = self #Tk.Tk()
 
 		# Compile the configuration system
-		self.conf = coo()
+		self.conf = coo(self)
+		
+		self.conf.addOption("Working General", "mode", {
+			"name":"Android mode",
+			"type": "Checkbox",
+			"value": (hasattr(sys, "getandroidapilevel"))
+		})
 		if (self.conf.roPols["mode"].get() == False):
 			offs = 1
 		
@@ -387,7 +398,8 @@ class wdTk(wdTkCore):
 		self.loaded.append([mf, 3+offs])
 		mf.add_command(label="Save As...", state=Tk.DISABLED)
 		mf.add_separator()
-		mf.add_command(label="Properties...", state=Tk.DISABLED)
+		mf.add_command(label="Properties...", state=Tk.DISABLED, command=self.core.dia.conf.open)
+		self.loaded.append([mf, 6+offs])
 		mf.add_separator()
 		mf.add_command(label="Quit", command=self.quit)
 			
@@ -497,6 +509,17 @@ class wdTk(wdTkCore):
 		else:
 			a = a.name
 			self.core.open_file(a)
+			for i,j in self.conf.policy.items(): #Reset the config stack
+				self.core.dia.conf.portData(i, j)
+				
+			for i in self.core.struct.cur.execute("select * from config"):
+				self.core.dia.conf.portData(i[0], i[1])
+		
+					
+			#self.core.dia.conf.
+			#for i, j in self.core.dia.conf.policy.items():
+			#	print(i, j.get())
+			
 			for i in self.loaded:
 				i[0].entryconfig(i[1], state="normal")
 			self.cueEvts("onFileLoad")
@@ -765,7 +788,7 @@ class wdTk(wdTkCore):
 
 		self.cueEvts("onCanvasRedraw", canvas=self.canvas)
 		self.canvas.scale("all", 0,0, self.sc.get(), self.sc.get())
-		self.canvas.config(scrollregion=(self.canvas.bbox("all")))
+		#self.canvas.config(scrollregion=(q2))
 		
 	def export_png(self):
 		files = [#('All Files', '*.*'), 

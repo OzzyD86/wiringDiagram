@@ -2,8 +2,10 @@ import tkinter as Tk
 import tkinter.ttk as ttk
 #from incs.wdCore import wdCore
 #from widgets.connector_points import connector_points
+from widgets.treeViewWithSearch import treeViewWithSearch
 from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
 #import tkinter.messagebox
+#from incs.config import dataWrapper
 
 class inputDialog(Tk.Toplevel):
 	def __init__(self, master=None, data={}, **kwargs):
@@ -19,7 +21,6 @@ class inputDialog(Tk.Toplevel):
 		nw = self.addItems( data)
 		self.p.add(nw, text="General")
 		self.frames["General"] = nw
-
 		self.p.grid(sticky="swen")
 		self.columnconfigure(0, weight=1)
 	
@@ -27,7 +28,7 @@ class inputDialog(Tk.Toplevel):
 		nw = self.addItems(items)
 		self.frames[called] = nw
 		self.p.add(nw, text=called)
-		
+	
 	def deleteItem(self, item):
 		if (item in self.data):
 			self.data[item]["obj"].destroy()
@@ -79,7 +80,11 @@ class inputDialog(Tk.Toplevel):
 			j["obj"] = Tk.Checkbutton(nw, text=j["name"], variable=self.vars[i], 
 					onvalue=1, offvalue=0)
 		elif (j["type"] in ["TreeView"]):
-			j["obj"] = treeViewWithSearch(nw, adds = j["onAdd"])
+			if ("headings" in j):
+				heads = j["headings"]
+			else:
+				heads = None
+			j["obj"] = treeViewWithSearch(nw, headings=heads, adds = j["onAdd"])
 			keys = None
 			#raise Exception(j["value"])
 			for l,k in j["value"].items():
@@ -112,12 +117,18 @@ class inputDialog(Tk.Toplevel):
 			snd['s'] = self.sf
 		#print("Do stuff here") 
 		for i,j in self.vars.items():
+			#Tk.messagebox.showerror(i, type(j))
 			if (type(j) is Tk.StringVar):
 				if (self.data[i]["type"] in ["Combo"] and type(self.data[i]["values"]) is dict):
 					snd[i] = self.data[i]["obj"].get_key_of_value(j.get())
 				else:
 					snd[i] = j.get()
+			elif (hasattr(j, "load")):
+				#Tk.messagebox.showerror("", "dataWrapper")
+				snd[i] = self.data[i]["obj"].get()
+				j.set(self.data[i]["obj"].get())
 			else:
+				Tk.messagebox.showerror("", j)
 				print("Slight panic:", i, j)
 		
 		for i in self.funcs[mode]:

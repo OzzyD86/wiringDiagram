@@ -1,13 +1,196 @@
 from incs.colours import colourDirection
 from PIL import Image, ImageDraw, ImageFont
 import tkinter as Tk
+from incs.config import dataWrapper
+from widgets.inputDialog import inputDialog
+import json
+from copy import copy
+from incs.config import config2
+
+def addOk(s, *args, **kwargs):
+	
+	#x = kwargs["i"].nametowidget(".").conf # Aha! That's how to do it!
+	y = []
+
+	for i in ["left", "top", "bottom", "right"]:
+		if (kwargs["pos_" + i] == "1"):
+			y.append(i)
+	kwargs["i"].add([kwargs["name"],{"name": kwargs["name"],"colour":kwargs["colour"], "pos":y}])
+	#s.data
+	#x.innerPolicies["connector_context"]["value"][kwargs["name"]] = {
+	#	"name": kwargs["name"],
+	#	"colour": kwargs["colour"],
+	#	"pos": y
+	#} 
+	return True
+	
+def addPoodOk(s, *args, **kwargs):
+	x = kwargs["i"].nametowidget(".").conf # Aha! That's how to do it!
+	y = []
+
+	for i in ["r", "g", "b"]:
+		y.append(int(kwargs[i]))
+	kwargs["i"].add([kwargs["name"],{ "hex":kwargs["hex"], "rgb":y}])
+	#s.data
+	#x.innerPolicies["colours"]["value"][kwargs["name"]] = {
+	#	"hex": kwargs["hex"],
+	#	"rgb": y
+	#} # This shouldnt be done here!!
+	return True
+	
+def doop(*args, **kwargs):
+	dd = args[0].master.master.data
+	if ("colours" in dd):
+		vars = {}
+		#Tk.messagebox.showerror("",dd["colours"]["obj"].exter_storage)
+		for i,j in dd["colours"]["obj"].exter_storage.items():
+			vars[i] = i
+	else:
+		vars ={
+			"black":"Black"
+		}
+	x = inputDialog(args[0], data={
+		"name": {
+			"name":"Name",
+			"type": "Entry",
+		},
+		"colour": {
+			"name":"Colour",
+			"type": "Combo",
+			"values": vars
+		},
+		"pos_left":{
+			"name":"Left",
+			"type": "Checkbox",
+			"value": 1
+		},
+		"pos_top":{
+			"name":"Top",
+			"type": "Checkbox",
+			"value": 1#.policy["contextCollapse"].get()
+		},
+		"pos_right":{
+			"name":"Right",
+			"type": "Checkbox",
+			"value": 1#.policy["contextCollapse"].get()
+		},
+		"pos_bottom":{
+			"name":"Bottom",
+			"type": "Checkbox",
+			"value": 1#.policy["contextCollapse"].get()
+		}
+	})
+	x.addButton("OK", "ok")
+	x.passFunc("ok", lambda i=args[0], s=x, **kwargs: addOk(**kwargs, i =i,s=s))
+	
+def pood(*args, **kwargs):
+	x = inputDialog(args[0], data={
+		"name": {
+			"name":"Name",
+			"type": "Entry",
+		},
+		"hex": {
+			"name":"Hexadecimal Value",
+			"type": "Entry",
+		},
+		"r":{
+			"name":"Red",
+			"type": "Entry",
+		},
+		"g":{
+			"name":"Green",
+			"type": "Entry",
+		},
+		"b":{
+			"name":"Blue",
+			"type": "Entry",
+		}
+	})
+	x.addButton("OK", "ok")
+	x.passFunc("ok", lambda i=args[0], s=x, **kwargs: addPoodOk(**kwargs, i =i,s=s))
 
 i18n = {
 	"font_small" : ('Arial', 6),
 	"font_large" : ('Arial', 8)
 }
+
+class local_conf(config2):
+	def __init__(self, master=None):
+		self.master = master
+		super().__init__()
+		print(" DEFINATELY STARTED HERE ", self)
+		self.policy = {
+			"connector_context" : dataWrapper({	"a" : {"a" :"b"}}),
+			"colours" : dataWrapper({})
+		}
+		
+		self.roPols = {}
+		self.addOption("General", "connector_context", {
+			"name": "Connector Contexts",
+			"type": "TreeView",
+			"headings": { "name":"Name","colour":"Colour", "pos": "Sides"},
+			"onAdd" : [doop],
+			"varStore": self.policy["connector_context"],
+			"value": self.policy["connector_context"].get()
+		})
+		self.addOption("Test", "colours", {
+			"name": "Colours",
+			"type": "TreeView",
+			"headings": { "hex":"Hex","rgb":"RGB"},
+			"onAdd" : [pood],
+			"varStore": self.policy["colours"],
+			"value": self.policy["colours"].get()
+		})
+					
+	def ok(self, **kwargs):
+		ww = self.master.nametowidget(".")
+		cur = ww.core.struct.cur # Aha! That's how to do it!
+		d = dataWrapper()
+		for i,j in kwargs["connector_context"].items():
+			#Tk.messagebox.showerror(i, j)
+			d.data[i] = j#{"name": j["name"], "colour": j["colour"], "pos": j["pos"] }
+		kwargs["connector_context"] = d.get()
+		#Tk.messagebox.showerror("", kwargs["connector_context"])
+		for i,j in kwargs.items():
+			self.policy[i].set(j)
+			self.innerPolicies[i]["value"] = j#self.policy[i]
+			y=j
+			t=False
+			for k in self.outerPolicies.values():
+				if (i in k):
+					t = True
+			if (t):
+				if (type(y) is dict):
+					y = json.dumps(y)
+					
+				cur.execute("replace into config (`key`, `value`) values (?,?)", (i, y))
+		
+		
+		o = {}
+		for i,j in d.get().items():
+			o[i] = j["pos"]
+		ww.core.dia.connector_context = o
+		#raise Exception(o)
+		self.policy["connector_context"] = d
+		self.innerPolicies["connector_context"]["value"] = d.get()
+		ww.redraw()
+		return True
+
 class diagram():
-	def __init__(self):
+	def __init__(self, wdMaster):
+		self.master = wdMaster
+		if not (hasattr(self, "conf")):
+			self.conf = local_conf(wdMaster)
+		else:
+			print("Not initialising again!")
+		
+		self.connector_context = {
+			"In": ["left"],
+			"Out": ["right"],
+			"None": ["left", "right"],
+			"Both": ["left", "right"],
+			None: ["left", "right", "top", "bottom"]
+		}
 		self.bounds = [0,0,0,0]
 		self.dev = {}
 		self.conns = {}
@@ -55,7 +238,8 @@ class diagram():
 		return p
 		
 	def clear(self):
-		self.__init__() # Just makes sense
+		print("I AM CALLED!")
+		self.__init__(self.master) # Just makes sense
 		
 	def addDevice(self, key, dev):
 		self.dev[key] = dev
@@ -192,22 +376,23 @@ class diagram():
 				ct = 0
 				nat = ["left", "right"]
 				for i in p.connectors.keys():
-					poss[nat[ct%2]].append(i)
+					poss[nat[ct%len(nat)]].append(i)
 					ct+=1
 			#print(poss)
 
 			if (_type == 1):
 				ct = 0
-				nat = ["left", "right"]
+				#nat = ["left", "right"]
 				for i in p.connectors.keys():
-					if (p.connectors[i]['direction'] in ["In", "in"]):
-						poss["left"].append(i)
-					elif (p.connectors[i]['direction'] in ["Out", "out"]):
-						poss["right"].append(i)
+					if (p.connectors[i]['direction'] in self.connector_context):
+						x = self.connector_context[p.connectors[i]['direction']]
+						
 					else:
-						poss[nat[ct%2]].append(i)
-						ct+=1
-			#print(p.connectors)
+						x = self.connector_context[None]
+						
+					poss[x[ct%len(x)]].append(i)
+					ct+=1
+			#print(poss)
 		
 		else:
 			pass
@@ -231,7 +416,7 @@ class diagram():
 				to = (5,0)
 				os = ((dms[2]/2)+2.5, - (dms[3]/2))
 			elif (fa in ["bottom"]):
-				
+				an = Tk.N
 				os = (-(dms[2]/2), (dms[3]/2)+2.5)
 			else:
 				os = (0,0)
