@@ -193,14 +193,31 @@ class dataWrapper():
 class config(config2):
 	def save(self):
 		self.db.commit()
-		
+	
+	def dataInit(self, *args, **kwargs):
+		for i in self.cur.execute("SELECT * FROM `config`"):
+			
+			if (i[0] in self.policy):
+				print(type(self.policy[i[0]]))
+				
+				if (hasattr(self.policy[i[0]], "load")):
+					self.policy[i[0]].load(i[1])
+				else:
+					self.policy[i[0]].set(i[1])
+			else:
+				print("WATCH OUT: " + i[0] + " IS NOT IN GLOBAL CONFIG AT POINT OF SETUP")
+
 	def __init__(self, master=None):
 		super().__init__()
+
 		self.db = sqlite3.connect("incs/core.db")
 		self.cur = self.db.cursor()
 		self.cur.execute("create table if not exists `config` (`key` text not null primary key, `value` text)")
 		self.master = master
-		
+
+		if (self.master is not None):
+			self.master.registerEvt("onConfigInitialise", self.dataInit)
+			
 		self.policy = {
 			"dev" : Tk.BooleanVar(value=False),
 			"contextCollapse": Tk.BooleanVar(value=False),
@@ -222,13 +239,8 @@ class config(config2):
 			"mode" : Tk.BooleanVar(value = (hasattr(sys, "getandroidapilevel")))	
 		}
 		
-		for i in self.cur.execute("SELECT * FROM `config`"):
-			print(type(self.policy[i[0]]))
-			if (hasattr(self.policy[i[0]], "load")):
-				self.policy[i[0]].load(i[1])
-			else:
-				self.policy[i[0]].set(i[1])
-			#print(i[0], i[1])
+		#self.dataInit()
+		#print(i[0], i[1])
 			
 		self.addOption("Working General", "dev",{
 			"name":"Developer mode",
@@ -284,6 +296,7 @@ class config(config2):
 		#Tk.messagebox.showerror("co", self.policy["connector_context"].get())
 		
 		self.policy["connector_context"] = d
+		self.master.cueEvts("onGlobalConfigUpdate", config=self)
 		self.innerPolicies["connector_context"]["value"] = d.get()
 		self.dev.set(self.policy["dev"].get())
 		self.contextCollapse.set(self.policy["contextCollapse"].get())
