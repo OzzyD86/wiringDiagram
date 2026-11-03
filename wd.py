@@ -184,7 +184,7 @@ class wdTk(incs.wdTk.wdTk):
 		pass
 		
 app = "wiringDiagram"
-try:
+if (1):#try:
 	
 	t = wdTk( c=config)
 	s = ttk.Style()
@@ -198,6 +198,7 @@ try:
 	
 	#p = pjaDialog().go()
 	t.cueEvts("onInitialise", win=t) # good to go!
+	t.cueEvts("onConfigInitialise", win=t) # good to go!
 	ch = [
 		#"Prevent canvas menu spawn crash when no file loaded",
 		"New file enables menu items",
@@ -211,17 +212,19 @@ try:
 	#t.open_file("f.db")
 	#t.redraw()
 	t.window.mainloop()
-	
+try:
+	pass
 except Exception as e:
+	pass
 	#t.destroy()
-	d = Tk.Tk()
-	font = ("Arial", 6)
+	#d = Tk.Tk()
+	#font = ("Arial", 6)
 	
-	d.title("Error")
-	Tk.Label(d, text=app + " ran into an error", font="Arial 8 bold").grid(sticky="w")
+	#d.title("Error")
+	#Tk.Label(d, text=app + " ran into an error", font="Arial 8 bold").grid(sticky="w")
 	
-	Tk.Label(d, text=str(type(e).__name__) + ": " +str(e), font= [*font, "bold"]).grid()
-	d.rowconfigure(0, weight=1)
-	d.columnconfigure(0, weight=1)
-	d.mainloop()
+	#Tk.Label(d, text=str(type(e).__name__) + ": " +str(e), font= [*font, "bold"]).grid()
+	#d.rowconfigure(0, weight=1)
+	#d.columnconfigure(0, weight=1)
+	#d.mainloop()
 
