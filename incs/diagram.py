@@ -3,9 +3,111 @@ from PIL import Image, ImageDraw, ImageFont
 import tkinter as Tk
 from incs.config import dataWrapper
 from widgets.inputDialog import inputDialog
-from incs.config import pood as pood, doop as doop, config2
 import json
 from copy import copy
+from incs.config import config2
+
+def addOk(s, *args, **kwargs):
+	
+	#x = kwargs["i"].nametowidget(".").conf # Aha! That's how to do it!
+	y = []
+
+	for i in ["left", "top", "bottom", "right"]:
+		if (kwargs["pos_" + i] == "1"):
+			y.append(i)
+	kwargs["i"].add([kwargs["name"],{"name": kwargs["name"],"colour":kwargs["colour"], "pos":y}])
+	#s.data
+	#x.innerPolicies["connector_context"]["value"][kwargs["name"]] = {
+	#	"name": kwargs["name"],
+	#	"colour": kwargs["colour"],
+	#	"pos": y
+	#} 
+	return True
+	
+def addPoodOk(s, *args, **kwargs):
+	x = kwargs["i"].nametowidget(".").conf # Aha! That's how to do it!
+	y = []
+
+	for i in ["r", "g", "b"]:
+		y.append(int(kwargs[i]))
+	kwargs["i"].add([kwargs["name"],{ "hex":kwargs["hex"], "rgb":y}])
+	#s.data
+	#x.innerPolicies["colours"]["value"][kwargs["name"]] = {
+	#	"hex": kwargs["hex"],
+	#	"rgb": y
+	#} # This shouldnt be done here!!
+	return True
+	
+def doop(*args, **kwargs):
+	dd = args[0].master.master.data
+	if ("colours" in dd):
+		vars = {}
+		#Tk.messagebox.showerror("",dd["colours"]["obj"].exter_storage)
+		for i,j in dd["colours"]["obj"].exter_storage.items():
+			vars[i] = i
+	else:
+		vars ={
+			"black":"Black"
+		}
+	x = inputDialog(args[0], data={
+		"name": {
+			"name":"Name",
+			"type": "Entry",
+		},
+		"colour": {
+			"name":"Colour",
+			"type": "Combo",
+			"values": vars
+		},
+		"pos_left":{
+			"name":"Left",
+			"type": "Checkbox",
+			"value": 1
+		},
+		"pos_top":{
+			"name":"Top",
+			"type": "Checkbox",
+			"value": 1#.policy["contextCollapse"].get()
+		},
+		"pos_right":{
+			"name":"Right",
+			"type": "Checkbox",
+			"value": 1#.policy["contextCollapse"].get()
+		},
+		"pos_bottom":{
+			"name":"Bottom",
+			"type": "Checkbox",
+			"value": 1#.policy["contextCollapse"].get()
+		}
+	})
+	x.addButton("OK", "ok")
+	x.passFunc("ok", lambda i=args[0], s=x, **kwargs: addOk(**kwargs, i =i,s=s))
+	
+def pood(*args, **kwargs):
+	x = inputDialog(args[0], data={
+		"name": {
+			"name":"Name",
+			"type": "Entry",
+		},
+		"hex": {
+			"name":"Hexadecimal Value",
+			"type": "Entry",
+		},
+		"r":{
+			"name":"Red",
+			"type": "Entry",
+		},
+		"g":{
+			"name":"Green",
+			"type": "Entry",
+		},
+		"b":{
+			"name":"Blue",
+			"type": "Entry",
+		}
+	})
+	x.addButton("OK", "ok")
+	x.passFunc("ok", lambda i=args[0], s=x, **kwargs: addPoodOk(**kwargs, i =i,s=s))
 
 i18n = {
 	"font_small" : ('Arial', 6),
@@ -26,6 +128,7 @@ class local_conf(config2):
 		self.addOption("General", "connector_context", {
 			"name": "Connector Contexts",
 			"type": "TreeView",
+			"headings": { "name":"Name","colour":"Colour", "pos": "Sides"},
 			"onAdd" : [doop],
 			"varStore": self.policy["connector_context"],
 			"value": self.policy["connector_context"].get()
@@ -33,15 +136,15 @@ class local_conf(config2):
 		self.addOption("Test", "colours", {
 			"name": "Colours",
 			"type": "TreeView",
+			"headings": { "hex":"Hex","rgb":"RGB"},
 			"onAdd" : [pood],
 			"varStore": self.policy["colours"],
 			"value": self.policy["colours"].get()
 		})
-		'''self.dev = self.policy["dev"]
-		self.contextCollapse = self.policy["contextCollapse"]'''
-			
+					
 	def ok(self, **kwargs):
-		cur = self.master.nametowidget(".").core.struct.cur # Aha! That's how to do it!
+		ww = self.master.nametowidget(".")
+		cur = ww.core.struct.cur # Aha! That's how to do it!
 		d = dataWrapper()
 		for i,j in kwargs["connector_context"].items():
 			#Tk.messagebox.showerror(i, j)
@@ -62,9 +165,15 @@ class local_conf(config2):
 					
 				cur.execute("replace into config (`key`, `value`) values (?,?)", (i, y))
 		
+		
+		o = {}
+		for i,j in d.get().items():
+			o[i] = j["pos"]
+		ww.core.dia.connector_context = o
+		#raise Exception(o)
 		self.policy["connector_context"] = d
 		self.innerPolicies["connector_context"]["value"] = d.get()
-
+		ww.redraw()
 		return True
 
 class diagram():
@@ -275,12 +384,6 @@ class diagram():
 					else:
 						x = self.connector_context[None]
 						
-					#if (p.connectors[i]['direction'] in ["In", "in"]):
-					#	poss["left"].append(i)
-					#elif (p.connectors[i]['direction'] in ["Out", "out"]):
-					#	poss["right"].append(i)
-					#else:
-					#	poss[nat[ct%len(nat)]].append(i)
 					poss[x[ct%len(x)]].append(i)
 					ct+=1
 			#print(poss)

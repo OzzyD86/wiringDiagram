@@ -37,8 +37,9 @@ class config2():
 			else:
 				self.policy[policy].set(copy(data))
 				#tkinter.messagebox.showerror("load", type(self.conf.policy[i[0]].get()))
-
-			self.innerPolicies[policy]["value"] = self.policy[policy].get()
+			
+			if (policy in self.innerPolicies):
+				self.innerPolicies[policy]["value"] = self.policy[policy].get()
 		else:
 			print("NO POLICY FOR " + policy + "!")
 
@@ -243,7 +244,7 @@ class config(config2):
 		self.addOption("General", "connector_context", {
 			"name": "Connector Contexts",
 			"type": "TreeView",
-			"headings": { "name":"Name","colour":"Colour", "dir": "Sides"},
+			"headings": { "name":"Name","colour":"Colour", "pos": "Sides"},
 			"onAdd" : [doop],
 			"varStore": self.policy["connector_context"],
 			"value": self.policy["connector_context"].get()
