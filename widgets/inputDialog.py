@@ -95,8 +95,7 @@ class inputDialog(Tk.Toplevel):
 			j["obj"].grid(padx=5, pady=(5,0), sticky='w')
 		else:
 			j["obj"].grid(padx=5, pady=(5,0), sticky='nsew')
-		
-		
+			
 	def addButton(self, title, local_action = "add"):
 		self.funcs[local_action] = []
 		Tk.Button(self, text=title, command=lambda: self.button_press(local_action)).grid(padx=5, pady=(5, 0), sticky='swen')

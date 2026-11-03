@@ -206,6 +206,7 @@ class wdTk(wdTkCore):
 	
 			else:
 				d.add_command(label="Edit device...", command = lambda dName=name: self.devEditWin(mName=dName))
+				d.add_command(label="Add plugs...", command= lambda : self.connAddWin(mhName=name))
 				d.add_command(label="Delete device", command= lambda : self.devDelComplete(dhName=name))
 		
 		if ("_wp" in tags):
@@ -349,7 +350,7 @@ class wdTk(wdTkCore):
 		nw = Tk.Frame(self.nb)
 		self.nb.add(nw, text="General")
 		self.nb.grid(row=0,column=0,sticky="swen")
-		self.canvas = Tk.Canvas(nw, width=800, height=600, confine=False)
+		self.canvas = Tk.Canvas(nw, width=800, height=600, confine = False)
 		'''i=self.canvas.create_text((0,0), text= "UNSTABLE", anchor="nw", fill="white", font="Arial 8 bold")
 		r=self.canvas.create_rectangle(self.canvas.bbox(i),fill="red")
 		self.canvas.tag_lower(r,i)'''
@@ -360,6 +361,7 @@ class wdTk(wdTkCore):
 		self.hscroll = Tk.Scrollbar(nw,orient=Tk.HORIZONTAL)
 		self.hscroll.grid(column=0, row=1,sticky="news")
 		self.canvas.config(scrollregion = (0,-0,800,600))
+		#self.canvas.config(scrollregion = (-10000,-10000,10000,10000))
 		self.canvas.configure(yscrollcommand=self.vscroll.set, xscrollcommand=self.hscroll.set)
 		self.vscroll.config( command = self.canvas.yview )
 		self.hscroll.config( command = self.canvas.xview )
@@ -478,9 +480,12 @@ class wdTk(wdTkCore):
 	def open_file(self, file):
 		#raise Exception(self._open_file)
 		self.core.open_file(file)
+		for i in self.loaded:
+			i[0].entryconfig(i[1], state="normal")
 		self._open_file = file
 		self.cueEvts("onFileLoad")
-		self.canvas.config(scrollregion=(self.core.dia.bounds))
+		self.canvas.config(scrollregion=(self.canvas.bbox("all")))
+		#self.canvas.config(scrollregion=(self.core.dia.bounds))
 		self.set_export_vars()
 		self.updateWindowTitle()
 
@@ -521,7 +526,9 @@ class wdTk(wdTkCore):
 			self.redraw()
 			self._open_file = a
 			self.core.struct.clear_changed()
-			self.canvas.config(scrollregion=(self.core.dia.bounds))
+			#self.canvas.config(scrollregion=(self.core.dia.bounds))
+			self.canvas.config(scrollregion=(self.canvas.bbox("all")))
+
 			self.updateWindowTitle()
 
 	def file_save(self):
@@ -664,7 +671,7 @@ class wdTk(wdTkCore):
 		self.canvas.delete("_conn")
 		for i in d.listDevices():
 			if (i in d.locs):
-				aa = d.objMk(self.canvas, d.getDevice(i), d.locs[i])
+				aa = d.objMk(self.canvas, d.getDevice(i), d.locs[i], connector_names = self.conn_labelling.get())
 				d.getDevice(i).drwConnPos = aa
 
 		self.canvas.delete("_wire")

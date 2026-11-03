@@ -1,5 +1,5 @@
 from incs.diagram import diagram
-from dev import device
+from incs.dev import device
 from incs.diagramStructure import diagramStructure
 import json
 from incs.wire import wire
@@ -58,7 +58,7 @@ class wdCore():
 			#print(dict(i))
 			dv = self.dia.getDevice(i["dName"])
 			if (dv is not None):
-				dv.addConnector(i["cName"], proto="XLR", direction=i["direction"])
+				dv.addConnector(i["cName"], proto=i['proto'], direction=i["direction"])
 			else:
 				print("Connection called for", i["cName"],"on",i["dName"],"which does not exist.")
 				pass
@@ -112,8 +112,8 @@ class wdCore():
 		del self.dia.dev[obj]
 		self.struct.set_changed()
 	
-	def addConnector(self, obj, cName, proto = "XLR", dir = "auto"):
-		self.struct.cur.execute("insert into conns (dName, cName, direction) values(?, ?, ?)", (obj, cName, dir))
+	def addConnector(self, obj, cName, proto = None, dir = "auto"):
+		self.struct.cur.execute("insert into conns (dName, cName, direction, proto) values(?, ?, ?, ?)", (obj, cName, dir, proto))
 		self.dia.getDevice(obj).addConnector(cName, proto, dir)
 		self.struct.set_changed()
 

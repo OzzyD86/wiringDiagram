@@ -4,19 +4,89 @@ import tkinter as Tk
 #from widgets.connector_points import connector_points
 #from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
 import tkinter.messagebox
-
+from copy import deepcopy
+from incs.dev import device
 from widgets.inputDialog import inputDialog
+import incs.checkers
+
+class inputDialogWithCanvas(inputDialog):
+	def resize_canvas(self, event):
+		new_width = event.width
+		new_height = event.height
+		self.size = (new_width, new_height)
+		self.check()
+		self.c.create_rectangle(5,5,new_width -5, new_height-5, outline="black")
+	
+	def __init__(self, master, checker = None, *args, **kwargs):
+		super().__init__(master, **kwargs)
+		self.c = Tk.Canvas(self)
+		self.checker = checker
+		self.c.grid(column=1, row=0, rowspan=5, sticky='news')
+		self.c.bind("<Configure>", self.resize_canvas)
+		self.update()
+		self.size = (self.c.winfo_width(), self.c.winfo_height())
+		print(self.size)
+		
+		self.rowconfigure(0, weight=1)
+		self.columnconfigure(1, weight=1)
+			
+	def check(self, *args, **kwargs):
+		if (self.checker is None):
+			#print(args, kwargs, self.vars[kwargs['a']].get())
+			v = int(self.vars['val'].get())
+			#print(args[0].get())
+			p = self.nametowidget(".").core.dia # Aha! That's how to do it!
+			self.c.delete("all")
+			
+			mm = self.data['mhName']["obj"].get_key_of_value(self.vars['mhName'].get())
+			x = (p.locs[mm])
+			y = deepcopy(p.getDevice(mm))
+			
+			if (v == 1):
+				y.addConnector(self.vars['cName'].get(), direction = self.vars['ddName'].get())
+			elif (v > 1):
+				for i in range(v):
+					y.addConnector(self.vars['cName'].get() + "_" + str(i+1), direction = self.vars['ddName'].get())
+
+			aa = p.objMk(self.c, y, (self.size[0]/2, self.size[1]/2, x[2], x[3]), connector_names = True)
+		else:
+			self.checker(self, *args, **kwargs)
+		#print(type(p))
+		
+	def addItems(self, items = {}):
+		nw = super().addItems(items)
+		for i in items.keys():
+			print(i)
+			self.vars[i].trace_add("write", lambda *args, x=i, **kwargs: self.check(a = x))
+		return nw
+			
+class op_conf():
+	def __init__(self):
+		self.ls = {}
+		
+	def register(self, ls, name, optionals = {}):
+		if (ls not in self.ls):
+			self.ls[ls] = {}
+			
+		self.ls[ls][name] = optionals
+		return True
+	
+	def getList(self, ls):
+		if (ls not in self.ls):
+			return []
+		return list(self.ls[ls].keys())
 
 class wdTkCore(Tk.Tk):
 	
 	# === Device Adding
 	def __init__(self, master = None, **kwargs):
 		super().__init__(master, **kwargs)
+		self.op_config = op_conf()
 		
 	def devAddWin(self, event = None):
 		d = getattr(event, "x", 0)
 			
-		self.aw = inputDialog(self.window, data={
+		self.aw = inputDialogWithCanvas(self.window, checker=incs.checkers.devAddCheck, data={
 			"mName": {
 				"type" : "Entry",
 				"name" : "New Machine Name",
@@ -62,7 +132,7 @@ class wdTkCore(Tk.Tk):
 	# == Device Duplication
 	
 	def dupDevAddWin(self, **preDefs):
-		self.aw = inputDialog(self.window, data={
+		self.aw = inputDialogWithCanvas(self.window, checker=incs.checkers.devDupCheck, data={
 			"dName": {
 				"type" : "Combo",
 				"name": "Existing Machine to Duplicate",
@@ -120,7 +190,7 @@ class wdTkCore(Tk.Tk):
 		for i in self.cueEvts("onDevEditWinPreDef", False):
 			preDefs = i(preDefs)
 			
-		self.aw = inputDialog(self.window, data={
+		self.aw = inputDialogWithCanvas(self.window, checker=incs.checkers.devEditCheck, data={
 			"mName":{
 				"type" : "Combo",
 				"name": "Edit Machine",
@@ -235,6 +305,11 @@ class wdTkCore(Tk.Tk):
 				"type": "Entry",
 				"name": "Connection Name"
 			},
+			"proto": {
+				"type": "Combo",
+				"name": "Protocol",
+				"values": self.op_config.getList("proto"),
+			},
 			"ddName": {
 				"type": "Combo",
 				"name": "Data Direction",
@@ -247,10 +322,12 @@ class wdTkCore(Tk.Tk):
 		})
 		self.aw.addButton("Add", "add")
 		self.aw.passFunc("add", self.connAddComplete)
+		for i,j in preDefs.items():
+			self.aw.set(i, j)
 
 	def connAddComplete(self, **kwargs):
 		p = self.core.dia.listDevices(True)
-	
+		print(kwargs)
 		if (kwargs['mhName'] not in list(p.keys())):
 			Tk.messagebox.showerror(title="Device not found", message="There is no device to edit.")
 			return False
@@ -262,10 +339,10 @@ class wdTkCore(Tk.Tk):
 			return False
 		
 		if (int(kwargs['val']) == 1):
-			self.core.addConnector(obj, kwargs['cName'], dir= kwargs['ddName'])
+			self.core.addConnector(obj, kwargs['cName'],  proto = kwargs['proto'], dir= kwargs['ddName'])
 		elif (int(kwargs['val']) > 1):
 			for i in range(int(kwargs['val'])):
-				self.core.addConnector(obj, kwargs['cName']+"_"+str(i+1), dir= kwargs['ddName'])
+				self.core.addConnector(obj, kwargs['cName']+"_"+str(i+1), proto = kwargs['proto'], dir= kwargs['ddName'])
 		else:
 			Tk.messagebox.showerror(title="Cannot add plug", message="Invalid value.")
 			return False
@@ -294,7 +371,7 @@ class wdTkCore(Tk.Tk):
 		args[0].data['outcName']['values'] = list(ii)
 		
 	def connDelWin(self):
-		self.aw = inputDialog(self.window, data= {
+		self.aw = inputDialogWithCanvas(self.window, checker=incs.checkers.connDelCheck, data= {
 			"outdName": {
 				"type" : "Combo",
 				"name": "Machine Name",
@@ -352,7 +429,7 @@ class wdTkCore(Tk.Tk):
 			Tk.messagebox.showerror(val[0]["target"], args)
 
 	def wireAddWin(self, **preDefs):
-		self.aw = inputDialog(self.window, data={
+		self.aw = inputDialogWithCanvas(self.window, checker=incs.checkers.wireAddCheck, data={
 			"outdName" : {
 				"type":"Combo",
 				"name":"Output Device Name",

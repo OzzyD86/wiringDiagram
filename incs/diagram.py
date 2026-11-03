@@ -1,4 +1,4 @@
-from colours import colourDirection
+from incs.colours import colourDirection
 from PIL import Image, ImageDraw, ImageFont
 import tkinter as Tk
 from incs.config import dataWrapper
@@ -266,7 +266,13 @@ class diagram():
 			
 		if ((pos[1] + (sz[1] / 2) + 10) > self.bounds[3]):
 			self.bounds[3] = (pos[1] + (sz[1] / 2) + 10) 
-			
+	
+	def getDeviceID(self, p):
+		for j, i in self.dev.items():
+			if (i.name == p):
+				return j
+		return None
+		
 	def getDevice(self, key):
 		try:
 			return self.dev[key]
@@ -347,7 +353,7 @@ class diagram():
 		return bbox
 		#return [bbox[0]-100, bbox[1] -100, bbox[2]+100,bbox[3]+100]
 		
-	def objMk(self, dr, p, dms = (0,0,1,1), _type = 1, honour_db = False, offset = (0,0)):
+	def objMk(self, dr, p, dms = (0,0,1,1), _type = 1, honour_db = False, offset = (0,0), connector_names = False, highlight_connected = False):
 		try:
 			f = ImageFont.load_default_imagefont()
 		except:
@@ -416,6 +422,7 @@ class diagram():
 				os = (0,0)
 			
 			for fc in fb:
+				#print(fc)
 				if (fa in ["left", "right"]):
 					ro = 0
 					os = (os[0], (-dms[3] /2) + ((ct+1) / (ln+1) * dms[3]))
@@ -426,15 +433,22 @@ class diagram():
 				tp = dms[1] + os[1]
 
 				c = colourDirection(p.connectors[fc]["direction"], a==2)
-
+				
+				if (highlight_connected):
+					if (fc in p.connectors and p.connectors[fc]["connected"] is not None):
+						tc = "#FF0000"
+					else:
+						tc = "#000000"
+				else:
+					tc = "#000000"
 				if (a==1):
 					dr.rectangle((lf-2.5+offset[0], tp-2.5+offset[1], lf + 2.5+offset[0], tp+2.5+offset[1]), outline=c)
 				elif (a==2):
 					op = dr.create_rectangle(lf-2.5, tp-2.5, lf + 2.5, tp+2.5, outline=c)
 					dr.addtag_withtag("_conn", op)
 					dr.addtag_withtag("c:"+p.machName+"."+fc, op)
-					if (self.conn_labelling.get()):
-						otx = dr.create_text(lf+to[0],tp+to[1],text=fc,font=i18n["font_small"],angle=ro,anchor=an)
+					if (connector_names):
+						otx = dr.create_text(lf+to[0],tp+to[1],text=fc,font=i18n["font_small"],angle=ro,anchor=an, fill=tc)
 						dr.addtag_withtag("_conn", otx)
 						dr.addtag_withtag("c:"+p.machName+"."+fc, otx)
 					#print(fc)
