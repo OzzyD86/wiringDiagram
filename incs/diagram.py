@@ -165,8 +165,8 @@ class local_conf(config2):
 					
 				cur.execute("replace into config (`key`, `value`) values (?,?)", (i, y))
 		
-		
 		o = {}
+		o[None] = ["left", "right", "top", "bottom"]
 		for i,j in d.get().items():
 			o[i] = j["pos"]
 		ww.core.dia.connector_context = o
