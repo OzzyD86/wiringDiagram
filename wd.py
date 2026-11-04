@@ -184,7 +184,7 @@ class wdTk(incs.wdTk.wdTk):
 		pass
 		
 app = "wiringDiagram"
-if (1):#try:
+try:
 	
 	t = wdTk( c=config)
 	s = ttk.Style()
@@ -212,19 +212,20 @@ if (1):#try:
 	#t.open_file("f.db")
 	#t.redraw()
 	t.window.mainloop()
-try:
-	pass
+
 except Exception as e:
-	pass
-	#t.destroy()
-	#d = Tk.Tk()
-	#font = ("Arial", 6)
+	try:
+		t.destroy()
+	except:
+		pass
+	d = Tk.Tk()
+	font = ("Arial", 6)
 	
-	#d.title("Error")
-	#Tk.Label(d, text=app + " ran into an error", font="Arial 8 bold").grid(sticky="w")
+	d.title("Error")
+	Tk.Label(d, text=app + " ran into an error", font="Arial 8 bold").grid(sticky="w")
 	
-	#Tk.Label(d, text=str(type(e).__name__) + ": " +str(e), font= [*font, "bold"]).grid()
-	#d.rowconfigure(0, weight=1)
-	#d.columnconfigure(0, weight=1)
-	#d.mainloop()
+	Tk.Label(d, text=str(type(e).__name__) + ": " +str(e), font= [*font, "bold"]).grid()
+	d.rowconfigure(0, weight=1)
+	d.columnconfigure(0, weight=1)
+	d.mainloop()
 

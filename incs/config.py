@@ -242,12 +242,12 @@ class config(config2):
 		#self.dataInit()
 		#print(i[0], i[1])
 			
-		self.addOption("Working General", "dev",{
+		self.addOption("General", "dev",{
 			"name":"Developer mode",
 			"type": "Checkbox",
 			"value": self.policy["dev"].get()
 		})
-		self.addOption("Working General", "contextCollapse",{
+		self.addOption("General", "contextCollapse",{
 			"name":"Collapse context menu",
 			"type": "Checkbox",
 			"value": self.policy["contextCollapse"].get()

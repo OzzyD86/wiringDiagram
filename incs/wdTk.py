@@ -331,10 +331,11 @@ class wdTk(wdTkCore):
 		# Compile the configuration system
 		self.conf = coo(self)
 		
-		self.conf.addOption("Working General", "mode", {
+		self.conf.addOption("General", "mode", {
 			"name":"Android mode",
 			"type": "Checkbox",
-			"value": (hasattr(sys, "getandroidapilevel"))
+			"value": (hasattr(sys, "getandroidapilevel")),
+			"state": "disabled"
 		})
 		if (self.conf.roPols["mode"].get() == False):
 			offs = 1

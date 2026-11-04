@@ -39,16 +39,17 @@ class inputDialogWithCanvas(inputDialog):
 			self.c.delete("all")
 			
 			mm = self.data['mhName']["obj"].get_key_of_value(self.vars['mhName'].get())
-			x = (p.locs[mm])
-			y = deepcopy(p.getDevice(mm))
-			
-			if (v == 1):
-				y.addConnector(self.vars['cName'].get(), direction = self.vars['ddName'].get())
-			elif (v > 1):
-				for i in range(v):
-					y.addConnector(self.vars['cName'].get() + "_" + str(i+1), direction = self.vars['ddName'].get())
+			if (mm is not None):
+				x = (p.locs[mm])
+				y = deepcopy(p.getDevice(mm))
+				
+				if (v == 1):
+					y.addConnector(self.vars['cName'].get(), direction = self.vars['ddName'].get())
+				elif (v > 1):
+					for i in range(v):
+						y.addConnector(self.vars['cName'].get() + "_" + str(i+1), direction = self.vars['ddName'].get())
 
-			aa = p.objMk(self.c, y, (self.size[0]/2, self.size[1]/2, x[2], x[3]), connector_names = True)
+				aa = p.objMk(self.c, y, (self.size[0]/2, self.size[1]/2, x[2], x[3]), connector_names = True)
 		else:
 			self.checker(self, *args, **kwargs)
 		#print(type(p))
@@ -288,14 +289,15 @@ class wdTkCore(Tk.Tk):
 	
 	# == Plug Adding
 	
-	def connAddWin(self):
+	def connAddWin(self, **preDefs):
 		x = self.core.dia.conf.policy["connector_context"].get() #outerPolicies["General"]["connector_context"]["value"]
+		
 		
 		cs = {}
 		for i,j in x.items():
 			#raise Exception(j)
 			cs[i] =j["name"]
-		self.aw = inputDialog(self.window, data={
+		self.aw = inputDialogWithCanvas(self.window, data={
 			"mhName": {
 				"type" : "Combo",
 				"name": "Machine Name",
