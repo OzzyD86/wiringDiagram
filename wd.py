@@ -1,7 +1,7 @@
 import sys
 import traceback
 
-#sys.stderr = open("tkinter_error_log.txt", "w")
+sys.stderr = open("tkinter_error_log.txt", "w")
 
 from copy import copy
 from PIL import Image, ImageDraw, ImageFont
@@ -39,7 +39,7 @@ def report_callback_exception(self, exc, val, tb):
 	d.columnconfigure(0, weight=1)
 	#d.go()
 
-#tkinter.Tk.report_callback_exception = report_callback_exception
+tkinter.Tk.report_callback_exception = report_callback_exception
 
 class version(Tk.Toplevel):
 	def __init__(self, master, a = [], *args, **kwargs):
