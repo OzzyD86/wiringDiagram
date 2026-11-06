@@ -337,13 +337,27 @@ class wdTk(wdTkCore):
 			"value": (hasattr(sys, "getandroidapilevel")),
 			"state": "disabled"
 		})
+		
 		if (self.conf.roPols["mode"].get() == False):
 			offs = 1
 		
-		self.pluginLoad()
-		
-		self.window.title(self.app_name)
 		self.core = wdCore(self.window)
+		self.op_config.register("objMk", "builtin", { "func": self.core.dia.objMk} )
+		self.pluginLoad()
+		self.cueEvts("onPluginInitialise", win=self)
+		self.window.title(self.app_name)
+		
+		o = {}
+		for i,j in self.op_config._list("objMk").items():
+			o[i] = i
+		#raise Exception(o)
+		self.conf.addOption("Renderers", "objMk", {
+			"name":"ObjMk",
+			"type": "Combo",
+			"values": o,
+			"value": "builtin"
+			#"state": "disabled"
+		})
 		self.window.protocol('WM_DELETE_WINDOW', self.quit)
 		self.window.geometry("860x660")
 
@@ -672,7 +686,9 @@ class wdTk(wdTkCore):
 		self.canvas.delete("_conn")
 		for i in d.listDevices():
 			if (i in d.locs):
-				aa = d.objMk(self.canvas, d.getDevice(i), d.locs[i], connector_names = self.conn_labelling.get())
+				#raise Exception(self.conf.policy["objMk"].get())
+				aa = self.op_config.fetch(self.conf.policy["objMk"].get(), "objMk", "builtin")["func"](self.canvas, d.getDevice(i), d.locs[i], connector_names = self.conn_labelling.get())
+				#aa = d.objMk(self.canvas, d.getDevice(i), d.locs[i], connector_names = self.conn_labelling.get())
 				d.getDevice(i).drwConnPos = aa
 
 		self.canvas.delete("_wire")
@@ -789,7 +805,7 @@ class wdTk(wdTkCore):
 
 		self.cueEvts("onCanvasRedraw", canvas=self.canvas)
 		self.canvas.scale("all", 0,0, self.sc.get(), self.sc.get())
-		#self.canvas.config(scrollregion=(q2))
+		self.canvas.config(scrollregion=(q2))
 		
 	def export_png(self):
 		files = [#('All Files', '*.*'), 

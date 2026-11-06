@@ -71,7 +71,20 @@ class op_conf():
 			
 		self.ls[ls][name] = optionals
 		return True
-	
+		
+	def fetch(self, what, from_where, _else):
+		if (from_where in self.ls):
+			if (what in self.ls[from_where]):
+				return self.ls[from_where][what]
+			else:
+				return self.ls[from_where][_else]
+		return None
+		
+	def _list(self, ls):
+		if (ls not in self.ls):
+			return []
+		return self.ls[ls]
+		
 	def getList(self, ls):
 		if (ls not in self.ls):
 			return []
@@ -83,6 +96,7 @@ class wdTkCore(Tk.Tk):
 	def __init__(self, master = None, **kwargs):
 		super().__init__(master, **kwargs)
 		self.op_config = op_conf()
+		self.op_config.register("canvasDrawers", "builtin", { "func": self.redraw} )
 		
 	def devAddWin(self, event = None):
 		d = getattr(event, "x", 0)
@@ -126,8 +140,9 @@ class wdTkCore(Tk.Tk):
 			(int(kwargs['x']),int(kwargs['y']),50,50))
 
 		self.core.struct.set_changed()
-		self.updateWindowTitle()		
-		self.redraw()
+		self.updateWindowTitle()
+		self.op_config._list("canvasDrawers")["builtin"]["func"]()
+		#self.redraw()
 		return True
 	
 	# == Device Duplication
