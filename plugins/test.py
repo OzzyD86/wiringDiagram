@@ -137,12 +137,33 @@ class test():
 
 		return outmap
 		
+	def plugAddWin(self, **kwargs):
+		
+		return {
+			"Name": "IC Force Position",
+			"Widgets" : {
+				"force_side": {
+					"type": "Combo",
+					"name": "Side",
+					"values": {
+						"none" : "None", 
+						#"In": "In", "Out":"Out","Both":"Both" },
+					},
+					"value": "None"
+				},
+				"force_pos" :{
+					"type":"Spin",
+					"name":"Position"
+				}
+			}
+		}
+		
 MANIFEST = {
 	"order": 0,
 	"events": {
 		#"onFileLoad": [ eth.checkFileLoad ],
 		"onPluginInitialise": [test.init],
-		#"onDeviceEditComplete": [eth.devComplete],
+		"onPlugAddDialog": [test.plugAddWin],
 		#"onDeviceEditDialog" : [eth.edit],
 		#"onMachineNameSet" : [eth.mns]
 	}
