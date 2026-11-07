@@ -530,7 +530,6 @@ class wdTk(wdTkCore):
 			for i in self.core.struct.cur.execute("select * from config"):
 				self.core.dia.conf.portData(i[0], i[1])
 		
-					
 			#self.core.dia.conf.
 			#for i, j in self.core.dia.conf.policy.items():
 			#	print(i, j.get())
@@ -538,6 +537,14 @@ class wdTk(wdTkCore):
 			for i in self.loaded:
 				i[0].entryconfig(i[1], state="normal")
 			self.cueEvts("onFileLoad")
+			
+			o = {}
+			o[None] = ["left", "right", "top", "bottom"]
+			for i,j in self.core.dia.conf.policy["connector_context"].get().items():
+				o[i] = j["pos"]
+			self.core.dia.connector_context = o
+		
+
 			self.redraw()
 			self._open_file = a
 			self.core.struct.clear_changed()

@@ -19,7 +19,7 @@ class inputDialogWithCanvas(inputDialog):
 	
 	def __init__(self, master, checker = None, *args, **kwargs):
 		super().__init__(master, **kwargs)
-		self.c = Tk.Canvas(self)
+		self.c = Tk.Canvas(self, width=350)
 		self.checker = checker
 		self.c.grid(column=1, row=0, rowspan=5, sticky='news')
 		self.c.bind("<Configure>", self.resize_canvas)
@@ -337,6 +337,9 @@ class wdTkCore(Tk.Tk):
 				"name":"Quantity"
 			}
 		})
+		for i in self.cueEvts("onPlugAddDialog"):
+			self.aw.addNb(i["Name"], i["Widgets"])
+			pass
 		self.aw.addButton("Add", "add")
 		self.aw.passFunc("add", self.connAddComplete)
 		for i,j in preDefs.items():
