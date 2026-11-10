@@ -1,6 +1,7 @@
 from PIL import ImageFont, ImageDraw
 import tkinter as Tk
 from incs.diagram import i18n # move this some time?
+from incs.colours import colourDirection
 
 class test():
 	def init(self, **kwargs):
@@ -9,6 +10,7 @@ class test():
 	pass
 
 	def objMk(dr, p, dms = (0,0,1,1), _type = 1, honour_db = False, offset = (0,0), connector_names = False, highlight_connected = False):
+		self = main.core.dia
 		try:
 			f = ImageFont.load_default_imagefont()
 		except:
@@ -31,7 +33,10 @@ class test():
 				ct = 0
 				nat = ["left", "right"]
 				for i in p.connectors.keys():
-					poss[nat[ct%len(nat)]].append(i)
+					if ("force_side" in p.connectors[i]):
+						poss[p.connectors[i]["force_side"]].append(i)
+					else:
+						poss[nat[ct%len(nat)]].append(i)
 					ct+=1
 			#print(poss)
 
@@ -44,11 +49,14 @@ class test():
 						
 					else:
 						x = self.connector_context[None]
-						
-					poss[x[ct%len(x)]].append(i)
-					ct+=1
+					
+					if ("force_side" in p.connectors[i]):
+						poss[p.connectors[i]["force_side"]].append(i)
+					else:
+						poss[x[ct%len(x)]].append(i)
+						ct+=1
 			#print(poss)
-		
+
 		else:
 			pass
 
@@ -147,6 +155,7 @@ class test():
 					"name": "Side",
 					"values": {
 						"none" : "None", 
+						"top": "Top",
 						#"In": "In", "Out":"Out","Both":"Both" },
 					},
 					"value": "None"
@@ -157,13 +166,58 @@ class test():
 				}
 			}
 		}
+	
+	def plugAddComplete(**kwargs):
+		x = kwargs["mhName"]#Machine Name
+		y = kwargs["cName"] # Inital plug name!! Remember that!
+		v = kwargs["val"] # Number of plugs
 		
+		if (kwargs["force_side"] == "none"):
+			return True # Nothing to worry about
+		k = main.core.dia.dev[x].connectors
+		
+		if (int(kwargs['val']) == 1):
+			main.core.struct.cur.execute("insert into `ic_force_data` (`device`,`conn`,`side`,`loc`) VALUES (?,?,?,?)", (x,y,kwargs["force_side"], kwargs["force_pos"]))
+			k[y]["force_side"] = kwargs["force_side"]
+			k[y]["force_pos"] = kwargs["force_pos"]
+			#self.core.addConnector(obj, kwargs['cName'],  proto = kwargs['proto'], dir= kwargs['ddName'])
+		elif (int(kwargs['val']) > 1):
+			for i in range(int(kwargs['val'])):
+				main.core.struct.cur.execute("insert into `ic_force_data` (`device`,`conn`,`side`,`loc`) VALUES (?,?,?,?)", (x,y+"_"+str(i+1),kwargs["force_side"], str(int(kwargs["force_pos"])+i)))
+				#self.core.addConnector(obj, kwargs['cName']+"_"+str(i+1), proto = kwargs['proto'], dir= kwargs['ddName'])
+				k[y+"_"+str(i+1)]["force_side"] = kwargs["force_side"]
+				k[y+"_"+str(i+1)]["force_pos"] = kwargs["force_pos"]
+		else:
+			Tk.messagebox.showerror(title="Cannot add plug", message="Invalid value.")
+			return False
+
+		return True
+		#raise Exception(kwargs)
+		pass
+	
+	def checkFileLoad(self, **kwargs):
+		main.core.struct.cur.execute("create table if not exists `ic_force_data` (`device` TEXT NOT NULL, `conn` TEXT NOT NULL, `side` TEXT, `loc` INTEGER, PRIMARY KEY(`device`,`conn`))")
+
+		# Speaking of which...
+		d = main.core.dia
+		for i in main.core.struct.cur.execute("select * from `ic_force_data`"):
+			if (i[0] in d.dev.keys()):
+				k = d.dev[i[0]].connectors
+				if (i[1] in k):
+					#raise Exception(k[i[1]])
+					k[i[1]]["force_side"] = i[2]
+					k[i[1]]["force_pos"] = i[3]
+			#else:
+			#	raise Exception(i])
+			
 MANIFEST = {
 	"order": 0,
 	"events": {
-		#"onFileLoad": [ eth.checkFileLoad ],
+		"onFileLoad": [ test.checkFileLoad ],
 		"onPluginInitialise": [test.init],
 		"onPlugAddDialog": [test.plugAddWin],
+		"onPlugAddComplete": [test.plugAddComplete],
+
 		#"onDeviceEditDialog" : [eth.edit],
 		#"onMachineNameSet" : [eth.mns]
 	}
