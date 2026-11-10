@@ -344,6 +344,8 @@ class wdTkCore(Tk.Tk):
 		self.aw.passFunc("add", self.connAddComplete)
 		for i,j in preDefs.items():
 			self.aw.set(i, j)
+		for i in self.cueEvts("onPlugAddComplete", False):
+			self.aw.passFunc("add", i)
 
 	def connAddComplete(self, **kwargs):
 		p = self.core.dia.listDevices(True)

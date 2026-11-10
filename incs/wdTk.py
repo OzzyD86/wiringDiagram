@@ -47,6 +47,13 @@ class wdTk(wdTkCore):
 				i[0].entryconfig(i[1], state="normal")
 			for i,j in self.conf.policy.items():
 				self.core.dia.conf.portData(i,j)
+				
+			o = {}
+			o[None] = ["left", "right", "top", "bottom"]
+			for i,j in self.core.dia.conf.policy["connector_context"].get().items():
+				o[i] = j["pos"]
+				
+			self.core.dia.connector_context = o
 			self.redraw()
 			self.updateWindowTitle()
 			self.core.struct.clear_changed()
