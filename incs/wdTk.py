@@ -94,7 +94,6 @@ class wdTk(wdTkCore):
 				self.move = {
 					"old_event" : self.canvas.find_closest(x1,y1),
 				}
-				
 					
 				c = self.canvas.coords(self.move["old_event"])
 				w = self.canvas.itemconfig(self.move["old_event"], "width")[4]
@@ -436,7 +435,7 @@ class wdTk(wdTkCore):
 	
 		edit = self.menu["edit"]
 		edit.add_command(label="Device", command=self.devEditWin)
-		edit.add_command(label="Plug", command=self.connEditWin, state=Tk.DISABLED)
+		edit.add_command(label="Plug", command=self.connEditWin)
 		edit.add_command(label="Connection", state=Tk.DISABLED)
 		edit.add_command(label="Waypoint", command=self.waypointEditWin)
 		edit.add_command(label="Waypoint Connector", state=Tk.DISABLED)

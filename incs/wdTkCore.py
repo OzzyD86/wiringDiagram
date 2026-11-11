@@ -376,7 +376,7 @@ class wdTkCore(Tk.Tk):
 
 	# == Plug Deleting
 	
-	def connEditWin(self, **kwargs):
+	def connEditWin(self, **preDefs):
 		x = self.core.dia.conf.policy["connector_context"].get() #outerPolicies["General"]["connector_context"]["value"]
 			
 		cs = {}
@@ -414,13 +414,27 @@ class wdTkCore(Tk.Tk):
 		for i in self.cueEvts("onPlugEditDialog"):
 			self.aw.addNb(i["Name"], i["Widgets"])
 			pass
-		#self.aw.addButton("Add", "add")
-		#self.aw.passFunc("add", self.connAddComplete)
-		#for i,j in preDefs.items():
-		#	self.aw.set(i, j)
-		#for i in self.cueEvts("onPlugAddComplete", False):
-		#	self.aw.passFunc("add", i)
+		self.aw.addButton("Edit", "edit")
+		self.aw.passFunc("edit", self.connEditComplete)
+		for i,j in preDefs.items():
+			self.aw.set(i, j)
+		for i in self.cueEvts("onPlugEditComplete", False):
+			self.aw.passFunc("edit", i)
 
+	def connEditComplete(self, **kwargs):
+		# and spin off the plug updates here
+		
+		r =self.core.dia.dev[kwargs["mhName"]].connectors[kwargs["outcName"]]
+		r["proto"] = kwargs["proto"]
+		r["direction"] = kwargs["ddName"]
+		
+		self.core.struct.cur.execute("update conns set proto = ?, direction = ? where dName = ? and cName = ?",
+			(kwargs["proto"], kwargs["ddName"], kwargs['mhName'], kwargs["outcName"]))
+		self.redraw()
+		self.core.struct.set_changed()
+		self.updateWindowTitle()
+		return True
+		
 	def getPlugs(self, *args, **kwargs):
 	
 		p = self.core.dia.listDevices(True)
@@ -437,33 +451,27 @@ class wdTkCore(Tk.Tk):
 		args[0].data['outcName']['values'] = list(ii)
 
 	def getPlugData(self, *args, **kwargs):
-		print(args, kwargs)
-		
+		#raise Exception(args, kwargs)
+		w = args[0]
 		p = self.core.dia.listDevices(True)
 	
 		obj = list(p.keys())[list(p.values()).index(args[0].vars['mhName'].get())]
 		print(obj)
 		print(args[2])
-		plug = obj.connectors[args[2]]
+		args = list(args)
+		args.append(obj)
+		plug = self.core.dia.dev[obj].connectors[args[2]]
 		# cName, proto and ddName
-		args[0].data['cName']['obj'].set(args[2]) # Could be prettier?
+		args[0].vars['cName'].set(args[2]) # Could be prettier?
 		#args[0].data['cName']['values'] = args[2]
-		args[0].data['proto']['obj'].setValues(list(ii)) # Could be prettier?
+		args[0].vars['proto'].set(plug["proto"]) # Could be prettier?
 		#args[0].data['proto']['values'] = list(ii)
-		#args[0].data['ddName']['obj'].setValues(list(ii)) # Could be prettier?
+		args[0].vars['ddName'].set(plug["direction"]) # Could be prettier?
 		#args[0].data['ddName']['values'] = list(ii)
-
-		#if (args[2] not in list(p.values())):
-		#	Tk.messagebox.showerror(title="Device not found", message="There is no device to delete.")
-		#	return False
-		
-		#obj = list(p.keys())[list(p.values()).index(args[2])]
-
-		#ii = self.core.dia.getDevice(obj).connectors.keys()
-
-		#args[0].data['outcName']['obj'].setValues(list(ii)) # Could be prettier?
-		#args[0].data['outcName']['values'] = list(ii)
-		
+		for i in self.cueEvts("onPlugNameSet", args=args, d=self):#, w=w, val=val):
+			for j,k in i.items():
+				w.set(j,k)
+				
 	def connDelWin(self):
 		self.aw = inputDialogWithCanvas(self.window, checker=incs.checkers.connDelCheck, data= {
 			"outdName": {
