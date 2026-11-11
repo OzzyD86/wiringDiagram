@@ -306,8 +306,7 @@ class wdTkCore(Tk.Tk):
 	
 	def connAddWin(self, **preDefs):
 		x = self.core.dia.conf.policy["connector_context"].get() #outerPolicies["General"]["connector_context"]["value"]
-		
-		
+			
 		cs = {}
 		for i,j in x.items():
 			#raise Exception(j)
@@ -377,6 +376,51 @@ class wdTkCore(Tk.Tk):
 
 	# == Plug Deleting
 	
+	def connEditWin(self, **kwargs):
+		x = self.core.dia.conf.policy["connector_context"].get() #outerPolicies["General"]["connector_context"]["value"]
+			
+		cs = {}
+		for i,j in x.items():
+			#raise Exception(j)
+			cs[i] =j["name"]
+		self.aw = inputDialog(self.window, data={
+			"mhName": {
+				"type" : "Combo",
+				"name": "Machine Name",
+				"values": self.core.dia.listDevices(True),
+				"onUpdate": self.getPlugs
+			},
+			"outcName": {
+				"type" : "Combo",
+				"name": "Connection Name",
+				"values": {},
+				"onUpdate": self.getPlugData
+			},
+			"cName": {
+				"type": "Entry",
+				"name": "Connection Name"
+			},
+			"proto": {
+				"type": "Combo",
+				"name": "Protocol",
+				"values": self.op_config.getList("proto"),
+			},
+			"ddName": {
+				"type": "Combo",
+				"name": "Data Direction",
+				"values": cs #{"None" : "None", "In": "In", "Out":"Out","Both":"Both" },
+			},
+		})
+		for i in self.cueEvts("onPlugEditDialog"):
+			self.aw.addNb(i["Name"], i["Widgets"])
+			pass
+		#self.aw.addButton("Add", "add")
+		#self.aw.passFunc("add", self.connAddComplete)
+		#for i,j in preDefs.items():
+		#	self.aw.set(i, j)
+		#for i in self.cueEvts("onPlugAddComplete", False):
+		#	self.aw.passFunc("add", i)
+
 	def getPlugs(self, *args, **kwargs):
 	
 		p = self.core.dia.listDevices(True)
@@ -391,6 +435,34 @@ class wdTkCore(Tk.Tk):
 
 		args[0].data['outcName']['obj'].setValues(list(ii)) # Could be prettier?
 		args[0].data['outcName']['values'] = list(ii)
+
+	def getPlugData(self, *args, **kwargs):
+		print(args, kwargs)
+		
+		p = self.core.dia.listDevices(True)
+	
+		obj = list(p.keys())[list(p.values()).index(args[0].vars['mhName'].get())]
+		print(obj)
+		print(args[2])
+		plug = obj.connectors[args[2]]
+		# cName, proto and ddName
+		args[0].data['cName']['obj'].set(args[2]) # Could be prettier?
+		#args[0].data['cName']['values'] = args[2]
+		args[0].data['proto']['obj'].setValues(list(ii)) # Could be prettier?
+		#args[0].data['proto']['values'] = list(ii)
+		#args[0].data['ddName']['obj'].setValues(list(ii)) # Could be prettier?
+		#args[0].data['ddName']['values'] = list(ii)
+
+		#if (args[2] not in list(p.values())):
+		#	Tk.messagebox.showerror(title="Device not found", message="There is no device to delete.")
+		#	return False
+		
+		#obj = list(p.keys())[list(p.values()).index(args[2])]
+
+		#ii = self.core.dia.getDevice(obj).connectors.keys()
+
+		#args[0].data['outcName']['obj'].setValues(list(ii)) # Could be prettier?
+		#args[0].data['outcName']['values'] = list(ii)
 		
 	def connDelWin(self):
 		self.aw = inputDialogWithCanvas(self.window, checker=incs.checkers.connDelCheck, data= {

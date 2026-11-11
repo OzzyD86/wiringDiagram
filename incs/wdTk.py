@@ -436,7 +436,7 @@ class wdTk(wdTkCore):
 	
 		edit = self.menu["edit"]
 		edit.add_command(label="Device", command=self.devEditWin)
-		edit.add_command(label="Plug", state=Tk.DISABLED)
+		edit.add_command(label="Plug", command=self.connEditWin, state=Tk.DISABLED)
 		edit.add_command(label="Connection", state=Tk.DISABLED)
 		edit.add_command(label="Waypoint", command=self.waypointEditWin)
 		edit.add_command(label="Waypoint Connector", state=Tk.DISABLED)

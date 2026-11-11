@@ -55,13 +55,42 @@ class test():
 					else:
 						poss[x[ct%len(x)]].append(i)
 						ct+=1
-			#print(poss)
 
 		else:
 			pass
-
-		outmap = {}
+		
+		# This is the new code - if it looks janky, it's because it IS janky!
+		old_poss = poss
+		poss = {}
 	
+		outmap = {}
+		for i in old_poss:
+			poss[i] = []
+			print(old_poss[i])
+			ct = 0
+			while (len(old_poss[i]) > 0):
+				ct += 1
+				lct = []
+				for j in old_poss[i]:
+					if ("force_pos" in p.connectors[j] and p.connectors[j]["force_pos"] <= ct):
+						lct.append(j)
+						poss[i].append(j)
+				
+				if (not len(lct) > 0):
+					for j in old_poss[i]:
+						if ("force_pos" not in p.connectors[j]):
+							lct.append(j)
+							poss[i].append(j)
+							break # Only need one
+
+				if (len(lct) > 0):
+					for j in lct:
+						old_poss[i].remove(j)
+
+			if (ct >= 100):
+				raise Exception("Something seriously went wrong in Object Builder. Consult GitHub repository for resolution with Fault T1")
+		# New ordering code ends here
+		
 		for fa, fb in poss.items():
 			an = Tk.E#CENTER
 			tt = (0,0)
@@ -72,7 +101,8 @@ class test():
 					an = Tk.E
 					to = (-5,0)
 				else:
-					an = Tk.S
+					an = Tk.W
+					to = (0, -5)
 				os = (- (dms[2]/2)-2.5, - (dms[3]/2)-2.5)
 			elif (fa in ["right"]):
 				an = Tk.W
@@ -216,6 +246,7 @@ MANIFEST = {
 		"onFileLoad": [ test.checkFileLoad ],
 		"onPluginInitialise": [test.init],
 		"onPlugAddDialog": [test.plugAddWin],
+		"onPlugEditDialog": [test.plugAddWin],
 		"onPlugAddComplete": [test.plugAddComplete],
 
 		#"onDeviceEditDialog" : [eth.edit],
