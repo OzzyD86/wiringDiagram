@@ -19,7 +19,7 @@ class inputDialogWithCanvas(inputDialog):
 	
 	def __init__(self, master, checker = None, *args, **kwargs):
 		super().__init__(master, **kwargs)
-		self.c = Tk.Canvas(self)
+		self.c = Tk.Canvas(self, width=350)
 		self.checker = checker
 		self.c.grid(column=1, row=0, rowspan=5, sticky='news')
 		self.c.bind("<Configure>", self.resize_canvas)
@@ -71,7 +71,20 @@ class op_conf():
 			
 		self.ls[ls][name] = optionals
 		return True
-	
+		
+	def fetch(self, what, from_where, _else):
+		if (from_where in self.ls):
+			if (what in self.ls[from_where]):
+				return self.ls[from_where][what]
+			else:
+				return self.ls[from_where][_else]
+		return None
+		
+	def _list(self, ls):
+		if (ls not in self.ls):
+			return []
+		return self.ls[ls]
+		
 	def getList(self, ls):
 		if (ls not in self.ls):
 			return []
@@ -83,6 +96,7 @@ class wdTkCore(Tk.Tk):
 	def __init__(self, master = None, **kwargs):
 		super().__init__(master, **kwargs)
 		self.op_config = op_conf()
+		self.op_config.register("canvasDrawers", "builtin", { "func": self.redraw} )
 		
 	def devAddWin(self, event = None):
 		d = getattr(event, "x", 0)
@@ -126,8 +140,9 @@ class wdTkCore(Tk.Tk):
 			(int(kwargs['x']),int(kwargs['y']),50,50))
 
 		self.core.struct.set_changed()
-		self.updateWindowTitle()		
-		self.redraw()
+		self.updateWindowTitle()
+		self.op_config._list("canvasDrawers")["builtin"]["func"]()
+		#self.redraw()
 		return True
 	
 	# == Device Duplication
@@ -291,8 +306,7 @@ class wdTkCore(Tk.Tk):
 	
 	def connAddWin(self, **preDefs):
 		x = self.core.dia.conf.policy["connector_context"].get() #outerPolicies["General"]["connector_context"]["value"]
-		
-		
+			
 		cs = {}
 		for i,j in x.items():
 			#raise Exception(j)
@@ -322,10 +336,15 @@ class wdTkCore(Tk.Tk):
 				"name":"Quantity"
 			}
 		})
+		for i in self.cueEvts("onPlugAddDialog"):
+			self.aw.addNb(i["Name"], i["Widgets"])
+			pass
 		self.aw.addButton("Add", "add")
 		self.aw.passFunc("add", self.connAddComplete)
 		for i,j in preDefs.items():
 			self.aw.set(i, j)
+		for i in self.cueEvts("onPlugAddComplete", False):
+			self.aw.passFunc("add", i)
 
 	def connAddComplete(self, **kwargs):
 		p = self.core.dia.listDevices(True)
@@ -357,6 +376,65 @@ class wdTkCore(Tk.Tk):
 
 	# == Plug Deleting
 	
+	def connEditWin(self, **preDefs):
+		x = self.core.dia.conf.policy["connector_context"].get() #outerPolicies["General"]["connector_context"]["value"]
+			
+		cs = {}
+		for i,j in x.items():
+			#raise Exception(j)
+			cs[i] =j["name"]
+		self.aw = inputDialog(self.window, data={
+			"mhName": {
+				"type" : "Combo",
+				"name": "Machine Name",
+				"values": self.core.dia.listDevices(True),
+				"onUpdate": self.getPlugs
+			},
+			"outcName": {
+				"type" : "Combo",
+				"name": "Connection Name",
+				"values": {},
+				"onUpdate": self.getPlugData
+			},
+			"cName": {
+				"type": "Entry",
+				"name": "Connection Name"
+			},
+			"proto": {
+				"type": "Combo",
+				"name": "Protocol",
+				"values": self.op_config.getList("proto"),
+			},
+			"ddName": {
+				"type": "Combo",
+				"name": "Data Direction",
+				"values": cs #{"None" : "None", "In": "In", "Out":"Out","Both":"Both" },
+			},
+		})
+		for i in self.cueEvts("onPlugEditDialog"):
+			self.aw.addNb(i["Name"], i["Widgets"])
+			pass
+		self.aw.addButton("Edit", "edit")
+		self.aw.passFunc("edit", self.connEditComplete)
+		for i,j in preDefs.items():
+			self.aw.set(i, j)
+		for i in self.cueEvts("onPlugEditComplete", False):
+			self.aw.passFunc("edit", i)
+
+	def connEditComplete(self, **kwargs):
+		# and spin off the plug updates here
+		
+		r =self.core.dia.dev[kwargs["mhName"]].connectors[kwargs["outcName"]]
+		r["proto"] = kwargs["proto"]
+		r["direction"] = kwargs["ddName"]
+		
+		self.core.struct.cur.execute("update conns set proto = ?, direction = ? where dName = ? and cName = ?",
+			(kwargs["proto"], kwargs["ddName"], kwargs['mhName'], kwargs["outcName"]))
+		self.redraw()
+		self.core.struct.set_changed()
+		self.updateWindowTitle()
+		return True
+		
 	def getPlugs(self, *args, **kwargs):
 	
 		p = self.core.dia.listDevices(True)
@@ -371,7 +449,29 @@ class wdTkCore(Tk.Tk):
 
 		args[0].data['outcName']['obj'].setValues(list(ii)) # Could be prettier?
 		args[0].data['outcName']['values'] = list(ii)
-		
+
+	def getPlugData(self, *args, **kwargs):
+		#raise Exception(args, kwargs)
+		w = args[0]
+		p = self.core.dia.listDevices(True)
+	
+		obj = list(p.keys())[list(p.values()).index(args[0].vars['mhName'].get())]
+		print(obj)
+		print(args[2])
+		args = list(args)
+		args.append(obj)
+		plug = self.core.dia.dev[obj].connectors[args[2]]
+		# cName, proto and ddName
+		args[0].vars['cName'].set(args[2]) # Could be prettier?
+		#args[0].data['cName']['values'] = args[2]
+		args[0].vars['proto'].set(plug["proto"]) # Could be prettier?
+		#args[0].data['proto']['values'] = list(ii)
+		args[0].vars['ddName'].set(plug["direction"]) # Could be prettier?
+		#args[0].data['ddName']['values'] = list(ii)
+		for i in self.cueEvts("onPlugNameSet", args=args, d=self):#, w=w, val=val):
+			for j,k in i.items():
+				w.set(j,k)
+				
 	def connDelWin(self):
 		self.aw = inputDialogWithCanvas(self.window, checker=incs.checkers.connDelCheck, data= {
 			"outdName": {

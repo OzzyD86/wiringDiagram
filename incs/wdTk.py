@@ -47,6 +47,13 @@ class wdTk(wdTkCore):
 				i[0].entryconfig(i[1], state="normal")
 			for i,j in self.conf.policy.items():
 				self.core.dia.conf.portData(i,j)
+				
+			o = {}
+			o[None] = ["left", "right", "top", "bottom"]
+			for i,j in self.core.dia.conf.policy["connector_context"].get().items():
+				o[i] = j["pos"]
+				
+			self.core.dia.connector_context = o
 			self.redraw()
 			self.updateWindowTitle()
 			self.core.struct.clear_changed()
@@ -87,7 +94,6 @@ class wdTk(wdTkCore):
 				self.move = {
 					"old_event" : self.canvas.find_closest(x1,y1),
 				}
-				
 					
 				c = self.canvas.coords(self.move["old_event"])
 				w = self.canvas.itemconfig(self.move["old_event"], "width")[4]
@@ -337,13 +343,27 @@ class wdTk(wdTkCore):
 			"value": (hasattr(sys, "getandroidapilevel")),
 			"state": "disabled"
 		})
+		
 		if (self.conf.roPols["mode"].get() == False):
 			offs = 1
 		
-		self.pluginLoad()
-		
-		self.window.title(self.app_name)
 		self.core = wdCore(self.window)
+		self.op_config.register("objMk", "builtin", { "func": self.core.dia.objMk} )
+		self.pluginLoad()
+		self.cueEvts("onPluginInitialise", win=self)
+		self.window.title(self.app_name)
+		
+		o = {}
+		for i,j in self.op_config._list("objMk").items():
+			o[i] = i
+		#raise Exception(o)
+		self.conf.addOption("Renderers", "objMk", {
+			"name":"ObjMk",
+			"type": "Combo",
+			"values": o,
+			"value": "builtin"
+			#"state": "disabled"
+		})
 		self.window.protocol('WM_DELETE_WINDOW', self.quit)
 		self.window.geometry("860x660")
 
@@ -415,7 +435,7 @@ class wdTk(wdTkCore):
 	
 		edit = self.menu["edit"]
 		edit.add_command(label="Device", command=self.devEditWin)
-		edit.add_command(label="Plug", state=Tk.DISABLED)
+		edit.add_command(label="Plug", command=self.connEditWin)
 		edit.add_command(label="Connection", state=Tk.DISABLED)
 		edit.add_command(label="Waypoint", command=self.waypointEditWin)
 		edit.add_command(label="Waypoint Connector", state=Tk.DISABLED)
@@ -516,7 +536,6 @@ class wdTk(wdTkCore):
 			for i in self.core.struct.cur.execute("select * from config"):
 				self.core.dia.conf.portData(i[0], i[1])
 		
-					
 			#self.core.dia.conf.
 			#for i, j in self.core.dia.conf.policy.items():
 			#	print(i, j.get())
@@ -524,6 +543,14 @@ class wdTk(wdTkCore):
 			for i in self.loaded:
 				i[0].entryconfig(i[1], state="normal")
 			self.cueEvts("onFileLoad")
+			
+			o = {}
+			o[None] = ["left", "right", "top", "bottom"]
+			for i,j in self.core.dia.conf.policy["connector_context"].get().items():
+				o[i] = j["pos"]
+			self.core.dia.connector_context = o
+		
+
 			self.redraw()
 			self._open_file = a
 			self.core.struct.clear_changed()
@@ -672,7 +699,9 @@ class wdTk(wdTkCore):
 		self.canvas.delete("_conn")
 		for i in d.listDevices():
 			if (i in d.locs):
-				aa = d.objMk(self.canvas, d.getDevice(i), d.locs[i], connector_names = self.conn_labelling.get())
+				#raise Exception(self.conf.policy["objMk"].get())
+				aa = self.op_config.fetch(self.conf.policy["objMk"].get(), "objMk", "builtin")["func"](self.canvas, d.getDevice(i), d.locs[i], connector_names = self.conn_labelling.get())
+				#aa = d.objMk(self.canvas, d.getDevice(i), d.locs[i], connector_names = self.conn_labelling.get())
 				d.getDevice(i).drwConnPos = aa
 
 		self.canvas.delete("_wire")
@@ -789,7 +818,7 @@ class wdTk(wdTkCore):
 
 		self.cueEvts("onCanvasRedraw", canvas=self.canvas)
 		self.canvas.scale("all", 0,0, self.sc.get(), self.sc.get())
-		#self.canvas.config(scrollregion=(q2))
+		self.canvas.config(scrollregion=(q2))
 		
 	def export_png(self):
 		files = [#('All Files', '*.*'), 
