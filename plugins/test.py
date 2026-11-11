@@ -109,7 +109,7 @@ class test():
 				to = (5,0)
 				os = ((dms[2]/2)+2.5, - (dms[3]/2))
 			elif (fa in ["bottom"]):
-				an = Tk.N
+				an = Tk.E
 				os = (-(dms[2]/2), (dms[3]/2)+2.5)
 			else:
 				os = (0,0)
@@ -186,7 +186,9 @@ class test():
 					"values": {
 						"none" : "None", 
 						"top": "Top",
-						#"In": "In", "Out":"Out","Both":"Both" },
+						"left":"Left",
+						"bottom":"Bottom",
+						"right":"Right"
 					},
 					"value": "None"
 				},
@@ -222,9 +224,30 @@ class test():
 			return False
 
 		return True
-		#raise Exception(kwargs)
+		
 		pass
 	
+	def pns(self, *args, **kwargs):
+		d = kwargs["d"].core.dia
+		args= kwargs["args"] # really?!
+		plug = d.dev[args[3]].connectors[args[2]]
+		
+		#raise Exception(plug)
+		if ("force_side" in plug):
+			fs = plug["force_side"]
+		else:
+			fs = "none"
+			
+		if ("force_pos" in plug):
+			fp = plug["force_pos"]
+		else:
+			fp = 1
+		
+		return {
+			"force_side": fs,
+			"force_pos": fp
+		}
+		
 	def checkFileLoad(self, **kwargs):
 		main.core.struct.cur.execute("create table if not exists `ic_force_data` (`device` TEXT NOT NULL, `conn` TEXT NOT NULL, `side` TEXT, `loc` INTEGER, PRIMARY KEY(`device`,`conn`))")
 
@@ -238,7 +261,24 @@ class test():
 					k[i[1]]["force_side"] = i[2]
 					k[i[1]]["force_pos"] = i[3]
 			#else:
-			#	raise Exception(i])
+			#	raise Exception(i]
+			
+	def pec(**kwargs):
+			r = main.core.dia.dev[kwargs["mhName"]].connectors[kwargs["outcName"]]
+			if (kwargs["force_side"] == "none"):
+				if ("force_side" in r):
+					del r["force_side"]
+					del r["force_pos"]
+					main.core.struct.cur.execute("delete from `ic_force_data` where device = ? and conn = ?",
+						(kwargs["mhName"], kwargs["outcName"]))
+			else:
+				r["force_side"] = kwargs["force_side"]
+				r["force_pos"] = int(kwargs["force_pos"])
+				main.core.struct.cur.execute("replace into `ic_force_data` (device, conn, side, loc) values (?,?,?,?)",
+					(kwargs["mhName"], kwargs["outcName"], kwargs["force_side"], kwargs["force_pos"]))
+			
+			main.redraw()	
+			return True
 			
 MANIFEST = {
 	"order": 0,
@@ -248,8 +288,8 @@ MANIFEST = {
 		"onPlugAddDialog": [test.plugAddWin],
 		"onPlugEditDialog": [test.plugAddWin],
 		"onPlugAddComplete": [test.plugAddComplete],
-
-		#"onDeviceEditDialog" : [eth.edit],
+		"onPlugNameSet": [test.pns],
+		"onPlugEditComplete" : [test.pec],
 		#"onMachineNameSet" : [eth.mns]
 	}
 	
