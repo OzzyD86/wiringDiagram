@@ -1,7 +1,7 @@
 import sys
 import traceback
 
-#sys.stderr = open("tkinter_error_log.txt", "w")
+sys.stderr = open("tkinter_error_log.txt", "w")
 
 from copy import copy
 from PIL import Image, ImageDraw, ImageFont
@@ -29,6 +29,7 @@ import tkinter.filedialog
 from tkinter.messagebox import showerror
 from widgets.inputDialog import inputDialog
 from incs.config import config
+import incs.conf
 
 def report_callback_exception(self, exc, val, tb):
 	d = Tk.Toplevel()
@@ -42,83 +43,20 @@ def report_callback_exception(self, exc, val, tb):
 #tkinter.Tk.report_callback_exception = report_callback_exception
 
 class version(Tk.Toplevel):
-	def __init__(self, master, a = [], *args, **kwargs):
+	def __init__(self, master, version=(1,0,0,0), a = [], *args, **kwargs):
 		super().__init__(master, *args, **kwargs)
-		d = Tk.Label(self, text="WiringDiagram v0.0.1", font=("Arial 15"))
+		d = Tk.Label(self, text="WiringDiagram v1.0.0", font=("Arial 15"))
 		d.grid(sticky="snew", padx=5)
 		for i in a:
 			Tk.Label(self, text="* " + i, font="Arial 6").grid(sticky="w", padx=5)
 		Tk.Button(self, text="Ok", command = self.destroy).grid(pady=5)
 
 import incs.wdTk
-import os, importlib
+import os
+from incs.v1.unification import wdTkUnification
 
-class loader():
-	def __init__(self):
-		self.loaders = {}
-	
-	def is_loaded(self, mod):
-		return (mod in list(self.loaders.keys()))
-		
-class wdTk(incs.wdTk.wdTk):
+class wdTk(wdTkUnification):
 
-	def registerEvt(self, event, call):
-		if (not hasattr(self, "events")):
-			self.events = {}
-			
-		if (event not in self.events):
-			self.events[event] = []
-			
-		self.events[event].append(call)
-	
-	def cueEvts(self, event = "", exec=True, **kwargs):
-		out = []
-		#print("Run events for " + event)
-		if (event in self.events):
-			for i in self.events[event]:
-				if (exec):
-					out.append(i(self, **kwargs))
-				else:
-					out.append(i)
-					
-		return out
-		
-	def pluginLoad(self):
-		if (not hasattr(self, "events")):
-			self.events = {}
-		mods = {}
-		loaders = {}
-		setattr(self, "loaders", loader())
-
-		for i in os.scandir("plugins"):
-			if (os.path.isfile("plugins/" + i.name)):
-				mods[i.name.split(".")[0]] = importlib.import_module("plugins." + i.name.split(".")[0])
-				nm= i.name.split(".")[0]
-				a = mods[nm]
-				
-				d = getattr(a, i.name.split(".")[0])
-				setattr(a, "main", self) # Does this work?
-				if (hasattr(a, "MANIFEST")):
-					if (a.MANIFEST["order"] in loaders):
-						loaders[a.MANIFEST["order"]].append(a.MANIFEST)
-					else:
-						loaders[a.MANIFEST["order"]] = [a.MANIFEST]
-					self.loaders.loaders[nm] = True
-		#			#displayText.insert(tkinter.END, str(d) + "\n")
-		#		else:
-		#			notebook.add( d(notebook), text=i.name.split(".")[0])
-
-		#displayText.insert(tkinter.END, win.core.loaders.loaders)
-		for i in sorted(loaders.keys()):
-			for k in loaders[i]:
-				for l,m in k["events"].items():
-					if (not l in self.events):
-						self.events[l] = []
-					for n in m:
-						self.events[l].append(n)
-					pass
-		#		notebook.add(k["call"](notebook), text=k["name"])
-		
 	def click_call(self, event):
 		x = self.canvas.canvasx(event.x)
 		y = self.canvas.canvasy(event.y)
@@ -228,4 +166,3 @@ except Exception as e:
 	d.rowconfigure(0, weight=1)
 	d.columnconfigure(0, weight=1)
 	d.mainloop()
-
