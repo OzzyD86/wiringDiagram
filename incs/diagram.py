@@ -6,7 +6,7 @@ from widgets.inputDialog import inputDialog
 import json
 from copy import copy
 from incs.config import config2
-
+from incs.conf import LOCAL
 def addOk(s, *args, **kwargs):
 	
 	#x = kwargs["i"].nametowidget(".").conf # Aha! That's how to do it!
@@ -114,10 +114,12 @@ i18n = {
 	"font_large" : ('Arial', 8)
 }
 
-class local_conf(config2):
+class local_conf(config2, LOCAL):
+	
 	def __init__(self, master=None):
 		self.master = master
 		super().__init__()
+		LOCAL.__init__(self)
 		print(" DEFINATELY STARTED HERE ", self)
 		self.policy = {
 			"connector_context" : dataWrapper({	"a" : {"a" :"b"}}),
@@ -141,40 +143,6 @@ class local_conf(config2):
 			"varStore": self.policy["colours"],
 			"value": self.policy["colours"].get()
 		})
-					
-	def ok(self, **kwargs):
-		ww = self.master.nametowidget(".")
-		cur = ww.core.struct.cur # Aha! That's how to do it!
-		d = dataWrapper()
-		for i,j in kwargs["connector_context"].items():
-			#Tk.messagebox.showerror(i, j)
-			d.data[i] = j#{"name": j["name"], "colour": j["colour"], "pos": j["pos"] }
-		kwargs["connector_context"] = d.get()
-		#Tk.messagebox.showerror("", kwargs["connector_context"])
-		for i,j in kwargs.items():
-			self.policy[i].set(j)
-			self.innerPolicies[i]["value"] = j#self.policy[i]
-			y=j
-			t=False
-			for k in self.outerPolicies.values():
-				if (i in k):
-					t = True
-			if (t):
-				if (type(y) is dict):
-					y = json.dumps(y)
-					
-				cur.execute("replace into config (`key`, `value`) values (?,?)", (i, y))
-		
-		o = {}
-		o[None] = ["left", "right", "top", "bottom"]
-		for i,j in d.get().items():
-			o[i] = j["pos"]
-		ww.core.dia.connector_context = o
-		#raise Exception(o)
-		self.policy["connector_context"] = d
-		self.innerPolicies["connector_context"]["value"] = d.get()
-		ww.redraw()
-		return True
 
 class diagram():
 	def __init__(self, wdMaster):

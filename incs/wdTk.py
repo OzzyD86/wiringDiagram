@@ -324,6 +324,7 @@ class wdTk(wdTkCore):
 		
 	def __init__(self, master = None, **kwargs):
 		offs = 0
+		self.version = ("1","0","0","1")
 		self.app_name = "WiringDiagram"
 		self._open_file = None
 		
@@ -830,6 +831,7 @@ class wdTk(wdTkCore):
 		
 	def updateWindowTitle(self):
 		title = self.app_name
+		title += " v" + ".".join(self.version)
 		if (self._open_file is not None):
 			title += " [" + self._open_file 
 			if (self.core.struct.is_changed()):
