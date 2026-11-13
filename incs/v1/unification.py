@@ -1,5 +1,5 @@
 import incs.wdTk
-from incs.loader import loader
+from incs.v1.loader import loader
 import os, importlib
 
 class wdTkUnification(incs.wdTk.wdTk):

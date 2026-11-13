@@ -91,12 +91,13 @@ class op_conf():
 		return list(self.ls[ls].keys())
 
 class wdTkCore(Tk.Tk):
-	
-	# === Device Adding
+
 	def __init__(self, master = None, **kwargs):
 		super().__init__(master, **kwargs)
 		self.op_config = op_conf()
 		self.op_config.register("canvasDrawers", "builtin", { "func": self.redraw} )
+	
+	# === Device Adding
 		
 	def devAddWin(self, event = None):
 		d = getattr(event, "x", 0)

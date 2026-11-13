@@ -6,6 +6,8 @@ import json
 import sqlite3
 import incs.conf
 
+from incs.conf.dataWrapper import dataWrapper as dataWrapper
+
 class config2(incs.conf.configCore):
 	def __init__(self):
 		self.outerPolicies = {}
@@ -139,25 +141,6 @@ def pood(*args, **kwargs):
 	})
 	x.addButton("OK", "ok")
 	x.passFunc("ok", lambda i=args[0], s=x, **kwargs: addPoodOk(**kwargs, i =i,s=s))
-
-class dataWrapper():
-	def __init__(self, data = {}):
-		self.data = data
-	
-	def __copy__(self):
-		return dataWrapper(copy(self.data))
-		
-	def get(self):
-		return self.data
-		
-	def set(self, data):
-		self.data = data
-		
-	def load(self, data):
-		self.data = json.loads(data)
-	
-	def save(self):
-		return json.dumps(self.data)
 
 class config(config2, incs.conf.GLOBAL):
 	def save(self):

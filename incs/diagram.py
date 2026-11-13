@@ -1,11 +1,11 @@
-from incs.colours import colourDirection
+from incs.colours import colourDirection, Colours
+
 from PIL import Image, ImageDraw, ImageFont
 import tkinter as Tk
-from incs.config import dataWrapper
+from incs.config import dataWrapper, config2
 from widgets.inputDialog import inputDialog
 import json
 from copy import copy
-from incs.config import config2
 from incs.conf import LOCAL
 def addOk(s, *args, **kwargs):
 	
