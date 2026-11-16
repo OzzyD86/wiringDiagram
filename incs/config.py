@@ -5,40 +5,13 @@ import sys
 import json
 import sqlite3
 import incs.conf
+from incs.conf import GLOBAL
 
 from incs.conf.dataWrapper import dataWrapper as dataWrapper
 
-class config2(incs.conf.configCore):
-	def __init__(self):
-		self.outerPolicies = {}
-		self.innerPolicies = {}
-		pass
+class config2(incs.conf.configBase):
+	pass
 	
-	def open(self):
-		pages = {}
-		for i,j in self.outerPolicies.items():
-			pages[i] = {}
-			for k in j:
-				pages[i][k] = self.innerPolicies[k]
-				
-		p = pages
-		if ("General" in p):
-			d = p["General"]
-			del p["General"]
-		else:
-			d={}
-
-		v = inputDialog(data=d)
-		
-		for i,j in p.items():
-			v.addNb(i,j)
-		for i,j in self.policy.items():
-			v.set(i,j.get())
-		v.vars["connector_context"] = self.policy["connector_context"]
-		
-		v.addButton("OK", "ok")
-		v.passFunc("ok", self.ok)
-			
 def addOk(s, *args, **kwargs):
 	
 	x = kwargs["i"].nametowidget(".").conf # Aha! That's how to do it!
@@ -142,7 +115,7 @@ def pood(*args, **kwargs):
 	x.addButton("OK", "ok")
 	x.passFunc("ok", lambda i=args[0], s=x, **kwargs: addPoodOk(**kwargs, i =i,s=s))
 
-class config(config2, incs.conf.GLOBAL):
+class config(config2):
 	def save(self):
 		self.db.commit()
 	

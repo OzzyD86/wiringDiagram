@@ -2,12 +2,12 @@ from incs.colours import colourDirection, Colours
 
 from PIL import Image, ImageDraw, ImageFont
 import tkinter as Tk
-from incs.config import dataWrapper, config2
+from incs.config import dataWrapper
 from widgets.inputDialog import inputDialog
 import json
 from copy import copy
 from incs.conf import LOCAL
-def addOk(s, *args, **kwargs):
+def addDoopOk(s, *args, **kwargs):
 	
 	#x = kwargs["i"].nametowidget(".").conf # Aha! That's how to do it!
 	y = []
@@ -81,7 +81,7 @@ def doop(*args, **kwargs):
 		}
 	})
 	x.addButton("OK", "ok")
-	x.passFunc("ok", lambda i=args[0], s=x, **kwargs: addOk(**kwargs, i =i,s=s))
+	x.passFunc("ok", lambda i=args[0], s=x, **kwargs: addDoopOk(**kwargs, i =i,s=s))
 	
 def pood(*args, **kwargs):
 	x = inputDialog(args[0], data={
@@ -114,12 +114,13 @@ i18n = {
 	"font_large" : ('Arial', 8)
 }
 
-class local_conf(config2, LOCAL):
+class local_conf(LOCAL):
 	
 	def __init__(self, master=None):
 		self.master = master
-		super().__init__()
 		LOCAL.__init__(self)
+		#self.outerPolicies = LOCAL().outerPolicies
+		
 		print(" DEFINATELY STARTED HERE ", self)
 		self.policy = {
 			"connector_context" : dataWrapper({	"a" : {"a" :"b"}}),
