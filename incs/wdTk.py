@@ -121,7 +121,7 @@ class wdTk(wdTkCore):
 		if (self._open_file is None):
 			return None
 			
-		if (self.move is not None):
+		if (hasattr(self, "move") and self.move is not None):
 			if ("t" in self.move and "_wire" in self.move["t"]):
 				self.canvas.delete("_alter")
 				c = self.move["c"]
@@ -168,7 +168,7 @@ class wdTk(wdTkCore):
 		wwis = None
 		for i in self.canvas.gettags(self.canvas.find_closest(down.x,down.y)):
 			tags.append(i)
-			if (self.conf.dev.get() == "1"):
+			if (self.conf.dev.get() in ["1", True]):
 				d.add_command("technical", label=i)
 			if (i.split(":")[0] == "mn"):
 				name = i.split(":")[1]
@@ -184,6 +184,7 @@ class wdTk(wdTkCore):
 		#d.add_separator()
 		
 		if ("_conn" in tags):
+			d.add_command(label="Edit plug", command= lambda : self.connEditWin(mhName=conn[0], outcName = conn[1])) # Will this work?
 			if ("_conn" in self.canvas.gettags(self.canvas.find_closest(up.x, up.y))):
 				if (not click):
 					for i in self.canvas.gettags(self.canvas.find_closest(up.x, up.y)):
@@ -290,6 +291,9 @@ class wdTk(wdTkCore):
 			rr = "Device"
 			_pass["dev"] = self.core.dia.dev[name]
 			_pass["loc"] = self.core.dia.locs[name]
+		elif ("_conn" in tags):
+			rr = "Connector"
+			_pass['plug'] = conn
 		elif ("_wp" in tags):
 			rr = "Waypoint"
 			_pass["wp"] = dpt

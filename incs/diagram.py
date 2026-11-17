@@ -109,9 +109,11 @@ def pood(*args, **kwargs):
 	x.addButton("OK", "ok")
 	x.passFunc("ok", lambda i=args[0], s=x, **kwargs: addPoodOk(**kwargs, i =i,s=s))
 
+import incs.conf.i18n #import *
+
 i18n = {
-	"font_small" : ('Arial', 6),
-	"font_large" : ('Arial', 8)
+	"font_small": incs.conf.i18n.FONT_SMALL,
+	"font_large": incs.conf.i18n.FONT_LARGE,
 }
 
 class local_conf(LOCAL):
@@ -168,6 +170,9 @@ class diagram():
 		self.cwps = {}
 		self.wp_labelling = Tk.BooleanVar()
 		self.wp_labelling.set(True)
+		
+		self.waypointing = Tk.BooleanVar()
+		self.waypointing.set(False)
 		
 		self.conn_labelling = Tk.BooleanVar()
 		self.conn_labelling.set(False)
