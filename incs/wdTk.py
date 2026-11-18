@@ -4,6 +4,7 @@ from incs.wdCore import wdCore
 from widgets.connector_points import connector_points
 from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
 import tkinter.messagebox
+import tkinter.filedialog
 import math as maths
 from widgets.inputDialog import inputDialog
 from incs.wdTkCore import wdTkCore
@@ -109,14 +110,41 @@ class wdTk(wdTkCore):
 					for i in self.move["new_event"].values():
 						self.canvas.addtag_withtag("_alter", i[2])
 					self.canvas.delete(self.move["old_event"])
+				elif ("t" in self.move and "_wp" in self.move["t"]):
+					self.move["new_event"] = {
+						"text": (self.move['old_event'], c[0], c[1]),
+						"former": {},
+						"latter": {},
+					}
+					for i in self.canvas.find_all():
+						if (self.canvas.type(i) == "line"):
+							c2 = self.canvas.coords(i)
+							#print(c2, c)
+							if ([c2[0], c2[1]] == c):
+								self.move["new_event"]["former"][i] = (c2[2], c2[3])
+								print(i, self.canvas.coords(i), c)
+							elif ([c2[2], c2[3]] == c): 
+								self.move["new_event"]["latter"][i] = (c2[0], c2[1])
+								print(i, self.canvas.coords(i), c)
 				else:
+					print(self.move)
 					self.move["new_event"] = {}
 			else:
 				if ("t" in self.move and "_wire" in self.move["t"]):
 					for i in self.move["new_event"].values():
 						self.canvas.coords(i[2],i[0],i[1],self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
 					pass
-		
+				if ("t" in self.move and "_wp" in self.move["t"]):
+					for i, j in self.move ["new_event"].items():
+						if (i == "text"):
+							self.canvas.coords(j[0], self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
+						elif (i == "former"):
+							for k,l in j.items():
+								self.canvas.coords(k, self.canvas.canvasx(event.x), self.canvas.canvasy(event.y), l[0], l[1])
+						elif (i == "latter"):
+							for k,l in j.items():
+								self.canvas.coords(k, l[0], l[1], self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
+							
 	def b1_up(self, event):
 		if (self._open_file is None):
 			return None
@@ -131,7 +159,22 @@ class wdTk(wdTkCore):
 				for i in self.move["t"]:
 					self.canvas.addtag_withtag(i,o)
 				self.move = None
+			elif ("t" in self.move and "_wp" in self.move["t"]):
+				print("Yup")
+				ord = self.move['new_event']['text']
+				for i,j in self.move["new_event"].items():
+					if (i == "text"):
+						self.canvas.coords(j[0], j[1], j[2])
+					elif (i == "former"):
+						for k,l in j.items():
+							self.canvas.coords(k, ord[1], ord[2], l[0], l[1])
+					elif (i == "latter"):
+						for k,l in j.items():
+							self.canvas.coords(k, l[0], l[1], ord[1], ord[2])
 
+					#print(i)
+					#self.canvas.coords(i[0], i[1], i[2])
+					
 		d = megaMenu()
 		d.collapse(self.conf.contextCollapse.get() in ["1", True])
 		

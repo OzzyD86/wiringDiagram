@@ -2,9 +2,6 @@ import sys
 import traceback
 
 from copy import copy
-from PIL import Image, ImageDraw, ImageFont
-#forom incs.diagram import diagram
-#forom dev import device
 	
 def drag_start(event):
 	widget = event.widget
@@ -23,7 +20,6 @@ def check_current_version():
 
 import tkinter as Tk
 import tkinter.ttk as ttk
-import tkinter.filedialog
 from tkinter.messagebox import showerror
 from widgets.inputDialog import inputDialog
 from incs.config import config
@@ -83,38 +79,6 @@ class wdTk(wdTkUnification):
 			pass
 		d.tk_popup(self.canvas.winfo_rootx()+event.x, self.canvas.winfo_rooty()+event.y)
 		pass
-	
-	'''def setmName(self, *nope):
-		KEYS, VALUES = self.getKeys()
-		obj = KEYS[VALUES.index(self.mName.get())]
-		left, top, width, height = self.core.dia.locs[obj]
-		self.top.set(top)
-		self.left.set(left)
-		self.width.set(width)
-		self.height.set(height)'''
-		
-	def contextDevMove(self, obj, x,y):
-		p = self.core.dia.locs[obj]
-		_,_,w,h = p
-
-		self.devEditComplete(**{
-			"mName": obj,
-			"left": x,
-			"top": y,
-			"width": w,
-			"height": h
-		})
-		
-	def setmName2(self, w, val, *args):
-		p = w.data['mName']["obj"].get_key_of_value(args[0])
-		left, top, width, height = self.core.dia.locs[p]
-		w.set("top", top)
-		w.set("left", left)
-		w.set("width", width)
-		w.set("height", height)
-		for i in self.cueEvts("onMachineNameSet", w=w, val=val, args=args):
-			for j,k in i.items():
-				w.set(j,k)
 		
 	def setM2(self, *args):
 		#showerror(args, args)
