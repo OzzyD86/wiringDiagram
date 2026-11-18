@@ -1,5 +1,5 @@
 from incs.diagram import diagram
-from dev import device
+from incs.dev import device
 from incs.diagramStructure import diagramStructure
 
 from incs.wire import wire

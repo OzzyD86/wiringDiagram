@@ -231,9 +231,17 @@ def waypointAddComplete(**kwargs):
 	return True
 	
 def waypointEditComplete(**kwargs):
-	wpGroupRemComplete(wp=kwargs["wp"])
+	print(kwargs)
+	if ("wp" in kwargs):
+		use = "wp"
+	elif ("wName" in kwargs):
+		use = "wName"
+	else:
+		raise Exception("Unknown operand")
+		
+	wpGroupRemComplete(wp=kwargs[use])
 	if (kwargs["group"] != ""):
-		wpGroupComplete(group = kwargs["group"], wp=kwargs["wp"])
+		wpGroupComplete(group = kwargs["group"], wp=kwargs[use])
 	return True
 	
 def wpGroupRemComplete(**kwargs):
