@@ -12,6 +12,7 @@ from copy import copy, deepcopy
 from widgets.megaMenu import megaMenu
 import os
 import sys
+from widgets.InteractiveCanvas import InteractiveCanvas
 
 class wdTk(wdTkCore):
 	def resize_canvas(self, event):
