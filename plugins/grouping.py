@@ -109,15 +109,16 @@ def redrawPNG(img, offset=(0,0)):
 		if (i[1] not in gps):
 			gps[i[1]] = [None, None, None, None]
 		if (i[3] == "device"):
-			e = main.core.dia.locs[i[2]]
-			if (gps[i[1]][0] is None or e[0] - (e[2]/2) < gps[i[1]][0]):
-				gps[i[1]][0] = e[0]-1 -(e[2]/2)
-			if (gps[i[1]][1] is None or e[1] - (e[3]/2)  < gps[i[1]][1]):
-				gps[i[1]][1] = e[1] - (e[3]/2)-1
-			if (gps[i[1]][2] is None or e[0] + (e[2]/2) > gps[i[1]][2]):
-				gps[i[1]][2] = e[0]+1 +(e[2]/2)
-			if (gps[i[1]][3] is None or e[1] + (e[3]/2)> gps[i[1]][3]):
-				gps[i[1]][3] = e[1] + (e[3]/2)+1
+			if (i[2] in main.core.dia.locs):
+				e = main.core.dia.locs[i[2]]
+				if (gps[i[1]][0] is None or e[0] - (e[2]/2) < gps[i[1]][0]):
+					gps[i[1]][0] = e[0]-1 -(e[2]/2)
+				if (gps[i[1]][1] is None or e[1] - (e[3]/2)  < gps[i[1]][1]):
+					gps[i[1]][1] = e[1] - (e[3]/2)-1
+				if (gps[i[1]][2] is None or e[0] + (e[2]/2) > gps[i[1]][2]):
+					gps[i[1]][2] = e[0]+1 +(e[2]/2)
+				if (gps[i[1]][3] is None or e[1] + (e[3]/2)> gps[i[1]][3]):
+					gps[i[1]][3] = e[1] + (e[3]/2)+1
 				
 		elif (i[3] == "waypoint"):
 			e = main.core.dia.wp[int(i[2])]["loc"]
