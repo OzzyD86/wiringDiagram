@@ -280,6 +280,20 @@ class test():
 			main.redraw()	
 			return True
 			
+	def devDupComplete(**kwargs):
+		print(kwargs)
+		r = main.core.dia.dev[kwargs["dName"]].connectors
+		s = main.core.dia.dev[kwargs["mName"]].connectors
+		for i,j in r.items():
+			if (i in s):
+				for k in ("force_side", "force_pos"):
+					if (k in r[i]):
+						s[i][k] = r[i][k]
+		main.redraw()
+
+		return True
+		
+			
 MANIFEST = {
 	"order": 0,
 	"events": {
@@ -290,6 +304,7 @@ MANIFEST = {
 		"onPlugAddComplete": [test.plugAddComplete],
 		"onPlugNameSet": [test.pns],
 		"onPlugEditComplete" : [test.pec],
+		"onDeviceDupComplete": [test.devDupComplete],
 		#"onMachineNameSet" : [eth.mns]
 	}
 	
