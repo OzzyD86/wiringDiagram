@@ -1,5 +1,6 @@
 from widgets.inputDialog import inputDialog
 from PIL import ImageDraw, ImageFont
+from tkinter.messagebox import askquestion
 class grouping():
 	def checkInit(self, erm, **kwargs):
 		try:
@@ -64,12 +65,22 @@ def moveGroupId(gid, alter):
 		#	(p[2], p[3]))
 		#raise Exception(
 	
+	errwp = []
 	for i in main.core.struct.cur.execute("select `name` from `group_residents` where `type` = 'waypoint' and group_id = ?", (gid,)).fetchall():
-		p = main.core.dia.wp[int(i[0])]["loc"]
-		main.waypointEditComplete(wName=int(i[0]),
-			left=int(p[0]-(alter[0]/main.sc.get())),
-			top=int(p[1] -(alter[1]/main.sc.get())))
+		if (int(i[0]) in main.core.dia.wp):
+			p = main.core.dia.wp[int(i[0])]["loc"]
+			main.waypointEditComplete(wName=int(i[0]),
+				left=int(p[0]-(alter[0]/main.sc.get())),
+				top=int(p[1] -(alter[1]/main.sc.get())))
+		else:
+			errwp.append(i[0])
+			print("Waypoint " + str(i[0]) + " missing from dialog")
 		pass
+	
+	for i in errwp:
+		a = askquestion("Delete waypoint", "Waypoint " + str(i[0]) + " referenced in move but does not exist. Remove from group?")
+		if (a == "yes"):
+			wpGroupRemComplete(wp = int(i[0]))
 		
 	main.core.struct.set_changed()
 	main.updateWindowTitle()
@@ -169,15 +180,16 @@ def redrawCanvas(self, **kwargs):
 		#for j in (0,1,2,3):
 			
 	for i,j in gps.items():
-		op = kwargs["canvas"].create_rectangle(j[0], j[1], j[2], j[3], width=5, outline="yellow")
-		kwargs["canvas"].addtag_withtag("_group", op)
-		kwargs["canvas"].addtag_withtag("gid:"+str(i), op)
-		kwargs["canvas"].lower(op)
-		
-		r = kwargs["canvas"].create_text(j[0],j[1],text=gpNames[i],font=('Arial',12),anchor="nw", fill="yellow")
-		kwargs["canvas"].addtag_withtag("_group", r)
-		kwargs["canvas"].addtag_withtag("gid:" + str(i), r)
-		kwargs["canvas"].lower(r)
+		if (j[0] is not None):
+			op = kwargs["canvas"].create_rectangle(j[0], j[1], j[2], j[3], width=5, outline="yellow")
+			kwargs["canvas"].addtag_withtag("_group", op)
+			kwargs["canvas"].addtag_withtag("gid:"+str(i), op)
+			kwargs["canvas"].lower(op)
+			
+			r = kwargs["canvas"].create_text(j[0],j[1],text=gpNames[i],font=('Arial',12),anchor="nw", fill="yellow")
+			kwargs["canvas"].addtag_withtag("_group", r)
+			kwargs["canvas"].addtag_withtag("gid:" + str(i), r)
+			kwargs["canvas"].lower(r)
 	
 def devAddWin(s, **kwargs):
 	return { "Name" : "Group",
