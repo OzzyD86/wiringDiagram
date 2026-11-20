@@ -289,6 +289,9 @@ class test():
 				for k in ("force_side", "force_pos"):
 					if (k in r[i]):
 						s[i][k] = r[i][k]
+
+				main.core.struct.cur.execute("insert into `ic_force_data` (`device`,`conn`,`side`,`loc`) VALUES (?,?,?,?)", (kwargs['mName'],i, s[i]["force_side"], s[i]["force_pos"]))
+
 		main.redraw()
 
 		return True
