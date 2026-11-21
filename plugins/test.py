@@ -72,7 +72,7 @@ class test():
 				ct += 1
 				lct = []
 				for j in old_poss[i]:
-					if ("force_pos" in p.connectors[j] and p.connectors[j]["force_pos"] <= ct):
+					if ("force_pos" in p.connectors[j] and int(p.connectors[j]["force_pos"]) <= ct):
 						lct.append(j)
 						poss[i].append(j)
 				
