@@ -629,6 +629,12 @@ class wdTk(wdTkCore):
 			id = int(o[2]["values"][0])
 		else:
 			no_draw = True
+		
+		if (id in self.core.dia.cwps):
+			del self.core.dia.cwps[id]
+		#print(id)
+		#for i,j in self.core.dia.cwps.items():
+		#	print(i, j)
 		#Tk.messagebox.showerror("Yes", o)
 
 		#self.core.deleteWire(obj, o[1])
