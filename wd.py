@@ -1,3 +1,8 @@
+import sys
+import traceback
+
+#sys.stderr = open("tkinter_error_log.txt", "w")
+
 from copy import copy
 from PIL import Image, ImageDraw, ImageFont
 		
@@ -19,14 +24,12 @@ def check_current_version():
 import tkinter as Tk
 import tkinter.ttk as ttk
 import tkinter.filedialog
-import traceback
 from tkinter.messagebox import showerror
 from widgets.inputDialog import inputDialog
-import sys
 from incs.config import config
 
 def report_callback_exception(self, exc, val, tb):
-	d = Tk.Tk()
+	d = Tk.Toplevel()
 	text_box = Tk.Text(d, wrap=Tk.WORD, width=80, height=10)
 	text_box.insert("0.0", str(traceback.extract_stack()) + "\n" + str(val))
 	text_box.grid(row=0, column=0, rowspan=3, padx=10, pady=10, sticky="nsew")
@@ -44,6 +47,7 @@ class version(Tk.Toplevel):
 		for i in a:
 			Tk.Label(self, text="* " + i, font="Arial 6").grid(sticky="w", padx=5)
 		Tk.Button(self, text="Ok", command = self.destroy).grid(pady=5)
+
 import incs.wdTk
 import os, importlib
 
@@ -56,6 +60,15 @@ class loader():
 		
 class wdTk(incs.wdTk.wdTk):
 
+	def registerEvt(self, event, call):
+		if (not hasattr(self, "events")):
+			self.events = {}
+			
+		if (event not in self.events):
+			self.events[event] = []
+			
+		self.events[event].append(call)
+	
 	def cueEvts(self, event = "", exec=True, **kwargs):
 		out = []
 		#print("Run events for " + event)
@@ -69,7 +82,8 @@ class wdTk(incs.wdTk.wdTk):
 		return out
 		
 	def pluginLoad(self):
-		self.events = {}
+		if (not hasattr(self, "events")):
+			self.events = {}
 		mods = {}
 		loaders = {}
 		setattr(self, "loaders", loader())
@@ -169,13 +183,20 @@ class wdTk(incs.wdTk.wdTk):
 		
 app = "wiringDiagram"
 try:
+	
 	t = wdTk( c=config)
+	s = ttk.Style()
+
+	if hasattr(sys, 'getandroidapilevel'):
+		s.configure('Treeview', rowheight=48+8)
+
 	#setattr(t, "config", config())
 	#t.config.open()
 	t.menu["root"].add_command(label="Configure", command= t.conf.open)
 	
 	#p = pjaDialog().go()
 	t.cueEvts("onInitialise", win=t) # good to go!
+	t.cueEvts("onConfigInitialise", win=t) # good to go!
 	ch = [
 		#"Prevent canvas menu spawn crash when no file loaded",
 		"New file enables menu items",
@@ -188,9 +209,13 @@ try:
 	#version(t, ch)
 	#t.open_file("f.db")
 	#t.redraw()
-	
+	t.window.mainloop()
+
 except Exception as e:
-	#t.destroy()
+	try:
+		t.destroy()
+	except:
+		pass
 	d = Tk.Tk()
 	font = ("Arial", 6)
 	
@@ -202,4 +227,3 @@ except Exception as e:
 	d.columnconfigure(0, weight=1)
 	d.mainloop()
 
-t.window.mainloop()

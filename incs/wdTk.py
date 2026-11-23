@@ -7,9 +7,10 @@ import tkinter.messagebox
 import math as maths
 from widgets.inputDialog import inputDialog
 from incs.wdTkCore import wdTkCore
-from copy import copy
+from copy import copy, deepcopy
 from widgets.megaMenu import megaMenu
 import os
+import sys
 
 class wdTk(wdTkCore):
 	def resize_canvas(self, event):
@@ -44,6 +45,15 @@ class wdTk(wdTkCore):
 			self.cueEvts("onFileLoad")
 			for i in self.loaded:
 				i[0].entryconfig(i[1], state="normal")
+			for i,j in self.conf.policy.items():
+				self.core.dia.conf.portData(i,j)
+				
+			o = {}
+			o[None] = ["left", "right", "top", "bottom"]
+			for i,j in self.core.dia.conf.policy["connector_context"].get().items():
+				o[i] = j["pos"]
+				
+			self.core.dia.connector_context = o
 			self.redraw()
 			self.updateWindowTitle()
 			self.core.struct.clear_changed()
@@ -84,7 +94,6 @@ class wdTk(wdTkCore):
 				self.move = {
 					"old_event" : self.canvas.find_closest(x1,y1),
 				}
-				
 					
 				c = self.canvas.coords(self.move["old_event"])
 				w = self.canvas.itemconfig(self.move["old_event"], "width")[4]
@@ -111,6 +120,7 @@ class wdTk(wdTkCore):
 	def b1_up(self, event):
 		if (self._open_file is None):
 			return None
+			
 		if (self.move is not None):
 			if ("t" in self.move and "_wire" in self.move["t"]):
 				self.canvas.delete("_alter")
@@ -123,7 +133,7 @@ class wdTk(wdTkCore):
 				self.move = None
 
 		d = megaMenu()
-		d.collapse(self.conf.contextCollapse.get() == "1")
+		d.collapse(self.conf.contextCollapse.get() in ["1", True])
 		
 		down = self.b1_pressed
 		up = copy(event)
@@ -140,8 +150,9 @@ class wdTk(wdTkCore):
 			click = True
 		else:
 			click=False
-			
-		if (self.conf.dev.get() == "1"):
+		
+		print(self.conf.dev.get())
+		if (self.conf.dev.get() in ["1", True]):
 			d.add_command("debug", label="Start: " + str((down.x, down.y)), state="disabled")
 			d.add_command("debug", label="Finish: " + str((up.x, up.y)), state="disabled")
 			d.add_separator("debug")
@@ -324,14 +335,35 @@ class wdTk(wdTkCore):
 		self.window = self #Tk.Tk()
 
 		# Compile the configuration system
-		self.conf = coo()
+		self.conf = coo(self)
+		
+		self.conf.addOption("General", "mode", {
+			"name":"Android mode",
+			"type": "Checkbox",
+			"value": (hasattr(sys, "getandroidapilevel")),
+			"state": "disabled"
+		})
+		
 		if (self.conf.roPols["mode"].get() == False):
 			offs = 1
 		
-		self.pluginLoad()
-		
-		self.window.title(self.app_name)
 		self.core = wdCore(self.window)
+		self.op_config.register("objMk", "builtin", { "func": self.core.dia.objMk} )
+		self.pluginLoad()
+		self.cueEvts("onPluginInitialise", win=self)
+		self.window.title(self.app_name)
+		
+		o = {}
+		for i,j in self.op_config._list("objMk").items():
+			o[i] = i
+		#raise Exception(o)
+		self.conf.addOption("Renderers", "objMk", {
+			"name":"ObjMk",
+			"type": "Combo",
+			"values": o,
+			"value": "builtin"
+			#"state": "disabled"
+		})
 		self.window.protocol('WM_DELETE_WINDOW', self.quit)
 		self.window.geometry("860x660")
 
@@ -387,7 +419,8 @@ class wdTk(wdTkCore):
 		self.loaded.append([mf, 3+offs])
 		mf.add_command(label="Save As...", state=Tk.DISABLED)
 		mf.add_separator()
-		mf.add_command(label="Properties...", state=Tk.DISABLED)
+		mf.add_command(label="Properties...", state=Tk.DISABLED, command=self.core.dia.conf.open)
+		self.loaded.append([mf, 6+offs])
 		mf.add_separator()
 		mf.add_command(label="Quit", command=self.quit)
 			
@@ -402,7 +435,7 @@ class wdTk(wdTkCore):
 	
 		edit = self.menu["edit"]
 		edit.add_command(label="Device", command=self.devEditWin)
-		edit.add_command(label="Plug", state=Tk.DISABLED)
+		edit.add_command(label="Plug", command=self.connEditWin)
 		edit.add_command(label="Connection", state=Tk.DISABLED)
 		edit.add_command(label="Waypoint", command=self.waypointEditWin)
 		edit.add_command(label="Waypoint Connector", state=Tk.DISABLED)
@@ -497,9 +530,27 @@ class wdTk(wdTkCore):
 		else:
 			a = a.name
 			self.core.open_file(a)
+			for i,j in self.conf.policy.items(): #Reset the config stack
+				self.core.dia.conf.portData(i, j)
+				
+			for i in self.core.struct.cur.execute("select * from config"):
+				self.core.dia.conf.portData(i[0], i[1])
+		
+			#self.core.dia.conf.
+			#for i, j in self.core.dia.conf.policy.items():
+			#	print(i, j.get())
+			
 			for i in self.loaded:
 				i[0].entryconfig(i[1], state="normal")
 			self.cueEvts("onFileLoad")
+			
+			o = {}
+			o[None] = ["left", "right", "top", "bottom"]
+			for i,j in self.core.dia.conf.policy["connector_context"].get().items():
+				o[i] = j["pos"]
+			self.core.dia.connector_context = o
+		
+
 			self.redraw()
 			self._open_file = a
 			self.core.struct.clear_changed()
@@ -578,6 +629,12 @@ class wdTk(wdTkCore):
 			id = int(o[2]["values"][0])
 		else:
 			no_draw = True
+		
+		if (id in self.core.dia.cwps):
+			del self.core.dia.cwps[id]
+		#print(id)
+		#for i,j in self.core.dia.cwps.items():
+		#	print(i, j)
 		#Tk.messagebox.showerror("Yes", o)
 
 		#self.core.deleteWire(obj, o[1])
@@ -648,7 +705,9 @@ class wdTk(wdTkCore):
 		self.canvas.delete("_conn")
 		for i in d.listDevices():
 			if (i in d.locs):
-				aa = d.objMk(self.canvas, d.getDevice(i), d.locs[i], connector_names = self.conn_labelling.get())
+				#raise Exception(self.conf.policy["objMk"].get())
+				aa = self.op_config.fetch(self.conf.policy["objMk"].get(), "objMk", "builtin")["func"](self.canvas, d.getDevice(i), d.locs[i], connector_names = self.conn_labelling.get())
+				#aa = d.objMk(self.canvas, d.getDevice(i), d.locs[i], connector_names = self.conn_labelling.get())
 				d.getDevice(i).drwConnPos = aa
 
 		self.canvas.delete("_wire")
@@ -765,7 +824,7 @@ class wdTk(wdTkCore):
 
 		self.cueEvts("onCanvasRedraw", canvas=self.canvas)
 		self.canvas.scale("all", 0,0, self.sc.get(), self.sc.get())
-		self.canvas.config(scrollregion=(self.canvas.bbox("all")))
+		self.canvas.config(scrollregion=(q2))
 		
 	def export_png(self):
 		files = [#('All Files', '*.*'), 
