@@ -530,7 +530,7 @@ class diagram():
 							dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],n[0]-self.bounds[0],n[1]-self.bounds[1]), fill="black")
 							dr.line((n[0]-self.bounds[0], n[1]-self.bounds[1],fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill="black")
 				else:
-					dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill=(0,0,0), anchor="mm")
+					dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill=(0,0,0))
 		
 		if (self.waypointing.get()):
 			for m,n in olines.items():

@@ -455,6 +455,7 @@ class wdTk(wdTkCore):
 			"edit": Tk.Menu(),
 			"delete": Tk.Menu(),
 			"export": Tk.Menu(),
+			"prefs": Tk.Menu(),
 			"plugins": Tk.Menu()
 		}
 		
@@ -471,6 +472,8 @@ class wdTk(wdTkCore):
 		mf.add_separator()
 		mf.add_command(label="Properties...", state=Tk.DISABLED, command=self.core.dia.conf.open)
 		self.loaded.append([mf, 6+offs])
+		mf.add_cascade(label="Export", state=Tk.DISABLED, menu=self.menu['export'])
+		self.loaded.append([mf, 7+offs])
 		mf.add_separator()
 		mf.add_command(label="Quit", command=self.quit)
 			
@@ -514,11 +517,11 @@ class wdTk(wdTkCore):
 		self.sc.trace('w', self.set_export_vars)
 		
 		#self.wp_labelling = False
-		self.menu["export"].add_checkbutton(label="Honour waypoints", onvalue=True, offvalue=False, variable=self.waypointing)
-		self.menu["export"].add_checkbutton(label="Show waypoint labels", onvalue=True, offvalue=False, variable=self.wp_labels)
-		self.menu["export"].add_checkbutton(label="Show connector labels", onvalue=True, offvalue=False, variable=self.conn_labelling)
-		self.menu["export"].add_cascade(label="Scale...", menu= self.scale)
-		self.menu["export"].add_separator()
+		self.menu["prefs"].add_checkbutton(label="Honour waypoints", onvalue=True, offvalue=False, variable=self.waypointing)
+		self.menu["prefs"].add_checkbutton(label="Show waypoint labels", onvalue=True, offvalue=False, variable=self.wp_labels)
+		self.menu["prefs"].add_checkbutton(label="Show connector labels", onvalue=True, offvalue=False, variable=self.conn_labelling)
+		self.menu["prefs"].add_cascade(label="Scale...", menu= self.scale)
+		#self.menu["export"].add_separator()
 		self.menu["export"].add_command(label="PNG", command=self.export_png)
 		m = 0
 		for i in self.cueEvts("onMenuSpawn"):
@@ -537,8 +540,8 @@ class wdTk(wdTkCore):
 		if (m>0):
 			pp+=1
 			y.add_cascade(label="Plugins", menu=self.menu["plugins"])
-		self.loaded.append([y, 4+offs+pp])
-		y.add_cascade(label="Export", menu=self.menu["export"], state="disabled")
+		#self.loaded.append([y, 4+offs+pp])
+		y.add_cascade(label="Preferences", menu=self.menu["prefs"])
 		#y.add_command("Configure", command= self.config.open)
 		self.window.config(menu=self.menu["root"])
 	
