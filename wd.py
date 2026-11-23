@@ -5,9 +5,7 @@ import traceback
 
 from copy import copy
 from PIL import Image, ImageDraw, ImageFont
-#forom incs.diagram import diagram
-#forom dev import device
-	
+		
 def drag_start(event):
 	widget = event.widget
 	widget._drag_start_x = event.x
