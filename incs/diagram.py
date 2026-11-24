@@ -454,6 +454,21 @@ class diagram():
 			
 		olines = {}
 		a = self.buildWaypointLists()
+		print(self.bounds)
+		for i,j in self.wp.items():
+			l = j['loc']
+			if (l[0] < self.bounds[0]):
+				self.bounds[0] = l[0] - 5
+			if (l[1] < self.bounds[1]):
+				self.bounds[1] = l[1] - 5
+			if (l[0] > self.bounds[2]):
+				self.bounds[2] = l[0] + 5
+			if (l[1] > self.bounds[3]):
+				self.bounds[3] = l[1] + 5
+				
+			print(i, j)
+
+			
 		#print(a)
 		w = int(self.bounds[2] - self.bounds[0])
 		h = int(self.bounds[3] - self.bounds[1])

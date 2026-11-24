@@ -20,13 +20,14 @@ def devDupCheck(self, *args, **kwargs):
 	self.c.delete("all")
 	
 	mm = self.data['dName']["obj"].get_key_of_value(self.vars['dName'].get())
-	x = (p.locs[mm])
+	if (mm is not None):
+		x = (p.locs[mm])
 
-	y = deepcopy(p.getDevice(mm))
-	y.machName = self.vars['mName'].get()
-	y.name = self.vars['hName'].get()
+		y = deepcopy(p.getDevice(mm))
+		y.machName = self.vars['mName'].get()
+		y.name = self.vars['hName'].get()
 
-	aa = p.objMk(self.c, y, (self.size[0]/2, self.size[1]/2, x[2], x[3]), connector_names = True)
+		aa = p.objMk(self.c, y, (self.size[0]/2, self.size[1]/2, x[2], x[3]), connector_names = True)
 
 def devEditCheck(self, *args, **kwargs):
 	#print(args, kwargs, self.vars[kwargs['a']].get())

@@ -723,6 +723,13 @@ class wdTkCore(Tk.Tk):
 		
 		self.core.struct.set_changed()
 
+		for k,i in self.core.dia.cwps.items():
+			for j in i:
+				#print(j, kwargs)
+				if (int(j["wpid"]) == int(kwargs['wpName'])):
+					#print("Yes")
+					self.routeDelComplete(wire=k, wp = j)
+
 		self.core.deleteWaypoint(obj)
 		self.updateWindowTitle()
 
