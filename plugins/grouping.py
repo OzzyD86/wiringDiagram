@@ -1,5 +1,7 @@
 from widgets.inputDialog import inputDialog
 from PIL import ImageDraw, ImageFont
+from incs.conf.dataWrapper import dataWrapper
+
 class grouping():
 	def checkInit(self, erm, **kwargs):
 		try:
@@ -44,6 +46,7 @@ def devGroupComplete(**kwargs):
 	if (p.fetchone()[0] == 0):
 		e = main.core.struct.cur.execute("insert into `group` (`name`) values (?)", (kwargs["group"],))
 	
+	e = main.core.struct.cur.execute("delete from `group_residents` where `name` = ? and `type` = 'device'", (kwargs["device"],))
 	e = main.core.struct.cur.execute("insert into `group_residents` (`group_id`, `name`, `type`) select `id`, ?, 'device' from `group` where `name` = ?", (kwargs["device"],kwargs["group"]))
 
 	#raise Exception(kwargs)
@@ -75,6 +78,95 @@ def moveGroupId(gid, alter):
 	main.updateWindowTitle()
 	main.redraw()
 	return True
+
+def checkMissingWin(id):
+	# Get the BBox
+	gps = {}
+	for i in main.core.struct.cur.execute("select * from group_residents where `group_id` = ?", (id,)).fetchall():
+		#print(str(i))
+		if (i[1] not in gps):
+			gps[i[1]] = [None, None, None, None]
+		if (i[3] == "device"):
+			e = main.core.dia.locs[i[2]]
+			if (gps[i[1]][0] is None or e[0] - (e[2]/2) < gps[i[1]][0]):
+				gps[i[1]][0] = e[0]-1 -(e[2]/2)
+			if (gps[i[1]][1] is None or e[1] - (e[3]/2)  < gps[i[1]][1]):
+				gps[i[1]][1] = e[1] - (e[3]/2)-1
+			if (gps[i[1]][2] is None or e[0] + (e[2]/2) > gps[i[1]][2]):
+				gps[i[1]][2] = e[0]+1 +(e[2]/2)
+			if (gps[i[1]][3] is None or e[1] + (e[3]/2)> gps[i[1]][3]):
+				gps[i[1]][3] = e[1] + (e[3]/2)+1
+				
+		elif (i[3] == "waypoint"):
+			e = main.core.dia.wp[int(i[2])]["loc"]
+			if (gps[i[1]][0] is None or e[0] < gps[i[1]][0]):
+				gps[i[1]][0] = e[0]-1
+			if (gps[i[1]][1] is None or e[1] < gps[i[1]][1]):
+				gps[i[1]][1] = e[1] -1
+			if (gps[i[1]][2] is None or e[0] > gps[i[1]][2]):
+				gps[i[1]][2] = e[0]+1
+			if (gps[i[1]][3] is None or e[1] > gps[i[1]][3]):
+				gps[i[1]][3] = e[1] +1
+			pass
+	print(id, gps[int(id)])
+	m = gps[int(id)]
+	matched = { "dev": [], "wp" : []}
+	for i,j in main.core.dia.locs.items():
+		if (j[0] >= m[0] and j[0] <= m[2]):
+			if (j[1] >= m[1] and j[1] <= m[3]):
+				#print("Matched " + str(i))
+				matched["dev"].append(i)
+	for i,j in main.core.dia.wp.items():
+		if (j['loc'][0] >= m[0] and j['loc'][0] <= m[2]):
+			if (j['loc'][1] >= m[1] and j['loc'][1] <= m[3]):
+				#print("Matched " + str(i))
+				matched["wp"].append(i)
+		#print(i,j)
+	for i in main.core.struct.cur.execute("select * from group_residents").fetchall():
+		print(i[3], i[2], matched)
+		
+		if (i[3] == "device"):
+			if (i[2] in matched["dev"]):
+				matched["dev"].remove(i[2])
+		elif (i[3] == "waypoint"):
+			if (int(i[2]) in matched["wp"]):
+				print("yes")
+				matched["wp"].remove(int(i[2]))
+	print(matched)
+	final = {}
+	for i, j in matched.items():
+		for k in j:
+			final[str(i)+"-"+str(k)] = { "type" : i, "name" : k }
+	w = dataWrapper(final)
+	d = inputDialog(main, data = {
+		"connector_context": {
+			"name": "Add These",
+			"type": "TreeView",
+			"headings": { "type":"Type","name":"Name"},
+			"onAdd" : [],
+			"varStore": w,
+			"value": w.get()
+		}
+	})
+	d.addButton("Add", "add")
+	d.passFunc("add", multiGroupComplete, group = id )
+
+def multiGroupComplete(**kwargs):
+	print(kwargs)
+	d = {
+		"machs": [],
+		"wps" : [],
+	}
+	for i in kwargs['connector_context'].values():
+		if (i['type'] == "wp"):
+			d["wps"].append(int(i['name']))
+		else:
+			d["machs"].append(i['name'])
+	
+	gn = main.core.struct.cur.execute("select `name` from `group` where `id` = ?", (kwargs['group'],)).fetchone()
+	print(gn[0])
+	multiAddComplete(d, group = gn[0]) # And if this works, I'll eat my hat!
+	return True
 	
 def checkGroupDrag(self, **kwargs):
 	if ("_group" in kwargs["canTags"]):
@@ -85,6 +177,18 @@ def checkGroupDrag(self, **kwargs):
 		down = kwargs["down"]
 		up = kwargs["up"]
 		self.add_command("Groups", label="Move group " + str(id) + " here", command = lambda id=id, delta=(down.x-up.x,down.y-up.y) : moveGroupId(id, delta))
+	
+	return self
+
+def checkGroupClick(self, **kwargs):
+	if ("_group" in kwargs["canTags"]):
+		id = None
+		for i in kwargs["canTags"]:
+			if (i.split(":")[0] == "gid"):
+				id = i.split(":")[1]
+		#down = kwargs["down"]
+		#up = kwargs["up"]
+		self.add_command("Groups", label="Check missing group entries " + str(id), command = lambda id=id: checkMissingWin(id))
 	
 	return self
 
@@ -191,10 +295,11 @@ def groupAddWin(**kwargs):
 	d.passFunc("add", devGroupComplete, device= kwargs["device"])
 
 def devAddComplete(**kwargs):
+	groupRemComplete(device=kwargs["mName"])
 	if (kwargs["group"] != ""):
 		devGroupComplete(group = kwargs["group"], device=kwargs["mName"])
-	else:
-		groupRemComplete(device=kwargs["mName"])
+	#else:
+	#	groupRemComplete(device=kwargs["mName"])
 	return True
 	
 def devEditVarsPopulate(self, w, val, args):
@@ -224,10 +329,12 @@ def waypointAddComplete(**kwargs):
 			kwargs["wp"] = j
 			break
 
+	wpGroupRemComplete(wp=kwargs["wp"])
+
 	if (kwargs["group"] != ""):
 		wpGroupComplete(group = kwargs["group"], wp=kwargs["wp"])
-	else:
-		wpGroupRemComplete(wp=kwargs["wp"])
+	#else:
+	#	wpGroupRemComplete(wp=kwargs["wp"])
 	return True
 	
 def waypointEditComplete(**kwargs):
@@ -315,6 +422,7 @@ MANIFEST = {
 		"onDeviceEditComplete" : [devAddComplete],
 		"onDeviceClick": [odc],
 		"onWaypointClick": [owc],
+		"onUnknownClick": [checkGroupClick],
 		"onUnknownDrag": [checkGroupDrag],
 		"onCanvasRedraw": [redrawCanvas],
 		
