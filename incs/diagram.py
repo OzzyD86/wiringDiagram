@@ -150,6 +150,8 @@ class local_conf(LOCAL):
 class diagram():
 	def __init__(self, wdMaster):
 		self.master = wdMaster
+		#print(type(self.master))
+		#print(self.master.getConfVar("colours"))
 		if not (hasattr(self, "conf")):
 			self.conf = local_conf(wdMaster)
 		else:
@@ -328,6 +330,8 @@ class diagram():
 		#return [bbox[0]-100, bbox[1] -100, bbox[2]+100,bbox[3]+100]
 		
 	def objMk(self, dr, p, dms = (0,0,1,1), _type = 1, honour_db = False, offset = (0,0), connector_names = False, highlight_connected = False):
+		cc = (self.master.getConfVar("connector_context"))
+		cl = (self.master.getConfVar("colours"))
 		try:
 			f = ImageFont.load_default_imagefont()
 		except:
@@ -405,8 +409,20 @@ class diagram():
 					os = ((-dms[2] /2) + ((ct+1) / (ln+1) * dms[2]), os[1])
 				lf = dms[0] + os[0]
 				tp = dms[1] + os[1]
+				
+				if (p.connectors[fc]["direction"] in cc):
+					cco = cc[p.connectors[fc]["direction"]]
+				else:
+					cco = cc[p.connectors[fc][None]]
 
-				c = colourDirection(p.connectors[fc]["direction"], a==2)
+				if (cco['colour'] in cl):
+					#print(cl[cco['colour']])
+					if (a == 2):
+						c = cl[cco['colour']]['hex']
+					else:
+						c = tuple(cl[cco['colour']]['rgb'])
+				else:
+					c = colourDirection(p.connectors[fc]["direction"], a==2)
 				
 				if (highlight_connected):
 					if (fc in p.connectors and p.connectors[fc]["connected"] is not None):
