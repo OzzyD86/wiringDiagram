@@ -187,6 +187,8 @@ class wdTk(wdTkCore):
 		
 		up.x = int(self.canvas.canvasx(up.x) / 1)
 		up.y = int(self.canvas.canvasy(up.y) / 1)
+		if (down is None):
+			return
 		down.x = int(self.canvas.canvasx(down.x) / 1)
 		down.y = int(self.canvas.canvasy(down.y) / 1)
 		

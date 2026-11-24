@@ -137,6 +137,9 @@ def redrawCanvas(self, **kwargs):
 	self.canvas.delete("_group")
 	gps = {}
 	gpNames = {}
+	if (main.core.struct is None):
+		return
+		
 	for i in main.core.struct.cur.execute("select * from `group`").fetchall():
 		gpNames[i[0]] = i[1]
 	for i in main.core.struct.cur.execute("select a.* from group_residents a join `group` b on a.group_id = b.id").fetchall():
