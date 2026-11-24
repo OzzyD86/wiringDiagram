@@ -13,3 +13,11 @@ def colourDirection(d, hx=False):
 	if (hx):
 		return "#" + hex(c[0])[2:].zfill(2) + hex(c[1])[2:].zfill(2) + hex(c[2])[2:].zfill(2)
 	return c
+	
+class Colours():
+	def __init__(self, initialColours = {}):
+		self.colours = {}
+		self.collateColours(initialColours)
+		
+	def collateColours(self, colours):
+		self.colours = colours
