@@ -87,3 +87,22 @@ class wdTkUnification(incs.wdTk.wdTk):
 		for i in self.cueEvts("onMachineNameSet", w=w, val=val, args=args):
 			for j,k in i.items():
 				w.set(j,k)
+				
+	def getConfVar(self, key, otherwise = None):
+		var = otherwise
+		
+		# Check global config
+		b = self.conf
+		if (hasattr(b, "policy")):
+			if (key in b.policy):
+				if (b.policy[key].get() is not None):
+					var = b.policy[key].get()
+		
+		c = self.core.dia.conf
+		if (hasattr(c, "policy")):
+			if (key in c.policy):
+				if (c.policy[key].get() is not None):
+					var = c.policy[key].get()
+		# Check local config
+		
+		return var

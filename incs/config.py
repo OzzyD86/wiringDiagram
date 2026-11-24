@@ -8,9 +8,6 @@ import incs.conf
 from incs.conf import GLOBAL
 
 from incs.conf.dataWrapper import dataWrapper as dataWrapper
-
-class config2(incs.conf.configBase):
-	pass
 	
 def addOk(s, *args, **kwargs):
 	
@@ -115,7 +112,7 @@ def pood(*args, **kwargs):
 	x.addButton("OK", "ok")
 	x.passFunc("ok", lambda i=args[0], s=x, **kwargs: addPoodOk(**kwargs, i =i,s=s))
 
-class config(config2):
+class config(incs.conf.configBase):
 	def save(self):
 		self.db.commit()
 	

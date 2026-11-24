@@ -95,7 +95,8 @@ try:
 
 	#setattr(t, "config", config())
 	#t.config.open()
-	t.menu["root"].add_command(label="Configure", command= t.conf.open)
+	t.menu['prefs'].add_separator()
+	t.menu["prefs"].add_command(label="Global Configuration", command= t.conf.open)
 	
 	#p = pjaDialog().go()
 	t.cueEvts("onInitialise", win=t) # good to go!
@@ -112,6 +113,7 @@ try:
 	#version(t, ch)
 	#t.open_file("f.db")
 	#t.redraw()
+	print(t.getConfVar("dev"))
 	t.window.mainloop()
 
 except Exception as e:

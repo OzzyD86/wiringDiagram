@@ -88,7 +88,7 @@ class inputDialog(Tk.Toplevel):
 				heads = j["headings"]
 			else:
 				heads = None
-			j["obj"] = treeViewWithSearch(nw, headings=heads, adds = j["onAdd"])
+			j["obj"] = treeViewWithSearch(nw, text=j['name'], headings=heads, adds = j["onAdd"])
 			keys = None
 			#raise Exception(j["value"])
 			for l,k in j["value"].items():
