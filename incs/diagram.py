@@ -413,7 +413,7 @@ class diagram():
 				if (p.connectors[fc]["direction"] in cc):
 					cco = cc[p.connectors[fc]["direction"]]
 				else:
-					cco = cc[p.connectors[fc][None]]
+					cco = cc['None']
 
 				if (cco['colour'] in cl):
 					#print(cl[cco['colour']])

@@ -179,6 +179,9 @@ class wdTk(wdTkCore):
 		d = megaMenu()
 		d.collapse(self.conf.contextCollapse.get() in ["1", True])
 		
+		if not (hasattr(self, "b1_pressed")):
+			return
+			
 		down = self.b1_pressed
 		up = copy(event)
 		
