@@ -17,7 +17,7 @@ class wdTk(wdTkCore):
 	def click_call(self, event):
 		pass
 	
-	def gpw(self, wp1, wp2):
+	def gpw(self, wp1, wp2):	# What does this do?
 		cd = {}
 		for i,j in self.core.dia.cwps.items():
 			for k in j:
@@ -271,7 +271,7 @@ class wdTk(wdTkCore):
 
 		self.b1_pressed = None
 
-	def motion(self, event):
+	def motion(self, event):	# What does THIS do?
 		self.canvas.itemconfig(self.canvas.find_withtag("current"), fill="yellow")
 		
 	def __init__(self, master = None, **kwargs):
@@ -515,7 +515,7 @@ class wdTk(wdTkCore):
 
 			self.updateWindowTitle()
 		
-	def getKeys(self):
+	def getKeys(self):			# What keys does this get?
 		KEYS = []
 		VALUES = []
 		#self.core.dia = d # WTF 
@@ -532,11 +532,6 @@ class wdTk(wdTkCore):
 	def alert(self, *args, **kwargs): # For inputDialog testing purposes only. Please don't use for else (oh unless you want to print kwargs and print a warning) and remove after
 		Tk.messagebox.showwarning("Button pressed", "Yes. This is triggered")
 		print(args, kwargs)
-
-	'''def example(self, win, val, *args, **kwargs):
-		print(win, val, args, kwargs)
-		
-		Tk.messagebox.showerror(val, args)'''
 		
 	## === Do Wire Management
 	
@@ -606,7 +601,7 @@ class wdTk(wdTkCore):
 			
 	# == Drawing management ==
 
-	def setM(self, *what, **kwargs):
+	def setM(self, *what, **kwargs):		# Really?!
 		
 		KEYS, VALUES = self.getKeys()
 		obj = KEYS[VALUES.index(kwargs['i'])]
@@ -681,15 +676,13 @@ class wdTk(wdTkCore):
 					if (len(cs) > 1):
 						#print(cs)
 						r = self.canvas.create_line(st,n[0:2], fill="black")
-						self.canvas.addtag_withtag("_wire", r)
-						self.canvas.addtag_withtag("BEGIN", r)
-						self.canvas.addtag_withtag("wid:" + str(k), r)
-						self.canvas.addtag_withtag(st,r)
+						for h in ["_wire", "BEGIN", "wid:" + str(k), st]:
+							self.canvas.addtag_withtag(h, r)
+
 						r = self.canvas.create_line(n[-2:] ,fn, fill="black")
-						self.canvas.addtag_withtag("_wire", r)
-						self.canvas.addtag_withtag("END", r)
-						self.canvas.addtag_withtag("wid:" + str(k), r)
-						self.canvas.addtag_withtag(st,r)
+						for h in ["_wire", "END", "wid:" + str(k), st]:
+							self.canvas.addtag_withtag(h,r)
+							
 						for m in range(len(cs)-1):
 							q = (cs[m], cs[m+1])
 							#print(q)
@@ -703,9 +696,9 @@ class wdTk(wdTkCore):
 						
 						if (len(n) == 0):
 							r = self.canvas.create_line(st,n,fn, fill="black")
-							self.canvas.addtag_withtag("_wire", r)
-							self.canvas.addtag_withtag("wid:" + str(k), r)
-							self.canvas.addtag_withtag("straight_line", r)
+							for h in ["_wire", "wid:" + str(k), "straight_line"]:
+								self.canvas.addtag_withtag(h, r)
+								
 						else:
 							o = 0
 							nn = []
@@ -728,35 +721,27 @@ class wdTk(wdTkCore):
 									self.canvas.addtag_withtag("BEGIN", r)
 								o+= 1
 								st = i
-								self.canvas.addtag_withtag("_wire", r)
-								self.canvas.addtag_withtag("bendy_line", r)
-								self.canvas.addtag_withtag(cs, r)
-								self.canvas.addtag_withtag("wid:" + str(k), r)
-								#self.canvas.addtag_withtag(st, r)
-							self.canvas.addtag_withtag("END", r)
+								for h in ["_wire", "bendy_line", cs, "wid:" + str(k)]:
+									self.canvas.addtag_withtag(h, r)
+
+							self.canvas.addtag_withtag("END", r)	# Is this unindented for a reason?
 				else:
 					r = self.canvas.create_line(st,fn, fill="black")
 					self.canvas.addtag_withtag("_wire", r)
-					#self.canvas.addtag_withtag(m, r)
-					#self.canvas.addtag_withtag(st, r)
 			
 		if (self.waypointing.get()):
 			for m,n in olines.items():
 				pass
 				r = self.canvas.create_line(d.wp[m[0]]["loc"], d.wp[m[1]]["loc"], width=n, fill="black")
-				
-				self.canvas.addtag_withtag("_wire", r)
-				self.canvas.addtag_withtag("wp_bridge", r)
-				self.canvas.addtag_withtag("br:"+str(m[0])+":"+str(m[1]), r)
-				self.canvas.addtag_withtag(st, r)
+				for i in ["_wire", "wp_bridge", "br:"+str(m[0])+":"+str(m[1]), st]:
+					self.canvas.addtag_withtag(i, r)
 		
 		self.canvas.delete("_wp")
 		if (self.wp_labels.get()):
 			for i,j in d.wp.items():
 				r = self.canvas.create_text(j["loc"][0],j["loc"][1],text=j["name"],font=('Arial',4))
-				self.canvas.addtag_withtag("_wp", r)
-				self.canvas.addtag_withtag("wn:" + str(i), r)
-				self.canvas.addtag_withtag(j, r)
+				for q in ["_wp", "wn:" + str(i), j]:
+					self.canvas.addtag_withtag(q, r)
 
 		self.cueEvts("onCanvasRedraw", canvas=self.canvas)
 		self.canvas.scale("all", 0,0, self.sc.get(), self.sc.get())

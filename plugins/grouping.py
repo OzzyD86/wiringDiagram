@@ -2,14 +2,27 @@ from widgets.inputDialog import inputDialog
 from PIL import ImageDraw, ImageFont
 from incs.conf.dataWrapper import dataWrapper
 from tkinter.messagebox import askquestion
+import tkinter.ttk as ttk
 
 class grouping():
 	def checkInit(self, erm, **kwargs):
+		
 		try:
 			p = main.core.struct.cur.execute("select * from `group`")
 		except:
 			main.core.struct.cur.execute("create table `group` (id integer primary key autoincrement, `name` text not null)")
 			main.core.struct.cur.execute("create table `group_residents` (id integer primary key autoincrement, `group_id` integer not null, `name` text not null, `type` text not null)")
+		
+		nn = None
+		p = main
+		for i in  p.winfo_children():
+			if (type(i) == ttk.Notebook):
+				nn = i
+
+		for i in nn.tabs():
+			#nn.tab(i, additional= "none")
+			print(nn.tab(i))
+			print(nn.tab(i, option="text"))
 		
 g = grouping()
 
