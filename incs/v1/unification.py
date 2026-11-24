@@ -1,6 +1,7 @@
 import incs.wdTk
 from incs.v1.loader import loader
 import os, importlib
+import tkinter as Tk
 
 class wdTkUnification(incs.wdTk.wdTk):
 	
@@ -62,3 +63,36 @@ class wdTkUnification(incs.wdTk.wdTk):
 						self.events[l].append(n)
 					pass
 		#		notebook.add(k["call"](notebook), text=k["name"])
+
+	# == Window-y shenanigans
+	
+	def updateWindowTitle(self):
+		title = self.app_name
+		title += " v" + ".".join(self.version)
+		if (self._open_file is not None):
+			title += " [" + self._open_file 
+			if (self.core.struct.is_changed()):
+				title += "*"
+			title += "]"
+		self.window.title(title)
+
+	def resize_canvas(self, event):
+		new_width = event.width
+		new_height = event.height
+
+		# Update the canvas size
+		self.canvas.config(width=new_width, height=new_height)
+	
+	def quit(self):
+		if (self._open_file is not None):
+			if (self.core.struct.is_changed()):
+				a = Tk.messagebox.askyesnocancel(title="Unsaved Changes", message="There are unsaved changes. Save before closing?")
+				if (a is None):
+					return None
+				elif (a is True):
+					self.file_save()
+			else:
+				if not (Tk.messagebox.askquestion(title="Exit WiringDiagram", message="Are you sure") == "yes"):
+					return None
+		self.cueEvts("onUninitialise", win=self)
+		exit(0)

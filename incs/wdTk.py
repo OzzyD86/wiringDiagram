@@ -13,14 +13,6 @@ import os
 import sys
 
 class wdTk(wdTkCore):
-	def resize_canvas(self, event):
-   
-		new_width = event.width
-		new_height = event.height
-
-		# Update the canvas size
-		self.canvas.config(width=new_width, height=new_height)
-
 	def file_new(self):
 		if (self._open_file is not None):
 			if (self.core.struct.is_changed()):
@@ -74,7 +66,6 @@ class wdTk(wdTkCore):
 					o[i] = (min(k["order"], cd[i]["order"]))
 					pass
 		return o
-		pass
 		
 	def b1_down(self, event):
 		if (self._open_file is None):
@@ -151,16 +142,13 @@ class wdTk(wdTkCore):
 		else:
 			click=False
 		
-		print(self.conf.dev.get())
+		#print(self.conf.dev.get())
 		if (self.conf.dev.get() in ["1", True]):
 			d.add_command("debug", label="Start: " + str((down.x, down.y)), state="disabled")
 			d.add_command("debug", label="Finish: " + str((up.x, up.y)), state="disabled")
 			d.add_separator("debug")
 			d.add_command("debug", label="Canvas Start: " + str((self.canvas.canvasx(down.x), self.canvas.canvasy(down.y))), state="disabled")
 			d.add_command("debug", label="Canvas Finish: " + str((self.canvas.canvasx(up.x), self.canvas.canvasy(up.y))), state="disabled")
-			#d.add_separator("debug")
-		
-#	d.add_command(label=str(self.canvas.find_closest(x,y)))
 	
 		tags = []
 		name = None
@@ -324,7 +312,7 @@ class wdTk(wdTkCore):
 		
 	def __init__(self, master = None, **kwargs):
 		offs = 0
-		self.version = ("1","0","0","1")
+		self.version = ("1","0","1","1")
 		self.app_name = "WiringDiagram"
 		self._open_file = None
 		
@@ -416,7 +404,9 @@ class wdTk(wdTkCore):
 		mf.add_command(label="New", command= self.file_new)
 		mf.add_separator()
 		mf.add_command(label="Load", command=self.file_load)
-		mf.add_command(label="Save", command= self.file_save, state="disabled")
+		mf.add_command(label="Save", command= self.file_save, state="disabled", accelerator="Ctrl+S")
+		self.bind("<Control-s>", lambda a: self.file_save())
+		
 		self.loaded.append([mf, 3+offs])
 		mf.add_command(label="Save As...", state=Tk.DISABLED)
 		mf.add_separator()
@@ -566,20 +556,6 @@ class wdTk(wdTkCore):
 		self.updateWindowTitle()
 		pass
 		
-	def quit(self):
-		if (self._open_file is not None):
-			if (self.core.struct.is_changed()):
-				a = Tk.messagebox.askyesnocancel(title="Unsaved Changes", message="There are unsaved changes. Save before closing?")
-				if (a is None):
-					return None
-				elif (a is True):
-					self.file_save()
-			else:
-				if not (Tk.messagebox.askquestion(title=None, message="Are you sure") == "yes"):
-					return None
-		self.cueEvts("onUninitialise", win=self)
-		exit(0)
-				
 	def getKeys(self):
 		KEYS = []
 		VALUES = []
@@ -835,12 +811,3 @@ class wdTk(wdTkCore):
 		if (file is not None):
 			self.core.dia.exportPng(ancs = self.cueEvts("onExportPNG", False)).save(file.name)
 		
-	def updateWindowTitle(self):
-		title = self.app_name
-		title += " v" + ".".join(self.version)
-		if (self._open_file is not None):
-			title += " [" + self._open_file 
-			if (self.core.struct.is_changed()):
-				title += "*"
-			title += "]"
-		self.window.title(title)
