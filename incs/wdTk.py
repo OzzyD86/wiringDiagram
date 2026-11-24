@@ -13,42 +13,6 @@ import os
 import sys
 
 class wdTk(wdTkCore):
-	def file_new(self):
-		if (self._open_file is not None):
-			if (self.core.struct.is_changed()):
-				a = Tk.messagebox.askyesnocancel(title="Unsaved Changes", message="There are unsaved changes. Save before clearing?")
-				#print(a)
-				if (a is None):
-					return None
-				elif (a is True):
-					self.file_save()
-		files = [#('All Files', '*.*'), 
-			 ('Databases', '*.db')]
-	
-		a = Tk.filedialog.asksaveasfilename(filetypes = files, defaultextension = files)
-		if (len(a) == 0):
-			print("Cancelled?")
-		else:
-			if (os.path.exists(a)):
-				os.rename(a, a + ".bak")
-				
-			self._open_file = a
-			self.core.open_file(a)
-			self.cueEvts("onFileLoad")
-			for i in self.loaded:
-				i[0].entryconfig(i[1], state="normal")
-			for i,j in self.conf.policy.items():
-				self.core.dia.conf.portData(i,j)
-				
-			o = {}
-			o[None] = ["left", "right", "top", "bottom"]
-			for i,j in self.core.dia.conf.policy["connector_context"].get().items():
-				o[i] = j["pos"]
-				
-			self.core.dia.connector_context = o
-			self.redraw()
-			self.updateWindowTitle()
-			self.core.struct.clear_changed()
 
 	def click_call(self, event):
 		pass
@@ -345,7 +309,6 @@ class wdTk(wdTkCore):
 		o = {}
 		for i,j in self.op_config._list("objMk").items():
 			o[i] = i
-		#raise Exception(o)
 		self.conf.addOption("Renderers", "objMk", {
 			"name":"ObjMk",
 			"type": "Combo",
@@ -401,7 +364,9 @@ class wdTk(wdTkCore):
 		self.sc = Tk.IntVar()
 		self.sc.set(1)
 		mf = self.menu["file"]
-		mf.add_command(label="New", command= self.file_new)
+		mf.add_command(label="New", command= self.file_new, accelerator="Ctrl+N")
+		self.bind("<Control-n>", lambda a: self.file_new())
+		
 		mf.add_separator()
 		mf.add_command(label="Load", command=self.file_load)
 		mf.add_command(label="Save", command= self.file_save, state="disabled", accelerator="Ctrl+S")
@@ -413,7 +378,7 @@ class wdTk(wdTkCore):
 		mf.add_command(label="Properties...", state=Tk.DISABLED, command=self.core.dia.conf.open)
 		self.loaded.append([mf, 6+offs])
 		mf.add_separator()
-		mf.add_command(label="Quit", command=self.quit)
+		mf.add_command(label="Quit", command=self.quit, accelerator="Alt+F4")
 			
 		add = self.menu["add"]
 		add.add_command(label="Device", command=self.devAddWin)
@@ -549,12 +514,6 @@ class wdTk(wdTkCore):
 			self.canvas.config(scrollregion=(self.canvas.bbox("all")))
 
 			self.updateWindowTitle()
-
-	def file_save(self):
-		self.core.struct.store.commit() # That needs moving
-		self.core.struct.clear_changed()
-		self.updateWindowTitle()
-		pass
 		
 	def getKeys(self):
 		KEYS = []
