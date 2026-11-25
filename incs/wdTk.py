@@ -329,7 +329,7 @@ class wdTk(wdTkCore):
 		
 	def __init__(self, master = None, **kwargs):
 		offs = 0
-		self.version = ("1","0","1","2")
+		self.version = ("1","0","1","3")
 		self.app_name = "WiringDiagram"
 		self._open_file = None
 		
