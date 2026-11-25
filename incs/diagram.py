@@ -2,12 +2,12 @@ from incs.colours import colourDirection, Colours
 
 from PIL import Image, ImageDraw, ImageFont
 import tkinter as Tk
-from incs.config import dataWrapper, config2
+from incs.config import dataWrapper
 from widgets.inputDialog import inputDialog
 import json
 from copy import copy
 from incs.conf import LOCAL
-def addOk(s, *args, **kwargs):
+def addDoopOk(s, *args, **kwargs):
 	
 	#x = kwargs["i"].nametowidget(".").conf # Aha! That's how to do it!
 	y = []
@@ -81,7 +81,7 @@ def doop(*args, **kwargs):
 		}
 	})
 	x.addButton("OK", "ok")
-	x.passFunc("ok", lambda i=args[0], s=x, **kwargs: addOk(**kwargs, i =i,s=s))
+	x.passFunc("ok", lambda i=args[0], s=x, **kwargs: addDoopOk(**kwargs, i =i,s=s))
 	
 def pood(*args, **kwargs):
 	x = inputDialog(args[0], data={
@@ -109,17 +109,20 @@ def pood(*args, **kwargs):
 	x.addButton("OK", "ok")
 	x.passFunc("ok", lambda i=args[0], s=x, **kwargs: addPoodOk(**kwargs, i =i,s=s))
 
+import incs.conf.i18n #import *
+
 i18n = {
-	"font_small" : ('Arial', 6),
-	"font_large" : ('Arial', 8)
+	"font_small": incs.conf.i18n.FONT_SMALL,
+	"font_large": incs.conf.i18n.FONT_LARGE,
 }
 
-class local_conf(config2, LOCAL):
+class local_conf(LOCAL):
 	
 	def __init__(self, master=None):
 		self.master = master
-		super().__init__()
 		LOCAL.__init__(self)
+		#self.outerPolicies = LOCAL().outerPolicies
+		
 		print(" DEFINATELY STARTED HERE ", self)
 		self.policy = {
 			"connector_context" : dataWrapper({	"a" : {"a" :"b"}}),
@@ -147,6 +150,8 @@ class local_conf(config2, LOCAL):
 class diagram():
 	def __init__(self, wdMaster):
 		self.master = wdMaster
+		#print(type(self.master))
+		#print(self.master.getConfVar("colours"))
 		if not (hasattr(self, "conf")):
 			self.conf = local_conf(wdMaster)
 		else:
@@ -167,6 +172,9 @@ class diagram():
 		self.cwps = {}
 		self.wp_labelling = Tk.BooleanVar()
 		self.wp_labelling.set(True)
+		
+		self.waypointing = Tk.BooleanVar()
+		self.waypointing.set(False)
 		
 		self.conn_labelling = Tk.BooleanVar()
 		self.conn_labelling.set(False)
@@ -322,6 +330,8 @@ class diagram():
 		#return [bbox[0]-100, bbox[1] -100, bbox[2]+100,bbox[3]+100]
 		
 	def objMk(self, dr, p, dms = (0,0,1,1), _type = 1, honour_db = False, offset = (0,0), connector_names = False, highlight_connected = False):
+		cc = (self.master.getConfVar("connector_context"))
+		cl = (self.master.getConfVar("colours"))
 		try:
 			f = ImageFont.load_default_imagefont()
 		except:
@@ -399,8 +409,20 @@ class diagram():
 					os = ((-dms[2] /2) + ((ct+1) / (ln+1) * dms[2]), os[1])
 				lf = dms[0] + os[0]
 				tp = dms[1] + os[1]
+				
+				if (p.connectors[fc]["direction"] in cc):
+					cco = cc[p.connectors[fc]["direction"]]
+				else:
+					cco = cc['None']
 
-				c = colourDirection(p.connectors[fc]["direction"], a==2)
+				if (cco['colour'] in cl):
+					#print(cl[cco['colour']])
+					if (a == 2):
+						c = cl[cco['colour']]['hex']
+					else:
+						c = tuple(cl[cco['colour']]['rgb'])
+				else:
+					c = colourDirection(p.connectors[fc]["direction"], a==2)
 				
 				if (highlight_connected):
 					if (fc in p.connectors and p.connectors[fc]["connected"] is not None):
@@ -539,7 +561,7 @@ class diagram():
 							dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],n[0]-self.bounds[0],n[1]-self.bounds[1]), fill="black")
 							dr.line((n[0]-self.bounds[0], n[1]-self.bounds[1],fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill="black")
 				else:
-					dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill=(0,0,0), anchor="mm")
+					dr.line((st[0]-self.bounds[0], st[1]-self.bounds[1],fn[0]-self.bounds[0], fn[1]-self.bounds[1]), fill=(0,0,0))
 		
 		if (self.waypointing.get()):
 			for m,n in olines.items():

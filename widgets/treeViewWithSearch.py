@@ -165,23 +165,30 @@ class treeViewWithSearch(tkinter.Frame):
 		
 		self.compileKeys = compile_keys
 			
-		if ("adds" in kw):
-			self.adds = kw["adds"]
-			del kw["adds"]
+		for i in ["adds", "text"]:
+			if (i in kw):
+				setattr(self, i, kw[i])
+				del kw[i]
+			else:
+				setattr(self, i, None)
+				
 		super().__init__(master, **kw)
 		p = tkinter.Frame(self)
 		tkinter.Button(p, text="Add", command=self.doAdd).grid(row=0, column=0)
 		
+		tkinter.Label(self, text= self.text).grid(sticky='swen', columnspan=2)
+		
 		self.tt = tkinter.StringVar()
 
-		self.search_label = tkinter.Label(self, text="search")
+		self.search_label = tkinter.Label(self, text="Search")
 		self.search_label.grid(padx=5, pady=5)
+		
 		self.search_box = tkinter.Entry(self, textvariable=self.tt)
 		self.tt.trace_add('write', self.search)
 		self.columnconfigure(1, weight=1)
 		self.rowconfigure(1, weight=1)
 	
-		self.search_box.grid(column=1, columnspan=2, row=0,sticky="ew")
+		self.search_box.grid(column=1, columnspan=2, row=1,sticky="ew")
 		if (headings is not None):
 			columns = list(headings.keys())[1:]
 		else:
@@ -195,13 +202,13 @@ class treeViewWithSearch(tkinter.Frame):
 		self.tv.bind("<<TreeviewOpen>>", self.update_open_items)
 		self.tv.bind("<<TreeviewClose>>", self.update_closed_items)
 
-		self.tv.grid(columnspan=2, row=1, sticky="news")
+		self.tv.grid(columnspan=2, row=2, sticky="news")
 		self.sb = tkinter.Scrollbar(self)
-		self.sb.grid(column=2,row=1,sticky="ns")
+		self.sb.grid(column=2,row=2,sticky="ns")
 		self.sb.config(command=self.tv.yview)
 		self.tv.config(yscrollcommand=self.sb.set)
 		
-		p.grid(row=2, columnspan=3)
+		p.grid(row=3, columnspan=3)
 		#tkinter.Button(p, text="Edit", state="disabled").grid(row=0, column=1)
 		tkinter.Button(p, text="Remove", command=self.delSel).grid(row=0, column=2)
 	

@@ -64,6 +64,49 @@ class wdTkUnification(incs.wdTk.wdTk):
 					pass
 		#		notebook.add(k["call"](notebook), text=k["name"])
 
+	# Final move from wd.py
+	
+	def contextDevMove(self, obj, x,y):
+		p = self.core.dia.locs[obj]
+		_,_,w,h = p
+
+		self.devEditComplete(**{
+			"mName": obj,
+			"left": x,
+			"top": y,
+			"width": w,
+			"height": h
+		})
+		
+	def setmName2(self, w, val, *args):
+		p = w.data['mName']["obj"].get_key_of_value(args[0])
+		left, top, width, height = self.core.dia.locs[p]
+		w.set("top", top)
+		w.set("left", left)
+		w.set("width", width)
+		w.set("height", height)
+		for i in self.cueEvts("onMachineNameSet", w=w, val=val, args=args):
+			for j,k in i.items():
+				w.set(j,k)
+				
+	def getConfVar(self, key, otherwise = None):
+		var = otherwise
+		
+		# Check global config
+		b = self.conf
+		if (hasattr(b, "policy")):
+			if (key in b.policy):
+				if (b.policy[key].get() is not None):
+					var = b.policy[key].get()
+		
+		c = self.core.dia.conf
+		if (hasattr(c, "policy")):
+			if (key in c.policy):
+				if (c.policy[key].get() is not None):
+					var = c.policy[key].get()
+		# Check local config
+		
+		return var
 	# == Window-y shenanigans
 	
 	def updateWindowTitle(self):

@@ -72,7 +72,7 @@ class test():
 				ct += 1
 				lct = []
 				for j in old_poss[i]:
-					if ("force_pos" in p.connectors[j] and p.connectors[j]["force_pos"] <= ct):
+					if ("force_pos" in p.connectors[j] and int(p.connectors[j]["force_pos"]) <= ct):
 						lct.append(j)
 						poss[i].append(j)
 				
@@ -280,6 +280,23 @@ class test():
 			main.redraw()	
 			return True
 			
+	def devDupComplete(**kwargs):
+		print(kwargs)
+		r = main.core.dia.dev[kwargs["dName"]].connectors
+		s = main.core.dia.dev[kwargs["mName"]].connectors
+		for i,j in r.items():
+			if (i in s):
+				for k in ("force_side", "force_pos"):
+					if (k in r[i]):
+						s[i][k] = r[i][k]
+
+				main.core.struct.cur.execute("insert into `ic_force_data` (`device`,`conn`,`side`,`loc`) VALUES (?,?,?,?)", (kwargs['mName'],i, s[i]["force_side"], s[i]["force_pos"]))
+
+		main.redraw()
+
+		return True
+		
+			
 MANIFEST = {
 	"order": 0,
 	"events": {
@@ -290,6 +307,7 @@ MANIFEST = {
 		"onPlugAddComplete": [test.plugAddComplete],
 		"onPlugNameSet": [test.pns],
 		"onPlugEditComplete" : [test.pec],
+		"onDeviceDupComplete": [test.devDupComplete],
 		#"onMachineNameSet" : [eth.mns]
 	}
 	

@@ -247,15 +247,16 @@ def redrawPNG(img, offset=(0,0)):
 					gps[i[1]][3] = e[1] + (e[3]/2)+1
 				
 		elif (i[3] == "waypoint"):
-			e = main.core.dia.wp[int(i[2])]["loc"]
-			if (gps[i[1]][0] is None or e[0] < gps[i[1]][0]):
-				gps[i[1]][0] = e[0]-1
-			if (gps[i[1]][1] is None or e[1] < gps[i[1]][1]):
-				gps[i[1]][1] = e[1] -1
-			if (gps[i[1]][2] is None or e[0] > gps[i[1]][2]):
-				gps[i[1]][2] = e[0]+1
-			if (gps[i[1]][3] is None or e[1] > gps[i[1]][3]):
-				gps[i[1]][3] = e[1] +1
+			if (int(i[2]) in main.core.dia.wp):
+				e = main.core.dia.wp[int(i[2])]["loc"]
+				if (gps[i[1]][0] is None or e[0] < gps[i[1]][0]):
+					gps[i[1]][0] = e[0]-1
+				if (gps[i[1]][1] is None or e[1] < gps[i[1]][1]):
+					gps[i[1]][1] = e[1] -1
+				if (gps[i[1]][2] is None or e[0] > gps[i[1]][2]):
+					gps[i[1]][2] = e[0]+1
+				if (gps[i[1]][3] is None or e[1] > gps[i[1]][3]):
+					gps[i[1]][3] = e[1] +1
 			pass
 	f = ImageFont.load_default_imagefont()
 	for i,j in gps.items():
@@ -274,6 +275,9 @@ def redrawCanvas(self, **kwargs):
 	self.canvas.delete("_group")
 	gps = {}
 	gpNames = {}
+	if (main.core.struct is None):
+		return
+		
 	for i in main.core.struct.cur.execute("select * from `group`").fetchall():
 		gpNames[i[0]] = i[1]
 	for i in main.core.struct.cur.execute("select a.* from group_residents a join `group` b on a.group_id = b.id").fetchall():

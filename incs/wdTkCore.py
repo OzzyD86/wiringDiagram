@@ -173,6 +173,8 @@ class wdTkCore(Tk.Tk):
 			pass
 		self.aw.addButton("Duplicate", "add")
 		self.aw.passFunc("add", self.dupDevAddComplete)
+		for i in self.cueEvts("onDeviceDupComplete", False):
+			self.aw.passFunc("add", i)
 
 	def dupDevAddComplete(self, **kwargs):
 		#raise Exception(kwargs)

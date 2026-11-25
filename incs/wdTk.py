@@ -4,6 +4,7 @@ from incs.wdCore import wdCore
 from widgets.connector_points import connector_points
 from widgets.EntryWidget import EntryWidget, ComboEntryWidget, SpinEntryWidget
 import tkinter.messagebox
+import tkinter.filedialog
 import math as maths
 from widgets.inputDialog import inputDialog
 from incs.wdTkCore import wdTkCore
@@ -11,6 +12,7 @@ from copy import copy, deepcopy
 from widgets.megaMenu import megaMenu
 import os
 import sys
+from widgets.InteractiveCanvas import InteractiveCanvas
 
 class wdTk(wdTkCore):
 
@@ -64,19 +66,46 @@ class wdTk(wdTkCore):
 					for i in self.move["new_event"].values():
 						self.canvas.addtag_withtag("_alter", i[2])
 					self.canvas.delete(self.move["old_event"])
+				elif ("t" in self.move and "_wp" in self.move["t"]):
+					self.move["new_event"] = {
+						"text": (self.move['old_event'], c[0], c[1]),
+						"former": {},
+						"latter": {},
+					}
+					for i in self.canvas.find_all():
+						if (self.canvas.type(i) == "line"):
+							c2 = self.canvas.coords(i)
+							#print(c2, c)
+							if ([c2[0], c2[1]] == c):
+								self.move["new_event"]["former"][i] = (c2[2], c2[3])
+								print(i, self.canvas.coords(i), c)
+							elif ([c2[2], c2[3]] == c): 
+								self.move["new_event"]["latter"][i] = (c2[0], c2[1])
+								print(i, self.canvas.coords(i), c)
 				else:
+					print(self.move)
 					self.move["new_event"] = {}
 			else:
 				if ("t" in self.move and "_wire" in self.move["t"]):
 					for i in self.move["new_event"].values():
 						self.canvas.coords(i[2],i[0],i[1],self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
 					pass
-		
+				if ("t" in self.move and "_wp" in self.move["t"]):
+					for i, j in self.move ["new_event"].items():
+						if (i == "text"):
+							self.canvas.coords(j[0], self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
+						elif (i == "former"):
+							for k,l in j.items():
+								self.canvas.coords(k, self.canvas.canvasx(event.x), self.canvas.canvasy(event.y), l[0], l[1])
+						elif (i == "latter"):
+							for k,l in j.items():
+								self.canvas.coords(k, l[0], l[1], self.canvas.canvasx(event.x), self.canvas.canvasy(event.y))
+							
 	def b1_up(self, event):
 		if (self._open_file is None):
 			return None
 			
-		if (self.move is not None):
+		if (hasattr(self, "move") and self.move is not None):
 			if ("t" in self.move and "_wire" in self.move["t"]):
 				self.canvas.delete("_alter")
 				c = self.move["c"]
@@ -86,10 +115,28 @@ class wdTk(wdTkCore):
 				for i in self.move["t"]:
 					self.canvas.addtag_withtag(i,o)
 				self.move = None
+			elif ("t" in self.move and "_wp" in self.move["t"]):
+				print("Yup")
+				ord = self.move['new_event']['text']
+				for i,j in self.move["new_event"].items():
+					if (i == "text"):
+						self.canvas.coords(j[0], j[1], j[2])
+					elif (i == "former"):
+						for k,l in j.items():
+							self.canvas.coords(k, ord[1], ord[2], l[0], l[1])
+					elif (i == "latter"):
+						for k,l in j.items():
+							self.canvas.coords(k, l[0], l[1], ord[1], ord[2])
 
+					#print(i)
+					#self.canvas.coords(i[0], i[1], i[2])
+					
 		d = megaMenu()
 		d.collapse(self.conf.contextCollapse.get() in ["1", True])
 		
+		if not (hasattr(self, "b1_pressed")):
+			return
+			
 		down = self.b1_pressed
 		up = copy(event)
 		
@@ -98,6 +145,8 @@ class wdTk(wdTkCore):
 		
 		up.x = int(self.canvas.canvasx(up.x) / 1)
 		up.y = int(self.canvas.canvasy(up.y) / 1)
+		if (down is None):
+			return
 		down.x = int(self.canvas.canvasx(down.x) / 1)
 		down.y = int(self.canvas.canvasy(down.y) / 1)
 		
@@ -120,7 +169,7 @@ class wdTk(wdTkCore):
 		wwis = None
 		for i in self.canvas.gettags(self.canvas.find_closest(down.x,down.y)):
 			tags.append(i)
-			if (self.conf.dev.get() == "1"):
+			if (self.conf.dev.get() in ["1", True]):
 				d.add_command("technical", label=i)
 			if (i.split(":")[0] == "mn"):
 				name = i.split(":")[1]
@@ -136,6 +185,7 @@ class wdTk(wdTkCore):
 		#d.add_separator()
 		
 		if ("_conn" in tags):
+			d.add_command(label="Edit plug", command= lambda : self.connEditWin(mhName=conn[0], outcName = conn[1])) # Will this work?
 			if ("_conn" in self.canvas.gettags(self.canvas.find_closest(up.x, up.y))):
 				if (not click):
 					for i in self.canvas.gettags(self.canvas.find_closest(up.x, up.y)):
@@ -242,6 +292,9 @@ class wdTk(wdTkCore):
 			rr = "Device"
 			_pass["dev"] = self.core.dia.dev[name]
 			_pass["loc"] = self.core.dia.locs[name]
+		elif ("_conn" in tags):
+			rr = "Connector"
+			_pass['plug'] = conn
 		elif ("_wp" in tags):
 			rr = "Waypoint"
 			_pass["wp"] = dpt
@@ -276,7 +329,7 @@ class wdTk(wdTkCore):
 		
 	def __init__(self, master = None, **kwargs):
 		offs = 0
-		self.version = ("1","0","1","1")
+		self.version = ("1","0","1","2")
 		self.app_name = "WiringDiagram"
 		self._open_file = None
 		
@@ -323,24 +376,25 @@ class wdTk(wdTkCore):
 		nw = Tk.Frame(self.nb)
 		self.nb.add(nw, text="General")
 		self.nb.grid(row=0,column=0,sticky="swen")
-		self.canvas = Tk.Canvas(nw, width=800, height=600, confine = False)
+		ic = InteractiveCanvas(nw, width=800, height=600, confine = False)
+		self.canvas = ic.canvas
 		'''i=self.canvas.create_text((0,0), text= "UNSTABLE", anchor="nw", fill="white", font="Arial 8 bold")
 		r=self.canvas.create_rectangle(self.canvas.bbox(i),fill="red")
 		self.canvas.tag_lower(r,i)'''
-		self.canvas.grid(sticky="news")
-		self.canvas.grid_propagate (False)
-		self.vscroll = Tk.Scrollbar(nw)
-		self.vscroll.grid(column=1, row=0,sticky="news")
-		self.hscroll = Tk.Scrollbar(nw,orient=Tk.HORIZONTAL)
-		self.hscroll.grid(column=0, row=1,sticky="news")
-		self.canvas.config(scrollregion = (0,-0,800,600))
-		#self.canvas.config(scrollregion = (-10000,-10000,10000,10000))
-		self.canvas.configure(yscrollcommand=self.vscroll.set, xscrollcommand=self.hscroll.set)
-		self.vscroll.config( command = self.canvas.yview )
-		self.hscroll.config( command = self.canvas.xview )
+		ic.grid(sticky='news')
+		#self.canvas.grid(sticky="news")
+
+		#self.canvas.grid_propagate (False)
+		#self.vscroll = Tk.Scrollbar(nw)
+		#self.vscroll.grid(column=1, row=0,sticky="news")
+		#self.hscroll = Tk.Scrollbar(nw,orient=Tk.HORIZONTAL)
+		#self.hscroll.grid(column=0, row=1,sticky="news")
+		#self.canvas.configure(yscrollcommand=self.vscroll.set, xscrollcommand=self.hscroll.set)
+		#self.vscroll.config( command = self.canvas.yview )
+		#self.hscroll.config( command = self.canvas.xview )
 		self.window.rowconfigure(0, weight=1)
 		self.window.columnconfigure(0, weight=1)
-		for i in [self.nb, nw]:
+		for i in [self.nb, nw, ic]:
 			i.rowconfigure(0, weight=1)
 			i.columnconfigure(0, weight=1)
 		self.canvas.bind("<Button-3>", self.click_call)
@@ -357,6 +411,7 @@ class wdTk(wdTkCore):
 			"edit": Tk.Menu(),
 			"delete": Tk.Menu(),
 			"export": Tk.Menu(),
+			"prefs": Tk.Menu(),
 			"plugins": Tk.Menu()
 		}
 		
@@ -377,6 +432,8 @@ class wdTk(wdTkCore):
 		mf.add_separator()
 		mf.add_command(label="Properties...", state=Tk.DISABLED, command=self.core.dia.conf.open)
 		self.loaded.append([mf, 6+offs])
+		mf.add_cascade(label="Export", state=Tk.DISABLED, menu=self.menu['export'])
+		self.loaded.append([mf, 7+offs])
 		mf.add_separator()
 		mf.add_command(label="Quit", command=self.quit, accelerator="Alt+F4")
 			
@@ -420,11 +477,11 @@ class wdTk(wdTkCore):
 		self.sc.trace('w', self.set_export_vars)
 		
 		#self.wp_labelling = False
-		self.menu["export"].add_checkbutton(label="Honour waypoints", onvalue=True, offvalue=False, variable=self.waypointing)
-		self.menu["export"].add_checkbutton(label="Show waypoint labels", onvalue=True, offvalue=False, variable=self.wp_labels)
-		self.menu["export"].add_checkbutton(label="Show connector labels", onvalue=True, offvalue=False, variable=self.conn_labelling)
-		self.menu["export"].add_cascade(label="Scale...", menu= self.scale)
-		self.menu["export"].add_separator()
+		self.menu["prefs"].add_checkbutton(label="Honour waypoints", onvalue=True, offvalue=False, variable=self.waypointing)
+		self.menu["prefs"].add_checkbutton(label="Show waypoint labels", onvalue=True, offvalue=False, variable=self.wp_labels)
+		self.menu["prefs"].add_checkbutton(label="Show connector labels", onvalue=True, offvalue=False, variable=self.conn_labelling)
+		self.menu["prefs"].add_cascade(label="Scale...", menu= self.scale)
+		#self.menu["export"].add_separator()
 		self.menu["export"].add_command(label="PNG", command=self.export_png)
 		m = 0
 		for i in self.cueEvts("onMenuSpawn"):
@@ -443,8 +500,8 @@ class wdTk(wdTkCore):
 		if (m>0):
 			pp+=1
 			y.add_cascade(label="Plugins", menu=self.menu["plugins"])
-		self.loaded.append([y, 4+offs+pp])
-		y.add_cascade(label="Export", menu=self.menu["export"], state="disabled")
+		#self.loaded.append([y, 4+offs+pp])
+		y.add_cascade(label="Preferences", menu=self.menu["prefs"])
 		#y.add_command("Configure", command= self.config.open)
 		self.window.config(menu=self.menu["root"])
 	
