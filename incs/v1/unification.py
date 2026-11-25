@@ -1,6 +1,7 @@
 import incs.wdTk
 from incs.v1.loader import loader
 import os, importlib
+import tkinter as Tk
 
 class wdTkUnification(incs.wdTk.wdTk):
 	
@@ -106,3 +107,80 @@ class wdTkUnification(incs.wdTk.wdTk):
 		# Check local config
 		
 		return var
+	# == Window-y shenanigans
+	
+	def updateWindowTitle(self):
+		title = self.app_name
+		title += " v" + ".".join(self.version)
+		if (self._open_file is not None):
+			title += " [" + self._open_file 
+			if (self.core.struct.is_changed()):
+				title += "*"
+			title += "]"
+		self.window.title(title)
+
+	def resize_canvas(self, event):
+		new_width = event.width
+		new_height = event.height
+
+		# Update the canvas size
+		self.canvas.config(width=new_width, height=new_height)
+	
+	def quit(self):
+		if (self._open_file is not None):
+			if (self.core.struct.is_changed()):
+				a = Tk.messagebox.askyesnocancel(title="Unsaved Changes", message="There are unsaved changes. Save before closing?")
+				if (a is None):
+					return None
+				elif (a is True):
+					self.file_save()
+			else:
+				if not (Tk.messagebox.askquestion(title="Exit WiringDiagram", message="Are you sure") == "yes"):
+					return None
+		self.cueEvts("onUninitialise", win=self)
+		exit(0)
+		
+	## === File Shenanigans
+
+	def file_new(self):
+		if (self._open_file is not None):
+			if (self.core.struct.is_changed()):
+				a = Tk.messagebox.askyesnocancel(title="Unsaved Changes", message="There are unsaved changes. Save before clearing?")
+				#print(a)
+				if (a is None):
+					return None
+				elif (a is True):
+					self.file_save()
+		files = [#('All Files', '*.*'), 
+			 ('Databases', '*.db')]
+	
+		a = Tk.filedialog.asksaveasfilename(title="Save new file", filetypes = files, defaultextension = files)
+		if (len(a) == 0):
+			pass#print("Cancelled?")
+		else:
+			if (os.path.exists(a)):
+				os.rename(a, a + ".bak")
+				
+			self._open_file = a
+			self.core.open_file(a)
+			self.cueEvts("onFileLoad")
+			for i in self.loaded:
+				i[0].entryconfig(i[1], state="normal")
+			for i,j in self.conf.policy.items():
+				self.core.dia.conf.portData(i,j)
+				
+			o = {}
+			o[None] = ["left", "right", "top", "bottom"]
+			for i,j in self.core.dia.conf.policy["connector_context"].get().items():
+				o[i] = j["pos"]
+				
+			self.core.dia.connector_context = o
+			self.redraw()
+			self.updateWindowTitle()
+			self.core.struct.clear_changed()
+	
+	def file_save(self):
+		if (self._open_file is not None):
+			self.core.struct.store.commit() # That needs moving
+			self.core.struct.clear_changed()
+			self.updateWindowTitle()

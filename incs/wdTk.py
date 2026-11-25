@@ -15,55 +15,11 @@ import sys
 from widgets.InteractiveCanvas import InteractiveCanvas
 
 class wdTk(wdTkCore):
-	def resize_canvas(self, event):
-   
-		new_width = event.width
-		new_height = event.height
-
-		# Update the canvas size
-		self.canvas.config(width=new_width, height=new_height)
-
-	def file_new(self):
-		if (self._open_file is not None):
-			if (self.core.struct.is_changed()):
-				a = Tk.messagebox.askyesnocancel(title="Unsaved Changes", message="There are unsaved changes. Save before clearing?")
-				#print(a)
-				if (a is None):
-					return None
-				elif (a is True):
-					self.file_save()
-		files = [#('All Files', '*.*'), 
-			 ('Databases', '*.db')]
-	
-		a = Tk.filedialog.asksaveasfilename(filetypes = files, defaultextension = files)
-		if (len(a) == 0):
-			print("Cancelled?")
-		else:
-			if (os.path.exists(a)):
-				os.rename(a, a + ".bak")
-				
-			self._open_file = a
-			self.core.open_file(a)
-			self.cueEvts("onFileLoad")
-			for i in self.loaded:
-				i[0].entryconfig(i[1], state="normal")
-			for i,j in self.conf.policy.items():
-				self.core.dia.conf.portData(i,j)
-				
-			o = {}
-			o[None] = ["left", "right", "top", "bottom"]
-			for i,j in self.core.dia.conf.policy["connector_context"].get().items():
-				o[i] = j["pos"]
-				
-			self.core.dia.connector_context = o
-			self.redraw()
-			self.updateWindowTitle()
-			self.core.struct.clear_changed()
 
 	def click_call(self, event):
 		pass
 	
-	def gpw(self, wp1, wp2):
+	def gpw(self, wp1, wp2):	# What does this do?
 		cd = {}
 		for i,j in self.core.dia.cwps.items():
 			for k in j:
@@ -76,7 +32,6 @@ class wdTk(wdTkCore):
 					o[i] = (min(k["order"], cd[i]["order"]))
 					pass
 		return o
-		pass
 		
 	def b1_down(self, event):
 		if (self._open_file is None):
@@ -200,16 +155,13 @@ class wdTk(wdTkCore):
 		else:
 			click=False
 		
-		print(self.conf.dev.get())
+		#print(self.conf.dev.get())
 		if (self.conf.dev.get() in ["1", True]):
 			d.add_command("debug", label="Start: " + str((down.x, down.y)), state="disabled")
 			d.add_command("debug", label="Finish: " + str((up.x, up.y)), state="disabled")
 			d.add_separator("debug")
 			d.add_command("debug", label="Canvas Start: " + str((self.canvas.canvasx(down.x), self.canvas.canvasy(down.y))), state="disabled")
 			d.add_command("debug", label="Canvas Finish: " + str((self.canvas.canvasx(up.x), self.canvas.canvasy(up.y))), state="disabled")
-			#d.add_separator("debug")
-		
-#	d.add_command(label=str(self.canvas.find_closest(x,y)))
 	
 		tags = []
 		name = None
@@ -372,12 +324,12 @@ class wdTk(wdTkCore):
 
 		self.b1_pressed = None
 
-	def motion(self, event):
+	def motion(self, event):	# What does THIS do?
 		self.canvas.itemconfig(self.canvas.find_withtag("current"), fill="yellow")
 		
 	def __init__(self, master = None, **kwargs):
 		offs = 0
-		self.version = ("1","0","1","7")
+		self.version = ("1","0","1","2")
 		self.app_name = "WiringDiagram"
 		self._open_file = None
 		
@@ -410,7 +362,6 @@ class wdTk(wdTkCore):
 		o = {}
 		for i,j in self.op_config._list("objMk").items():
 			o[i] = i
-		#raise Exception(o)
 		self.conf.addOption("Renderers", "objMk", {
 			"name":"ObjMk",
 			"type": "Combo",
@@ -468,10 +419,14 @@ class wdTk(wdTkCore):
 		self.sc = Tk.IntVar()
 		self.sc.set(1)
 		mf = self.menu["file"]
-		mf.add_command(label="New", command= self.file_new)
+		mf.add_command(label="New", command= self.file_new, accelerator="Ctrl+N")
+		self.bind("<Control-n>", lambda a: self.file_new())
+		
 		mf.add_separator()
 		mf.add_command(label="Load", command=self.file_load)
-		mf.add_command(label="Save", command= self.file_save, state="disabled")
+		mf.add_command(label="Save", command= self.file_save, state="disabled", accelerator="Ctrl+S")
+		self.bind("<Control-s>", lambda a: self.file_save())
+		
 		self.loaded.append([mf, 3+offs])
 		mf.add_command(label="Save As...", state=Tk.DISABLED)
 		mf.add_separator()
@@ -480,7 +435,7 @@ class wdTk(wdTkCore):
 		mf.add_cascade(label="Export", state=Tk.DISABLED, menu=self.menu['export'])
 		self.loaded.append([mf, 7+offs])
 		mf.add_separator()
-		mf.add_command(label="Quit", command=self.quit)
+		mf.add_command(label="Quit", command=self.quit, accelerator="Alt+F4")
 			
 		add = self.menu["add"]
 		add.add_command(label="Device", command=self.devAddWin)
@@ -616,28 +571,8 @@ class wdTk(wdTkCore):
 			self.canvas.config(scrollregion=(self.canvas.bbox("all")))
 
 			self.updateWindowTitle()
-
-	def file_save(self):
-		self.core.struct.store.commit() # That needs moving
-		self.core.struct.clear_changed()
-		self.updateWindowTitle()
-		pass
 		
-	def quit(self):
-		if (self._open_file is not None):
-			if (self.core.struct.is_changed()):
-				a = Tk.messagebox.askyesnocancel(title="Unsaved Changes", message="There are unsaved changes. Save before closing?")
-				if (a is None):
-					return None
-				elif (a is True):
-					self.file_save()
-			else:
-				if not (Tk.messagebox.askquestion(title=None, message="Are you sure") == "yes"):
-					return None
-		self.cueEvts("onUninitialise", win=self)
-		exit(0)
-				
-	def getKeys(self):
+	def getKeys(self):			# What keys does this get?
 		KEYS = []
 		VALUES = []
 		#self.core.dia = d # WTF 
@@ -654,11 +589,6 @@ class wdTk(wdTkCore):
 	def alert(self, *args, **kwargs): # For inputDialog testing purposes only. Please don't use for else (oh unless you want to print kwargs and print a warning) and remove after
 		Tk.messagebox.showwarning("Button pressed", "Yes. This is triggered")
 		print(args, kwargs)
-
-	'''def example(self, win, val, *args, **kwargs):
-		print(win, val, args, kwargs)
-		
-		Tk.messagebox.showerror(val, args)'''
 		
 	## === Do Wire Management
 	
@@ -687,6 +617,12 @@ class wdTk(wdTkCore):
 			id = int(o[2]["values"][0])
 		else:
 			no_draw = True
+		
+		if (id in self.core.dia.cwps):
+			del self.core.dia.cwps[id]
+		#print(id)
+		#for i,j in self.core.dia.cwps.items():
+		#	print(i, j)
 		#Tk.messagebox.showerror("Yes", o)
 
 		#self.core.deleteWire(obj, o[1])
@@ -722,7 +658,7 @@ class wdTk(wdTkCore):
 			
 	# == Drawing management ==
 
-	def setM(self, *what, **kwargs):
+	def setM(self, *what, **kwargs):		# Really?!
 		
 		KEYS, VALUES = self.getKeys()
 		obj = KEYS[VALUES.index(kwargs['i'])]
@@ -797,15 +733,13 @@ class wdTk(wdTkCore):
 					if (len(cs) > 1):
 						#print(cs)
 						r = self.canvas.create_line(st,n[0:2], fill="black")
-						self.canvas.addtag_withtag("_wire", r)
-						self.canvas.addtag_withtag("BEGIN", r)
-						self.canvas.addtag_withtag("wid:" + str(k), r)
-						self.canvas.addtag_withtag(st,r)
+						for h in ["_wire", "BEGIN", "wid:" + str(k), st]:
+							self.canvas.addtag_withtag(h, r)
+
 						r = self.canvas.create_line(n[-2:] ,fn, fill="black")
-						self.canvas.addtag_withtag("_wire", r)
-						self.canvas.addtag_withtag("END", r)
-						self.canvas.addtag_withtag("wid:" + str(k), r)
-						self.canvas.addtag_withtag(st,r)
+						for h in ["_wire", "END", "wid:" + str(k), st]:
+							self.canvas.addtag_withtag(h,r)
+							
 						for m in range(len(cs)-1):
 							q = (cs[m], cs[m+1])
 							#print(q)
@@ -819,9 +753,9 @@ class wdTk(wdTkCore):
 						
 						if (len(n) == 0):
 							r = self.canvas.create_line(st,n,fn, fill="black")
-							self.canvas.addtag_withtag("_wire", r)
-							self.canvas.addtag_withtag("wid:" + str(k), r)
-							self.canvas.addtag_withtag("straight_line", r)
+							for h in ["_wire", "wid:" + str(k), "straight_line"]:
+								self.canvas.addtag_withtag(h, r)
+								
 						else:
 							o = 0
 							nn = []
@@ -844,35 +778,27 @@ class wdTk(wdTkCore):
 									self.canvas.addtag_withtag("BEGIN", r)
 								o+= 1
 								st = i
-								self.canvas.addtag_withtag("_wire", r)
-								self.canvas.addtag_withtag("bendy_line", r)
-								self.canvas.addtag_withtag(cs, r)
-								self.canvas.addtag_withtag("wid:" + str(k), r)
-								#self.canvas.addtag_withtag(st, r)
-							self.canvas.addtag_withtag("END", r)
+								for h in ["_wire", "bendy_line", cs, "wid:" + str(k)]:
+									self.canvas.addtag_withtag(h, r)
+
+							self.canvas.addtag_withtag("END", r)	# Is this unindented for a reason?
 				else:
 					r = self.canvas.create_line(st,fn, fill="black")
 					self.canvas.addtag_withtag("_wire", r)
-					#self.canvas.addtag_withtag(m, r)
-					#self.canvas.addtag_withtag(st, r)
 			
 		if (self.waypointing.get()):
 			for m,n in olines.items():
 				pass
 				r = self.canvas.create_line(d.wp[m[0]]["loc"], d.wp[m[1]]["loc"], width=n, fill="black")
-				
-				self.canvas.addtag_withtag("_wire", r)
-				self.canvas.addtag_withtag("wp_bridge", r)
-				self.canvas.addtag_withtag("br:"+str(m[0])+":"+str(m[1]), r)
-				self.canvas.addtag_withtag(st, r)
+				for i in ["_wire", "wp_bridge", "br:"+str(m[0])+":"+str(m[1]), st]:
+					self.canvas.addtag_withtag(i, r)
 		
 		self.canvas.delete("_wp")
 		if (self.wp_labels.get()):
 			for i,j in d.wp.items():
 				r = self.canvas.create_text(j["loc"][0],j["loc"][1],text=j["name"],font=('Arial',4))
-				self.canvas.addtag_withtag("_wp", r)
-				self.canvas.addtag_withtag("wn:" + str(i), r)
-				self.canvas.addtag_withtag(j, r)
+				for q in ["_wp", "wn:" + str(i), j]:
+					self.canvas.addtag_withtag(q, r)
 
 		self.cueEvts("onCanvasRedraw", canvas=self.canvas)
 		self.canvas.scale("all", 0,0, self.sc.get(), self.sc.get())
@@ -886,12 +812,3 @@ class wdTk(wdTkCore):
 		if (file is not None):
 			self.core.dia.exportPng(ancs = self.cueEvts("onExportPNG", False)).save(file.name)
 		
-	def updateWindowTitle(self):
-		title = self.app_name
-		title += " v" + ".".join(self.version)
-		if (self._open_file is not None):
-			title += " [" + self._open_file 
-			if (self.core.struct.is_changed()):
-				title += "*"
-			title += "]"
-		self.window.title(title)
