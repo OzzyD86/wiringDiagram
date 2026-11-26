@@ -3,6 +3,9 @@ from PIL import ImageDraw, ImageFont
 from incs.conf.dataWrapper import dataWrapper
 from tkinter.messagebox import askquestion
 import tkinter.ttk as ttk
+from tkinter import DISABLED
+
+from plugins.grouping.menus import *
 
 class grouping():
 	def checkInit(self, erm, **kwargs):
@@ -40,12 +43,6 @@ def model_data_loader():
 	}
 	
 ### == This does all the device stuff
-			
-def odc(menu, **kwargs):
-	#menu.add_separator()
-	menu.add_command("Groups", label="Add to group", command = lambda dev=kwargs["dev"].machName: groupAddWin(device=dev))
-	menu.add_command("Groups", label="Remove from group", command = lambda dev=kwargs["dev"].machName: groupRemComplete(device=dev))
-	return menu
 
 def groupRemComplete(**kwargs):
 	#raise Exception(kwargs)
@@ -76,10 +73,6 @@ def moveGroupId(gid, alter):
 		main.core.updateDevice(i[0],
 			(p[0] - (alter[0]/main.sc.get()), p[1] - (alter[1]/main.sc.get()), p[2], p[3])
 		)
-		#main.core.dia.locateDevice(i[0],
-		#	(p[0] - alter[0], p[1] - alter[1]),
-		#	(p[2], p[3]))
-		#raise Exception(
 	
 	errwp = []
 	for i in main.core.struct.cur.execute("select `name` from `group_residents` where `type` = 'waypoint' and group_id = ?", (gid,)).fetchall():
@@ -97,6 +90,9 @@ def moveGroupId(gid, alter):
 		a = askquestion("Delete waypoint", "Waypoint " + str(i[0]) + " referenced in move but does not exist. Remove from group?")
 		if (a == "yes"):
 			wpGroupRemComplete(wp = int(i[0]))
+	
+	for i in main.core.struct.cur.execute("select `name` from `group_residents` where `type` = 'group' and group_id = ?", (gid,)).fetchall():
+		moveGroupId(int(i[0]), alter)# pass
 		
 	main.core.struct.set_changed()
 	main.updateWindowTitle()
@@ -107,42 +103,28 @@ def checkMissingWin(id):
 	# Get the BBox
 	gps = {}
 	errwp = []
+	
+	b = makeBBox(id)
+	
 	for i in main.core.struct.cur.execute("select * from group_residents where `group_id` = ?", (id,)).fetchall():
 		#print(str(i))
 		if (i[1] not in gps):
 			gps[i[1]] = [None, None, None, None]
 		if (i[3] == "device"):
-			e = main.core.dia.locs[i[2]]
-			if (gps[i[1]][0] is None or e[0] - (e[2]/2) < gps[i[1]][0]):
-				gps[i[1]][0] = e[0]-1 -(e[2]/2)
-			if (gps[i[1]][1] is None or e[1] - (e[3]/2)  < gps[i[1]][1]):
-				gps[i[1]][1] = e[1] - (e[3]/2)-1
-			if (gps[i[1]][2] is None or e[0] + (e[2]/2) > gps[i[1]][2]):
-				gps[i[1]][2] = e[0]+1 +(e[2]/2)
-			if (gps[i[1]][3] is None or e[1] + (e[3]/2)> gps[i[1]][3]):
-				gps[i[1]][3] = e[1] + (e[3]/2)+1
+			pass
 				
 		elif (i[3] == "waypoint"):
 			if (int(i[2]) in main.core.dia.wp):
-				e = main.core.dia.wp[int(i[2])]["loc"]
-				if (gps[i[1]][0] is None or e[0] < gps[i[1]][0]):
-					gps[i[1]][0] = e[0]-1
-				if (gps[i[1]][1] is None or e[1] < gps[i[1]][1]):
-					gps[i[1]][1] = e[1] -1
-				if (gps[i[1]][2] is None or e[0] > gps[i[1]][2]):
-					gps[i[1]][2] = e[0]+1
-				if (gps[i[1]][3] is None or e[1] > gps[i[1]][3]):
-					gps[i[1]][3] = e[1] +1
+				pass
 			else:
 				errwp.append(int(i[2]))
 	for i in errwp:
-		a = askquestion("Delete waypoint", "Waypoint " + str(i) + " referenced in move but does not exist. Remove from group?")
+		a = askquestion("Delete waypoint", "Waypoint " + str(i) + " referenced in check but does not exist. Remove from group?")
 		if (a == "yes"):
 			wpGroupRemComplete(wp = int(i))
-
-	pass
-	print(id, gps[int(id)])
-	m = gps[int(id)]
+			
+	#print(id, gps[int(id)])
+	m = b
 	matched = { "dev": [], "wp" : []}
 	for i,j in main.core.dia.locs.items():
 		if (j[0] >= m[0] and j[0] <= m[2]):
@@ -154,9 +136,9 @@ def checkMissingWin(id):
 			if (j['loc'][1] >= m[1] and j['loc'][1] <= m[3]):
 				#print("Matched " + str(i))
 				matched["wp"].append(i)
-		#print(i,j)
+
 	for i in main.core.struct.cur.execute("select * from group_residents").fetchall():
-		print(i[3], i[2], matched)
+		#print(i[3], i[2], matched)
 		
 		if (i[3] == "device"):
 			if (i[2] in matched["dev"]):
@@ -213,18 +195,6 @@ def checkGroupDrag(self, **kwargs):
 	
 	return self
 
-def checkGroupClick(self, **kwargs):
-	if ("_group" in kwargs["canTags"]):
-		id = None
-		for i in kwargs["canTags"]:
-			if (i.split(":")[0] == "gid"):
-				id = i.split(":")[1]
-		#down = kwargs["down"]
-		#up = kwargs["up"]
-		self.add_command("Groups", label="Check missing group entries " + str(id), command = lambda id=id: checkMissingWin(id))
-	
-	return self
-
 def redrawPNG(img, offset=(0,0)):
 	l = ImageDraw.Draw(img)
 	gps = {}
@@ -270,16 +240,71 @@ def redrawPNG(img, offset=(0,0)):
 		#kwargs["canvas"].addtag_withtag("gid:"+str(i), op)
 		#kwargs["canvas"].lower(op)
 	return img
+
+def makeBBox(scope, old_scans = []):
+	ret = [None, None, None, None]
+	
+	if (scope in old_scans):
+		return False
+		
+	for i in main.core.struct.cur.execute("select a.* from group_residents a join `group` b on a.group_id = b.id where b.id = ?", (scope,)).fetchall():
+		if (i[3] == "device"):
+			if (i[2] in main.core.dia.dev):
+				e = main.core.dia.locs[i[2]]
+				if (ret[0] is None or e[0] - (e[2]/2) < ret[0]):
+					ret[0] = e[0]-1 -(e[2]/2)
+				if (ret[1] is None or e[1] - (e[3]/2)  < ret[1]):
+					ret[1] = e[1] - (e[3]/2)-1
+				if (ret[2] is None or e[0] + (e[2]/2) > ret[2]):
+					ret[2] = e[0]+1 +(e[2]/2)
+				if (ret[3] is None or e[1] + (e[3]/2)> ret[3]):
+					ret[3] = e[1] + (e[3]/2)+1
+				
+		elif (i[3] == "waypoint"):
+			if (int(i[2]) in main.core.dia.wp):
+				e = main.core.dia.wp[int(i[2])]["loc"]
+				if (ret[0] is None or e[0] < ret[0]):
+					ret[0] = e[0]-1
+				if (ret[1] is None or e[1] < ret[1]):
+					ret[1] = e[1] -1
+				if (ret[2] is None or e[0] > ret[2]):
+					ret[2] = e[0]+1
+				if (ret[3] is None or e[1] > ret[3]):
+					ret[3] = e[1] +1
+			pass
+		elif (i[3] == "group"):
+			e = makeBBox((i[2]), old_scans + [scope])
+			if (e is False):
+				return False
+			if (ret[0] is None or e[0] <= ret[0]):
+					ret[0] = e[0]-2
+			if (ret[1] is None or e[1] <= ret[1]):
+					ret[1] = e[1] -2
+			if (ret[2] is None or e[0] >= ret[2]):
+					ret[2] = e[0]+2
+			if (ret[3] is None or e[1] >= ret[3]):
+					ret[3] = e[1] +2
+			
+	return ret
 	
 def redrawCanvas(self, **kwargs):
 	self.canvas.delete("_group")
+	c = {
+		0: "yellow",
+		1: "green",
+		2: "blue",
+		3: "red"
+	}
 	gps = {}
+	grp_level = {}
+	grp_chk = []
 	gpNames = {}
 	if (main.core.struct is None):
 		return
 		
 	for i in main.core.struct.cur.execute("select * from `group`").fetchall():
 		gpNames[i[0]] = i[1]
+		grp_level[int(i[0])] = 0
 	for i in main.core.struct.cur.execute("select a.* from group_residents a join `group` b on a.group_id = b.id").fetchall():
 		if (i[1] not in gps):
 			gps[i[1]] = [None, None, None, None]
@@ -308,16 +333,33 @@ def redrawCanvas(self, **kwargs):
 				if (gps[i[1]][3] is None or e[1] > gps[i[1]][3]):
 					gps[i[1]][3] = e[1] +1
 			pass
+		elif (i[3] == "group"):
+			grp_chk.append([i[1], i[2]])
 		#for j in (0,1,2,3):
+	for i in grp_chk:
+		#askquestion(i,i)
+		p = gps[int(i[0])]
+		q = gps[int(i[1])]
+		if (p[0] is None or q[0] < p[0]):
+			p[0] = q[0]-2
+		if (p[1] is None or q[1] < p[1]):
+			p[1] = q[1] -2
+		if (p[2] is None or q[2] > p[2]):
+			p[2] = q[2]+2
+		if (p[3] is None or q[3] > p[3]):
+			p[3] = q[3] +2
 			
+		if (grp_level[int(i[1])] >= grp_level[int(i[0])]):
+			grp_level[int(i[0])] = grp_level[int(i[1])] + 1
+		
 	for i,j in gps.items():
 		if (j[0] is not None):
-			op = kwargs["canvas"].create_rectangle(j[0], j[1], j[2], j[3], width=5, outline="yellow")
+			op = kwargs["canvas"].create_rectangle(j[0], j[1], j[2], j[3], width=5, outline=c[grp_level[i]])
 			kwargs["canvas"].addtag_withtag("_group", op)
 			kwargs["canvas"].addtag_withtag("gid:"+str(i), op)
 			kwargs["canvas"].lower(op)
 			
-			r = kwargs["canvas"].create_text(j[0],j[1],text=gpNames[i],font=('Arial',12),anchor="nw", fill="yellow")
+			r = kwargs["canvas"].create_text(j[0],j[1],text=gpNames[i],font=('Arial',12),anchor="nw", fill=c[grp_level[i]])
 			kwargs["canvas"].addtag_withtag("_group", r)
 			kwargs["canvas"].addtag_withtag("gid:" + str(i), r)
 			kwargs["canvas"].lower(r)
@@ -437,6 +479,12 @@ def multiAddComplete(wp, **kwargs):
 		pass
 	return True
 	
+def odc(menu, **kwargs):
+	#menu.add_separator()
+	menu.add_command("Groups", label="Add to group", command = lambda dev=kwargs["dev"].machName: groupAddWin(device=dev))
+	menu.add_command("Groups", label="Remove from group", command = lambda dev=kwargs["dev"].machName: groupRemComplete(device=dev))
+	return menu
+	
 def osmm(menu, **kwargs):
 	a = "Group " + str(len(kwargs["sel"]["machs"])) + " devices and "+ str(len(kwargs["sel"]["wps"])) + " waypoints"
 	menu.add_command("Groups", label=a, command=lambda sel=kwargs["sel"]: multiAddWin(sel = sel))
@@ -447,6 +495,48 @@ def owc(menu, **kwargs):
 	menu.add_command("Groups", label="Add to group", command = lambda wp=kwargs["wp"]: wpGroupAddWin(wp=wp))
 	menu.add_command("Groups", label="Remove from group", command = lambda wp=kwargs["wp"]: wpGroupRemComplete(wp=wp))
 	return menu
+
+def checkGroupClick(self, **kwargs):
+	if ("_group" in kwargs["canTags"]):
+		id = None
+		for i in kwargs["canTags"]:
+			if (i.split(":")[0] == "gid"):
+				id = i.split(":")[1]
+		
+		self.add_command("Groups", label="Check missing group entries " + str(id), command = lambda id=id: checkMissingWin(id))
+		self.add_command("Groups", label="Add this group to another", command = lambda id=id: gGroupAddWin(group=id))
+		self.add_command("Groups", label="Remove this group from its superior", state=DISABLED, command = lambda id=id: checkMissingWin(id))
+	
+	return self
+
+def gGroupAddWin(**kwargs):
+	#raise Exception(kwargs)
+	d = inputDialog(main, data = model_data_loader())
+	d.addButton("Add", "add")
+	d.passFunc("add", gGroupAddComplete, chg= kwargs["group"])
+
+def gGroupAddComplete(chg, **kwargs):
+	if (kwargs["group"] != ""):
+		p = main.core.struct.cur.execute("select count(*) from `group` where `name` = ?", (kwargs["group"],))
+		if (p.fetchone()[0] == 0):
+			e = main.core.struct.cur.execute("insert into `group` (`name`) values (?)", (kwargs["group"],))
+	
+		s = main.core.struct.cur.execute("select id from `group` where `name` = ?", (kwargs["group"],)).fetchone()
+		m = s[0]
+	
+		re = makeBBox(int(chg), [int(s[0])])
+		if (re is False):
+			askquestion("Loop detected", "Cannot be done")
+			return False
+	
+	e = main.core.struct.cur.execute("delete from `group_residents` where `name` = ? and `type` = 'group'", (chg,))
+	if (kwargs["group"] != ""):
+		e = main.core.struct.cur.execute("insert into `group_residents` (`group_id`, `name`, `type`) select `id`, ?, 'group' from `group` where `name` = ?", (int(chg),kwargs["group"]))
+
+	main.core.struct.set_changed()
+	main.updateWindowTitle()
+	main.redraw()
+	return True
 	
 MANIFEST = {
 	"order": 0,
