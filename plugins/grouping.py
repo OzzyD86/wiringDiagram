@@ -5,8 +5,6 @@ from tkinter.messagebox import askquestion
 import tkinter.ttk as ttk
 from tkinter import DISABLED
 
-from plugins.grouping.menus import *
-
 class grouping():
 	def checkInit(self, erm, **kwargs):
 		
@@ -196,11 +194,20 @@ def checkGroupDrag(self, **kwargs):
 	return self
 
 def redrawPNG(img, offset=(0,0)):
+	c = {
+		0: (192,192,0),
+		1: (0,192,0),
+		2: (0,0,192),
+		3: (192,0,0)
+	}
 	l = ImageDraw.Draw(img)
 	gps = {}
+	grp_chk=[]
 	gpNames = {}
+	grp_level = {}
 	for i in main.core.struct.cur.execute("select * from `group`").fetchall():
 		gpNames[i[0]] = i[1]
+		grp_level[int(i[0])] = 0
 	for i in main.core.struct.cur.execute("select * from group_residents").fetchall():
 		if (i[1] not in gps):
 			gps[i[1]] = [None, None, None, None]
@@ -227,14 +234,33 @@ def redrawPNG(img, offset=(0,0)):
 					gps[i[1]][2] = e[0]+1
 				if (gps[i[1]][3] is None or e[1] > gps[i[1]][3]):
 					gps[i[1]][3] = e[1] +1
-			pass
+		elif (i[3] == "group"):
+			grp_chk.append([i[1], i[2]])
+		#for j in (0,1,2,3):
+	for i in grp_chk:
+		#askquestion(i,i)
+		p = gps[int(i[0])]
+		q = gps[int(i[1])]
+		if (q[0] is not None):
+			if (p[0] is None or q[0] < p[0]):
+				p[0] = q[0]-2
+			if (p[1] is None or q[1] < p[1]):
+				p[1] = q[1] -2
+			if (p[2] is None or q[2] > p[2]):
+				p[2] = q[2]+2
+			if (p[3] is None or q[3] > p[3]):
+				p[3] = q[3] +2
+			
+			if (grp_level[int(i[1])] >= grp_level[int(i[0])]):
+				grp_level[int(i[0])] = grp_level[int(i[1])] + 1
+		
 	f = ImageFont.load_default_imagefont()
 	for i,j in gps.items():
 		x = (j[0]+j[2]-(offset[0]*2)) / 2
 		y = (j[1]+j[3]-(offset[1]*2)) / 2
 		l.text(
-			(x,y), text=gpNames[i], fill=(192,192,0), font = f)
-		l.rectangle((j[0]-offset[0],j[1]-offset[1],j[2]-offset[0],j[3]-offset[1]), outline=(192,192,0))
+			(x,y), text=gpNames[i], fill=c[grp_level[i]], font = f)
+		l.rectangle((j[0]-offset[0],j[1]-offset[1],j[2]-offset[0],j[3]-offset[1]), outline=c[grp_level[i]])
 		#op = kwargs["canvas"].create_rectangle(j[0], j[1], j[2], j[3], width=5, outline="yellow")
 		#kwargs["canvas"].addtag_withtag("_group", op)
 		#kwargs["canvas"].addtag_withtag("gid:"+str(i), op)
@@ -340,17 +366,18 @@ def redrawCanvas(self, **kwargs):
 		#askquestion(i,i)
 		p = gps[int(i[0])]
 		q = gps[int(i[1])]
-		if (p[0] is None or q[0] < p[0]):
-			p[0] = q[0]-2
-		if (p[1] is None or q[1] < p[1]):
-			p[1] = q[1] -2
-		if (p[2] is None or q[2] > p[2]):
-			p[2] = q[2]+2
-		if (p[3] is None or q[3] > p[3]):
-			p[3] = q[3] +2
+		if (q[0] is not None):
+			if (p[0] is None or q[0] < p[0]):
+				p[0] = q[0]-2
+			if (p[1] is None or q[1] < p[1]):
+				p[1] = q[1] -2
+			if (p[2] is None or q[2] > p[2]):
+				p[2] = q[2]+2
+			if (p[3] is None or q[3] > p[3]):
+				p[3] = q[3] +2
 			
-		if (grp_level[int(i[1])] >= grp_level[int(i[0])]):
-			grp_level[int(i[0])] = grp_level[int(i[1])] + 1
+			if (grp_level[int(i[1])] >= grp_level[int(i[0])]):
+				grp_level[int(i[0])] = grp_level[int(i[1])] + 1
 		
 	for i,j in gps.items():
 		if (j[0] is not None):
