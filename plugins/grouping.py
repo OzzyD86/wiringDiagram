@@ -4,6 +4,10 @@ from incs.conf.dataWrapper import dataWrapper
 from tkinter.messagebox import askquestion
 import tkinter.ttk as ttk
 from tkinter import DISABLED
+import json
+import math
+import tkinter as Tk
+from widgets.InteractiveCanvas import InteractiveCanvas
 
 class grouping():
 	def checkInit(self, erm, **kwargs):
@@ -532,6 +536,8 @@ def checkGroupClick(self, **kwargs):
 		
 		self.add_command("Groups", label="Check missing group entries " + str(id), command = lambda id=id: checkMissingWin(id))
 		self.add_command("Groups", label="Add this group to another", command = lambda id=id: gGroupAddWin(group=id))
+		self.add_command("Groups", label="Explode group " + str(id), command = lambda id=id: explodeGroup(id))
+		self.add_command("Groups", label="Close exploded tab " + str(id), command = lambda id=id: closeExplodedTab(id))
 		self.add_command("Groups", label="Remove this group from its superior", state=DISABLED, command = lambda id=id: checkMissingWin(id))
 	
 	return self
@@ -565,10 +571,362 @@ def gGroupAddComplete(chg, **kwargs):
 	main.redraw()
 	return True
 	
+### == Explode: show one group in its own tab (phase 1, read-only) ==
+
+# Registry of open exploded tabs: group_id -> {"frame", "ic", "canvas", "tab_id", "name"}
+_exploded = {}
+# Key in the file's `config` table holding the ids of the open exploded tabs
+_EXPLODED_CONFIG_KEY = "exploded_groups"
+
+def _get_notebook():
+	"""Find the main notebook, the way ct.py and checkInit do."""
+	for i in main.winfo_children():
+		if (type(i) == ttk.Notebook):
+			return i
+	return getattr(main, "nb", None)
+
+def _group_name(gid):
+	p = main.core.struct.cur.execute("select `name` from `group` where `id` = ?", (gid,)).fetchone()
+	if (p is None):
+		return None
+	return p[0]
+
+def _group_members(gid, _seen=None):
+	"""Devices and waypoints in a group, expanding nested groups. Returns (set, set)."""
+	if (_seen is None):
+		_seen = set()
+	if (gid in _seen):
+		return set(), set()
+	_seen.add(gid)
+	devs = set()
+	wps = set()
+	for i in main.core.struct.cur.execute("select `name`, `type` from `group_residents` where `group_id` = ?", (gid,)).fetchall():
+		if (i[1] == "device"):
+			devs.add(i[0])
+		elif (i[1] == "waypoint"):
+			try:
+				wps.add(int(i[0]))
+			except (TypeError, ValueError):
+				pass
+		elif (i[1] == "group"):
+			try:
+				sd, sw = _group_members(int(i[0]), _seen)
+			except (TypeError, ValueError):
+				sd, sw = set(), set()
+			devs |= sd
+			wps |= sw
+	return devs, wps
+
+def _bbox_exit(p0, p1, bbox):
+	"""Point where the segment p0->p1 leaves bbox (p0 must be inside it), or None if p1 is inside."""
+	x0, y0 = p0
+	x1, y1 = p1
+	dx = x1 - x0
+	dy = y1 - y0
+	t_exit = None
+	if (dx > 0):
+		t = (bbox[2] - x0) / dx
+		if (0 < t <= 1):
+			y = y0 + t * dy
+			if (bbox[1] <= y <= bbox[3]):
+				t_exit = t
+	elif (dx < 0):
+		t = (bbox[0] - x0) / dx
+		if (0 < t <= 1):
+			y = y0 + t * dy
+			if (bbox[1] <= y <= bbox[3]):
+				t_exit = t
+	if (dy > 0):
+		t = (bbox[3] - y0) / dy
+		if (0 < t <= 1):
+			x = x0 + t * dx
+			if (bbox[0] <= x <= bbox[2]):
+				if (t_exit is None or t < t_exit):
+					t_exit = t
+	elif (dy < 0):
+		t = (bbox[1] - y0) / dy
+		if (0 < t <= 1):
+			x = x0 + t * dx
+			if (bbox[0] <= x <= bbox[2]):
+				if (t_exit is None or t < t_exit):
+					t_exit = t
+	if (t_exit is None):
+		return None
+	return (x0 + t_exit * dx, y0 + t_exit * dy)
+
+def _marker_pos(edge, inside, dist=12):
+	"""A point just inside the display from `edge`, pulled back towards `inside`."""
+	dx = edge[0] - inside[0]
+	dy = edge[1] - inside[1]
+	l = math.sqrt(dx * dx + dy * dy)
+	if (l == 0):
+		return edge
+	s = max(0.0, l - dist) / l
+	return (inside[0] + dx * s, inside[1] + dy * s)
+
+def _device_display_name(d, key):
+	p = d.getDevice(key)
+	if (p is not None and hasattr(p, "name")):
+		return p.name
+	return str(key)
+
+def _outside_conn_pos(d, dev, conn):
+	"""A device outside the group: its connector position from the main canvas's draw."""
+	try:
+		p = d.getDevice(dev).drwConnPos[conn]
+	except Exception:
+		return None
+	return p
+
+def _save_exploded():
+	"""Store the ids of the open exploded tabs in the file's `config` table."""
+	if (main.core.struct is None):
+		return
+	try:
+		main.core.struct.cur.execute("insert or replace into `config` (`key`, `value`) values (?, ?)", (_EXPLODED_CONFIG_KEY, json.dumps(sorted(_exploded.keys()))))
+	except Exception as e:
+		print("explode: could not save open tabs:", e)
+		return
+	main.core.struct.set_changed()
+	main.updateWindowTitle()
+
+def _spawn_exploded_tab(gid):
+	"""Create the tab for a group and draw it. No saving, no focus change."""
+	try:
+		gid = int(gid)
+	except (TypeError, ValueError):
+		return False
+	if (gid in _exploded):
+		return True
+	name = _group_name(gid)
+	if (name is None):
+		return False
+	nb = _get_notebook()
+	if (nb is None):
+		return False
+	fr = Tk.Frame(nb)
+	ic = InteractiveCanvas(fr, width=800, height=600, confine=False)
+	ic.grid(sticky="news")
+	fr.rowconfigure(0, weight=1)
+	fr.columnconfigure(0, weight=1)
+	ic.rowconfigure(0, weight=1)
+	ic.columnconfigure(0, weight=1)
+	nb.add(fr, text=name)
+	_exploded[gid] = {"frame": fr, "ic": ic, "canvas": ic.canvas, "tab_id": nb.tabs()[-1], "name": name}
+	_redraw_exploded_tab(gid)
+	return True
+
+def explodeGroup(gid):
+	"""Open a read-only tab for a group, or focus it if it is already open."""
+	try:
+		gid = int(gid)
+	except (TypeError, ValueError):
+		return False
+	if (gid in _exploded):
+		nb = _get_notebook()
+		if (nb is not None):
+			nb.select(_exploded[gid]["tab_id"])
+		return True
+	if (not _spawn_exploded_tab(gid)):
+		return False
+	_save_exploded()
+	nb = _get_notebook()
+	if (nb is not None):
+		nb.select(_exploded[gid]["tab_id"])
+	return True
+
+def closeExplodedTab(gid):
+	"""Close the exploded tab for a group, if one is open."""
+	try:
+		gid = int(gid)
+	except (TypeError, ValueError):
+		return False
+	if (gid not in _exploded):
+		return False
+	e = _exploded.pop(gid)
+	try:
+		e["frame"].destroy()
+	except Exception:
+		pass
+	_save_exploded()
+	return True
+
+def _close_all_exploded():
+	"""Destroy every exploded tab and empty the registry. Does not save (file change)."""
+	for gid in list(_exploded.keys()):
+		e = _exploded.pop(gid)
+		try:
+			e["frame"].destroy()
+		except Exception:
+			pass
+
+def _draw_wire_path(cv, pts, bbox):
+	"""Draw one wire path. pts is [(point, outside_label)]: a point with a label
+	is an endpoint outside the group, so the wire is stubbed at the group's edge
+	with a "to <label>" marker there. Unlabelled points are drawn in full."""
+	for a in range(len(pts) - 1):
+		p0, l0 = pts[a]
+		p1, l1 = pts[a + 1]
+		if (l0 is None and l1 is None):
+			cv.create_line(p0, p1, fill="black", tags=("_wire",))
+		elif (l0 is None and l1 is not None):
+			# Leaving the group: stub at the edge, marker just inside it
+			ex = _bbox_exit(p0, p1, bbox)
+			if (ex is not None):
+				cv.create_line(p0, ex, fill="black", tags=("_wire", "_stub"))
+				m = _marker_pos(ex, p0)
+				cv.create_text(m[0], m[1], text="to " + str(l1), font=("Arial", 8), anchor="center", tags=("_stub",))
+			else:
+				cv.create_line(p0, p1, fill="black", tags=("_wire", "_stub"))
+				cv.create_text(p1[0], p1[1], text="to " + str(l1), font=("Arial", 8), anchor="center", tags=("_stub",))
+			return
+		elif (l0 is not None and l1 is None):
+			# Entering the group: stub from the edge, marker just inside it
+			en = _bbox_exit(p1, p0, bbox)
+			if (en is not None):
+				cv.create_line(en, p1, fill="black", tags=("_wire", "_stub"))
+				m = _marker_pos(en, p1)
+				cv.create_text(m[0], m[1], text="to " + str(l0), font=("Arial", 8), anchor="center", tags=("_stub",))
+			else:
+				cv.create_line(p0, p1, fill="black", tags=("_wire", "_stub"))
+				cv.create_text(p0[0], p0[1], text="to " + str(l0), font=("Arial", 8), anchor="center", tags=("_stub",))
+		# else: both ends outside the group, nothing visible on this leg
+
+def _draw_exploded_wires(cv, d, gid, devs, wps, connpos, bbox):
+	"""Wires touching the group: whole where both ends are members, stubbed
+	with a "to <name>" marker where a wire leaves the group."""
+	for k, i in d.conns.items():
+		a_dev, a_conn = i[0]
+		b_dev, b_conn = i[1]
+		a_in = (a_dev in devs and a_dev in connpos)
+		b_in = (b_dev in devs and b_dev in connpos)
+		if (not a_in and not b_in):
+			continue
+		if (a_in):
+			start = connpos[a_dev].get(a_conn)
+		else:
+			start = _outside_conn_pos(d, a_dev, a_conn)
+		if (b_in):
+			end = connpos[b_dev].get(b_conn)
+		else:
+			end = _outside_conn_pos(d, b_dev, b_conn)
+		if (start is None or end is None):
+			continue
+		pts = []
+		if (a_in):
+			pts.append((tuple(start), None))
+		else:
+			pts.append((tuple(start), _device_display_name(d, a_dev)))
+		for w in sorted(d.cwps.get(k, []), key=lambda x: x["order"]):
+			wpid = w["wpid"]
+			if (wpid in d.wp):
+				if (wpid in wps):
+					pts.append((tuple(d.wp[wpid]["loc"]), None))
+				else:
+					pts.append((tuple(d.wp[wpid]["loc"]), d.wp[wpid]["name"]))
+		if (b_in):
+			pts.append((tuple(end), None))
+		else:
+			pts.append((tuple(end), _device_display_name(d, b_dev)))
+		_draw_wire_path(cv, pts, bbox)
+
+def _redraw_exploded_tab(gid):
+	"""Re-draw one exploded tab from the current diagram. Read-only: no bindings."""
+	if (gid not in _exploded):
+		return
+	if (main.core.struct is None):
+		return
+	e = _exploded[gid]
+	cv = e["canvas"]
+	d = main.core.dia
+	bbox = makeBBox(gid)
+	cv.delete("all")
+	if (bbox is False or bbox[0] is None):
+		# Empty group (or a loop): show just the name
+		cv.create_text(10, 10, text=e["name"], font=("Arial", 12), anchor="nw")
+		cv.config(scrollregion=(0, 0, 800, 600))
+		return
+	# Group box first, so devices and wires draw over it
+	op = cv.create_rectangle(bbox[0], bbox[1], bbox[2], bbox[3], width=5, outline="yellow")
+	cv.addtag_withtag("_group", op)
+	cv.addtag_withtag("gid:" + str(gid), op)
+	r = cv.create_text(bbox[0], bbox[1], text=e["name"], font=("Arial", 12), anchor="nw", fill="yellow")
+	cv.addtag_withtag("_group", r)
+	cv.addtag_withtag("gid:" + str(gid), r)
+	# Members, skipping orphans (a deleted device leaves its group_residents row behind)
+	devs, wps = _group_members(gid)
+	devs = set([i for i in devs if i in d.dev and i in d.locs])
+	wps = set([i for i in wps if i in d.wp])
+	# Devices, via the same renderer the main canvas uses
+	try:
+		objMk = main.op_config.fetch(main.conf.policy["objMk"].get(), "objMk", "builtin")["func"]
+	except Exception:
+		objMk = d.objMk
+	try:
+		conn_names = main.conn_labelling.get()
+	except Exception:
+		conn_names = False
+	connpos = {}
+	for i in devs:
+		try:
+			aa = objMk(cv, d.getDevice(i), d.locs[i], connector_names=conn_names)
+		except Exception:
+			continue
+		if (isinstance(aa, (list, tuple))):
+			aa = aa[0]
+		connpos[i] = aa
+	# Waypoint labels, like the main canvas
+	try:
+		show_wp = main.wp_labels.get()
+	except Exception:
+		show_wp = False
+	if (show_wp):
+		for i in wps:
+			r = cv.create_text(d.wp[i]["loc"][0], d.wp[i]["loc"][1], text=d.wp[i]["name"], font=("Arial", 4))
+			for q in ["_wp", "wn:" + str(i), d.wp[i]]:
+				cv.addtag_withtag(q, r)
+	# Wires
+	_draw_exploded_wires(cv, d, gid, devs, wps, connpos, bbox)
+	# Same zoom / scrollregion handling as the main redraw
+	try:
+		sc = main.sc.get()
+	except Exception:
+		sc = 1
+	cv.scale("all", 0, 0, sc, sc)
+	cv.config(scrollregion=((bbox[0] * sc) - 10, (bbox[1] * sc) - 10, (bbox[2] * sc) + 10, (bbox[3] * sc) + 10))
+
+def redrawExplodedTabs(self, **kwargs):
+	"""onCanvasRedraw handler: re-draw every exploded tab when the main canvas redraws."""
+	for gid in list(_exploded.keys()):
+		_redraw_exploded_tab(gid)
+
+def explodeOnFileLoad(self, **kwargs):
+	"""onFileLoad handler: drop the old file's exploded tabs, re-open the stored ones."""
+	_close_all_exploded()
+	if (main.core.struct is None):
+		return
+	try:
+		p = main.core.struct.cur.execute("select `value` from `config` where `key` = ?", (_EXPLODED_CONFIG_KEY,)).fetchone()
+	except Exception:
+		return
+	if (p is None):
+		return
+	try:
+		gids = json.loads(p[0])
+	except Exception:
+		return
+	for gid in gids:
+		try:
+			gid = int(gid)
+		except (TypeError, ValueError):
+			continue
+		if (_group_name(gid) is not None):
+			_spawn_exploded_tab(gid)
+
 MANIFEST = {
 	"order": 0,
 	"events": {
-		"onFileLoad": [ g.checkInit ],
+		"onFileLoad": [ g.checkInit, explodeOnFileLoad ],
 		#"onMenuSpawn" : [menu],
 		#"onDevEditWinPreDef": [devEditVarsPopulate],
 		"onMachineNameSet": [devEditVarsPopulate],
@@ -580,7 +938,7 @@ MANIFEST = {
 		"onWaypointClick": [owc],
 		"onUnknownClick": [checkGroupClick],
 		"onUnknownDrag": [checkGroupDrag],
-		"onCanvasRedraw": [redrawCanvas],
+		"onCanvasRedraw": [redrawCanvas, redrawExplodedTabs],
 		
 		"onWaypointAddDialog" : [devAddWin],
 		"onWaypointAddComplete" : [waypointAddComplete],
