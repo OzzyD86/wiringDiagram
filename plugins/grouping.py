@@ -665,41 +665,29 @@ def _draw_subgroup_boxes(cv, gid, level=1, _seen=None):
 		_draw_subgroup_boxes(cv, subgid, level + 1, _seen)
 
 def _bbox_exit(p0, p1, bbox):
-	"""Point where the segment p0->p1 leaves bbox (p0 must be inside it), or None if p1 is inside."""
+	"""Point where the wire leaves bbox, snapped to the dominant axis,
+	plus which edge it leaves through. p0 must be inside it.
+	Returns (point, edge) with edge 'left'/'right'/'top'/'bottom',
+	or None if p1 is inside. Ties go horizontal."""
 	x0, y0 = p0
 	x1, y1 = p1
+	if (bbox[0] <= x1 <= bbox[2] and bbox[1] <= y1 <= bbox[3]):
+		return None
 	dx = x1 - x0
 	dy = y1 - y0
-	t_exit = None
-	if (dx > 0):
-		t = (bbox[2] - x0) / dx
-		if (0 < t <= 1):
-			y = y0 + t * dy
-			if (bbox[1] <= y <= bbox[3]):
-				t_exit = t
-	elif (dx < 0):
-		t = (bbox[0] - x0) / dx
-		if (0 < t <= 1):
-			y = y0 + t * dy
-			if (bbox[1] <= y <= bbox[3]):
-				t_exit = t
-	if (dy > 0):
-		t = (bbox[3] - y0) / dy
-		if (0 < t <= 1):
-			x = x0 + t * dx
-			if (bbox[0] <= x <= bbox[2]):
-				if (t_exit is None or t < t_exit):
-					t_exit = t
-	elif (dy < 0):
-		t = (bbox[1] - y0) / dy
-		if (0 < t <= 1):
-			x = x0 + t * dx
-			if (bbox[0] <= x <= bbox[2]):
-				if (t_exit is None or t < t_exit):
-					t_exit = t
-	if (t_exit is None):
-		return None
-	return (x0 + t_exit * dx, y0 + t_exit * dy)
+	if (abs(dx) >= abs(dy)):
+		# Horizontal exit, at the inside point's height
+		if (dx > 0):
+			return ((bbox[2], y0), "right")
+		elif (dx < 0):
+			return ((bbox[0], y0), "left")
+	else:
+		# Vertical exit, at the inside point's width
+		if (dy > 0):
+			return ((x0, bbox[3]), "bottom")
+		elif (dy < 0):
+			return ((x0, bbox[1]), "top")
+	return None
 
 def _marker_pos(edge, inside, dist=12):
 	"""A point just inside the display from `edge`, pulled back towards `inside`."""
@@ -711,11 +699,64 @@ def _marker_pos(edge, inside, dist=12):
 	s = max(0.0, l - dist) / l
 	return (inside[0] + dx * s, inside[1] + dy * s)
 
+def _marker_angle(edge):
+	"""Text rotation for a marker on an edge: read along a vertical edge."""
+	if (edge == "right"):
+		return 90
+	if (edge == "left"):
+		return 270
+	return 0
+
 def _device_display_name(d, key):
 	p = d.getDevice(key)
 	if (p is not None and hasattr(p, "name")):
 		return p.name
 	return str(key)
+
+def _explode_label_device(d, dev, conn):
+	"""Wire label: the far device's name."""
+	return _device_display_name(d, dev)
+
+def _explode_label_device_plug(d, dev, conn):
+	"""Wire label: the far device and the plug it lands on."""
+	return _device_display_name(d, dev) + "." + str(conn)
+
+def _explode_label_group(d, dev, conn):
+	"""Wire label: the group the far device belongs to, else its name."""
+	try:
+		p = main.core.struct.cur.execute("select `group_id` from `group_residents` where `type` = 'device' and `name` = ?", (dev,)).fetchone()
+	except Exception:
+		p = None
+	if (p is not None):
+		name = _group_name(p[0])
+		if (name is not None):
+			return name
+	return _device_display_name(d, dev)
+
+def _outside_label(d, dev, conn):
+	"""The label for a wire leaving the group, per the configured style."""
+	style = "device.plug"
+	try:
+		if ("explode_label_style" in main.conf.policy):
+			style = main.getConfVar("explode_label_style", "device.plug")
+	except Exception:
+		pass
+	try:
+		v = main.op_config.fetch(style, "explodeLabelStyle", "device.plug")
+		if (v is not None and "func" in v):
+			return v["func"](d, dev, conn)
+	except Exception:
+		pass
+	return _explode_label_device_plug(d, dev, conn)
+
+def _show_through_wires():
+	"""Whether wires passing through the group (neither end inside) are drawn."""
+	try:
+		if ("explode_show_through_wires" in main.conf.policy):
+			return main.getConfVar("explode_show_through_wires", False) in ["1", True]
+	except Exception:
+		pass
+	return False
 
 def _outside_conn_pos(d, dev, conn):
 	"""A device outside the group: its connector position from the main canvas's draw."""
@@ -833,7 +874,9 @@ def _close_all_exploded():
 def _draw_wire_path(cv, pts, bbox):
 	"""Draw one wire path. pts is [(point, outside_label)]: a point with a label
 	is an endpoint outside the group, so the wire is stubbed at the group's edge
-	with a "to <label>" marker there. Unlabelled points are drawn in full."""
+	with a "to <label>" marker there. Unlabelled points are drawn in full.
+	Stubs leave the edge at right angles (dominant axis); markers on a
+	vertical edge are rotated to read along it."""
 	for a in range(len(pts) - 1):
 		p0, l0 = pts[a]
 		p1, l1 = pts[a + 1]
@@ -843,9 +886,10 @@ def _draw_wire_path(cv, pts, bbox):
 			# Leaving the group: stub at the edge, marker just inside it
 			ex = _bbox_exit(p0, p1, bbox)
 			if (ex is not None):
-				cv.create_line(p0, ex, fill="black", tags=("_wire", "_stub"))
-				m = _marker_pos(ex, p0)
-				cv.create_text(m[0], m[1], text="to " + str(l1), font=("Arial", 8), anchor="center", tags=("_stub",))
+				pt, edge = ex
+				cv.create_line(p0, pt, fill="black", tags=("_wire", "_stub"))
+				m = _marker_pos(pt, p0)
+				cv.create_text(m[0], m[1], text="to " + str(l1), font=("Arial", 8), anchor="center", angle=_marker_angle(edge), tags=("_stub",))
 			else:
 				cv.create_line(p0, p1, fill="black", tags=("_wire", "_stub"))
 				cv.create_text(p1[0], p1[1], text="to " + str(l1), font=("Arial", 8), anchor="center", tags=("_stub",))
@@ -854,9 +898,10 @@ def _draw_wire_path(cv, pts, bbox):
 			# Entering the group: stub from the edge, marker just inside it
 			en = _bbox_exit(p1, p0, bbox)
 			if (en is not None):
-				cv.create_line(en, p1, fill="black", tags=("_wire", "_stub"))
-				m = _marker_pos(en, p1)
-				cv.create_text(m[0], m[1], text="to " + str(l0), font=("Arial", 8), anchor="center", tags=("_stub",))
+				pt, edge = en
+				cv.create_line(pt, p1, fill="black", tags=("_wire", "_stub"))
+				m = _marker_pos(pt, p1)
+				cv.create_text(m[0], m[1], text="to " + str(l0), font=("Arial", 8), anchor="center", angle=_marker_angle(edge), tags=("_stub",))
 			else:
 				cv.create_line(p0, p1, fill="black", tags=("_wire", "_stub"))
 				cv.create_text(p0[0], p0[1], text="to " + str(l0), font=("Arial", 8), anchor="center", tags=("_stub",))
@@ -864,13 +909,15 @@ def _draw_wire_path(cv, pts, bbox):
 
 def _draw_exploded_wires(cv, d, gid, devs, wps, connpos, bbox):
 	"""Wires touching the group: whole where both ends are members, stubbed
-	with a "to <name>" marker where a wire leaves the group."""
+	with a "to <label>" marker where a wire leaves the group. Wires with
+	neither end in the group are only drawn when the through-wires
+	setting is on: entering stub, inside segments, leaving stub."""
 	for k, i in d.conns.items():
 		a_dev, a_conn = i[0]
 		b_dev, b_conn = i[1]
 		a_in = (a_dev in devs and a_dev in connpos)
 		b_in = (b_dev in devs and b_dev in connpos)
-		if (not a_in and not b_in):
+		if (not a_in and not b_in and not _show_through_wires()):
 			continue
 		if (a_in):
 			start = connpos[a_dev].get(a_conn)
@@ -882,22 +929,33 @@ def _draw_exploded_wires(cv, d, gid, devs, wps, connpos, bbox):
 			end = _outside_conn_pos(d, b_dev, b_conn)
 		if (start is None or end is None):
 			continue
-		pts = []
-		if (a_in):
-			pts.append((tuple(start), None))
-		else:
-			pts.append((tuple(start), _device_display_name(d, a_dev)))
+		label_a = _outside_label(d, a_dev, a_conn)
+		label_b = _outside_label(d, b_dev, b_conn)
+		# Raw path: (point, inside the group?). Outside points before the
+		# first inside point belong to the a-side, the rest to the b-side.
+		raw = [(tuple(start), a_in)]
 		for w in sorted(d.cwps.get(k, []), key=lambda x: x["order"]):
 			wpid = w["wpid"]
 			if (wpid in d.wp):
-				if (wpid in wps):
-					pts.append((tuple(d.wp[wpid]["loc"]), None))
-				else:
-					pts.append((tuple(d.wp[wpid]["loc"]), d.wp[wpid]["name"]))
-		if (b_in):
-			pts.append((tuple(end), None))
-		else:
-			pts.append((tuple(end), _device_display_name(d, b_dev)))
+				raw.append((tuple(d.wp[wpid]["loc"]), wpid in wps))
+		raw.append((tuple(end), b_in))
+		first_in = None
+		for n in range(len(raw)):
+			if (raw[n][1]):
+				first_in = n
+				break
+		if (first_in is None):
+			# No point inside the group at all: nothing to draw
+			continue
+		pts = []
+		for n in range(len(raw)):
+			p, inside = raw[n]
+			if (inside):
+				pts.append((p, None))
+			elif (n < first_in):
+				pts.append((p, label_a))
+			else:
+				pts.append((p, label_b))
 		_draw_wire_path(cv, pts, bbox)
 
 def _redraw_exploded_tab(gid):
@@ -1011,10 +1069,37 @@ def explodeOnFileLoad(self, **kwargs):
 		if (_group_name(gid) is not None):
 			_spawn_exploded_tab(gid)
 
+def explodeInit(self, **kwargs):
+	"""onPluginInitialise: register the wire-label styles and the
+	exploded-tab settings in the global config."""
+	try:
+		main.op_config.register("explodeLabelStyle", "device", {"func": _explode_label_device})
+		main.op_config.register("explodeLabelStyle", "device.plug", {"func": _explode_label_device_plug})
+		main.op_config.register("explodeLabelStyle", "group", {"func": _explode_label_group})
+	except Exception as e:
+		print("explode: could not register label styles:", e)
+	try:
+		styles = main.op_config._list("explodeLabelStyle")
+	except Exception:
+		styles = {}
+	display = {"device": "Device name", "device.plug": "Device.plug", "group": "Group name"}
+	values = {}
+	for k in styles:
+		values[k] = display.get(k, k)
+	try:
+		main.conf.addOption("Groups", "explode_label_style", {"name": "Exploded tab wire labels", "type": "Combo", "values": values, "value": "device.plug"})
+	except Exception as e:
+		print("explode: could not add label style option:", e)
+	try:
+		main.conf.addOption("Groups", "explode_show_through_wires", {"name": "Show wires passing through the group", "type": "Checkbox", "value": False, "store": Tk.BooleanVar(value=False)})
+	except Exception as e:
+		print("explode: could not add through-wires option:", e)
+
 MANIFEST = {
 	"order": 0,
 	"events": {
 		"onFileLoad": [ g.checkInit, explodeOnFileLoad ],
+		"onPluginInitialise": [explodeInit],
 		#"onMenuSpawn" : [menu],
 		#"onDevEditWinPreDef": [devEditVarsPopulate],
 		"onMachineNameSet": [devEditVarsPopulate],
@@ -1027,6 +1112,7 @@ MANIFEST = {
 		"onUnknownClick": [checkGroupClick],
 		"onUnknownDrag": [checkGroupDrag],
 		"onCanvasRedraw": [redrawCanvas, redrawExplodedTabs],
+		"onGlobalConfigUpdate": [redrawExplodedTabs],
 		
 		"onWaypointAddDialog" : [devAddWin],
 		"onWaypointAddComplete" : [waypointAddComplete],
