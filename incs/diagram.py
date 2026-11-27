@@ -342,11 +342,11 @@ class diagram():
 			a = 1
 		elif (type(dr) is Tk.Canvas):
 			a = 2
+		elif (dr is None):
+			a = 3
+			ob_list = []
 		else:
 			a = 0
-			#print(type(dr))
-		# Maybe in the future, a diagramless version will be needed?
-		#print(type(dr))
 			raise Exception("Unplacable")
 	
 		if (_type in [0, 1]):
@@ -364,14 +364,12 @@ class diagram():
 				for i in p.connectors.keys():
 					if (p.connectors[i]['direction'] in self.connector_context):
 						x = self.connector_context[p.connectors[i]['direction']]
-						
 					else:
 						x = self.connector_context[None]
-						
+
 					poss[x[ct%len(x)]].append(i)
 					ct+=1
 			#print(poss)
-		
 		else:
 			pass
 
@@ -442,6 +440,24 @@ class diagram():
 						dr.addtag_withtag("_conn", otx)
 						dr.addtag_withtag("c:"+p.machName+"."+fc, otx)
 					#print(fc)
+				elif(a==3):
+					ob_list.append({
+						"type": "rectangle",
+						"coords": (lf-2.5, tp-2.5, lf + 2.5, tp+2.5),
+						"colour_outer" : c,
+						"colour_inner": None,
+						"tags": ["_conn", "c:"+p.machName+"."+fc],
+					})
+					ob_list.append({
+						"type": "text",
+						"coords": (lf+to[0],tp+to[1]),
+						"text": fc,
+						"colour" : tc,
+						"angle" : ro,
+						"font": i18n["font_small"],
+						"anchor": ["centre", "centre"],
+						"tags": ["_conn", "c:"+p.machName+"."+fc],
+					})
 				ct += 1
 				outmap[fc] = (lf,tp)
 
@@ -464,12 +480,26 @@ class diagram():
 			tx = dr.create_text(dms[0],dms[1],text=p.name,font=i18n["font_large"])
 			dr.addtag_withtag("mn:"+p.machName, tx)
 			dr.addtag_withtag("_dev", tx)
-		#dr.bind("<Button-1>", self.down)
-		#dr.bind("<ButtonRelease-1>", self.test)
-
-		#dr.tag_bind(rct, "<Button-1>", drag_start)
-		#dr.tag_bind(rct, "<B1-Motion>", drag_motion)
-
+		elif (a==3):
+			ob_list.append({
+				"type": "rectangle",
+				"coords": (dms[0]-(dms[2]/2), dms[1] - (dms[3]/2),
+					dms[0]+(dms[2]/2), dms[1] + (dms[3]/2)),
+				"colour_outer" : (0,0,0),
+				"colour_inner": None,
+				"tags": ["mn:"+p.machName, "_dev"],
+			})
+			ob_list.append({
+				"type": "text",
+				"coords": (dms[0],dms[1]),
+				"text": p,
+				"colour" : (0,0,0),
+				"angle" : 0,
+				"font": i18n["font_large"],
+				"anchor": ["centre", "centre"],
+				"tags": ["mn:"+p.machName, "_dev"],
+			})
+			return [outmap, ob_list]
 		return outmap
 		
 	def exportPng(self, ancs = []):
@@ -490,7 +520,6 @@ class diagram():
 				
 			print(i, j)
 
-			
 		#print(a)
 		w = int(self.bounds[2] - self.bounds[0])
 		h = int(self.bounds[3] - self.bounds[1])
