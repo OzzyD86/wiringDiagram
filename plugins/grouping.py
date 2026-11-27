@@ -617,6 +617,53 @@ def _group_members(gid, _seen=None):
 			wps |= sw
 	return devs, wps
 
+def _direct_subgroups(gid, _seen=None):
+	"""Direct subgroups of a group: [(subgid, name)]. Loop-protected."""
+	if (_seen is None):
+		_seen = set()
+	subs = []
+	for i in main.core.struct.cur.execute("select `name`, `type` from `group_residents` where `group_id` = ?", (gid,)).fetchall():
+		if (i[1] == "group"):
+			try:
+				subgid = int(i[0])
+				except (TypeError, ValueError):
+				continue
+			if (subgid in _seen):
+				continue
+			_seen.add(subgid)
+			name = _group_name(subgid)
+			if (name is None):
+				continue
+			subs.append((subgid, name))
+	return subs
+
+def _draw_subgroup_boxes(cv, gid, level=1, _seen=None):
+	"""Draw a box + label for each subgroup of `gid`, recursively.
+	Level colours match redrawCanvas: 0 yellow, 1 green, 2 blue, 3 red.
+	Drawn in increasing level order, so inner boxes sit over outer ones,
+	and lowered, so devices and wires draw over them."""
+	if (_seen is None):
+		_seen = set()
+	_seen.add(gid)
+	c = {0: "yellow", 1: "green", 2: "blue", 3: "red"}
+	for subgid, name in _direct_subgroups(gid, _seen):
+		try:
+			box = makeBBox(subgid)
+		except Exception:
+			continue
+		if (box is False or box[0] is None or box[1] is None or box[2] is None or box[3] is None):
+			continue
+		colour = c.get(level, "red")
+		op = cv.create_rectangle(box[0], box[1], box[2], box[3], width=5, outline=colour)
+		cv.addtag_withtag("_group", op)
+		cv.addtag_withtag("gid:" + str(subgid), op)
+		cv.lower(op)
+		r = cv.create_text(box[0], box[1], text=name, font=("Arial", 12), anchor="nw", fill=colour)
+		cv.addtag_withtag("_group", r)
+		cv.addtag_withtag("gid:" + str(subgid), r)
+		cv.lower(r)
+		_draw_subgroup_boxes(cv, subgid, level + 1, _seen)
+
 def _bbox_exit(p0, p1, bbox):
 	"""Point where the segment p0->p1 leaves bbox (p0 must be inside it), or None if p1 is inside."""
 	x0, y0 = p0
@@ -690,6 +737,13 @@ def _save_exploded():
 	main.core.struct.set_changed()
 	main.updateWindowTitle()
 
+def _refit_after_resize(gid):
+	"""Debounced resize handler: re-draw (and so re-fit) one exploded tab."""
+	if (gid not in _exploded):
+		return
+	_exploded[gid]["_resize_after"] = None
+	_redraw_exploded_tab(gid)
+
 def _spawn_exploded_tab(gid):
 	"""Create the tab for a group and draw it. No saving, no focus change."""
 	try:
@@ -712,7 +766,23 @@ def _spawn_exploded_tab(gid):
 	ic.rowconfigure(0, weight=1)
 	ic.columnconfigure(0, weight=1)
 	nb.add(fr, text=name)
-	_exploded[gid] = {"frame": fr, "ic": ic, "canvas": ic.canvas, "tab_id": nb.tabs()[-1], "name": name}
+	_exploded[gid] = {"frame": fr, "ic": ic, "canvas": ic.canvas, "tab_id": nb.tabs()[-1], "name": name, "size": None, "_resize_after": None}
+	cv = ic.canvas
+	def _on_resize(event, _gid=gid):
+		"""Re-fit on window/tab resize, only when the size really changed."""
+		if (_gid not in _exploded):
+			return
+		ent = _exploded[_gid]
+		size = (ent["canvas"].winfo_width(), ent["canvas"].winfo_height())
+		if (size == ent.get("size")):
+			return
+		if (ent.get("_resize_after") is not None):
+			try:
+				ent["canvas"].after_cancel(ent["_resize_after"])
+			except Exception:
+				pass
+		ent["_resize_after"] = ent["canvas"].after(50, lambda _g=_gid: _refit_after_resize(_g))
+	cv.bind("<Configure>", _on_resize)
 	_redraw_exploded_tab(gid)
 	return True
 
@@ -845,6 +915,7 @@ def _redraw_exploded_tab(gid):
 		# Empty group (or a loop): show just the name
 		cv.create_text(10, 10, text=e["name"], font=("Arial", 12), anchor="nw")
 		cv.config(scrollregion=(0, 0, 800, 600))
+		e["size"] = (cv.winfo_width(), cv.winfo_height())
 		return
 	# Group box first, so devices and wires draw over it
 	op = cv.create_rectangle(bbox[0], bbox[1], bbox[2], bbox[3], width=5, outline="yellow")
@@ -853,6 +924,8 @@ def _redraw_exploded_tab(gid):
 	r = cv.create_text(bbox[0], bbox[1], text=e["name"], font=("Arial", 12), anchor="nw", fill="yellow")
 	cv.addtag_withtag("_group", r)
 	cv.addtag_withtag("gid:" + str(gid), r)
+	# Subgroup boxes, level 1 and deeper, under the devices and wires
+	_draw_subgroup_boxes(cv, gid)
 	# Members, skipping orphans (a deleted device leaves its group_residents row behind)
 	devs, wps = _group_members(gid)
 	devs = set([i for i in devs if i in d.dev and i in d.locs])
@@ -887,13 +960,28 @@ def _redraw_exploded_tab(gid):
 				cv.addtag_withtag(q, r)
 	# Wires
 	_draw_exploded_wires(cv, d, gid, devs, wps, connpos, bbox)
-	# Same zoom / scrollregion handling as the main redraw
+	# Fit the group to 3/4 of the canvas, centred on the canvas centre.
+	# Falls back to the main redraw's 1x/2x scale when the canvas is not
+	# mapped yet (spawn time) or the group has no size.
+	vw = cv.winfo_width()
+	vh = cv.winfo_height()
+	bw = bbox[2] - bbox[0]
+	bh = bbox[3] - bbox[1]
 	try:
 		sc = main.sc.get()
 	except Exception:
 		sc = 1
-	cv.scale("all", 0, 0, sc, sc)
-	cv.config(scrollregion=((bbox[0] * sc) - 10, (bbox[1] * sc) - 10, (bbox[2] * sc) + 10, (bbox[3] * sc) + 10))
+	if (bw > 0 and bh > 0 and vw > 1 and vh > 1):
+		total = min(0.75 * vw / bw, 0.75 * vh / bh)
+		cv.scale("all", 0, 0, total, total)
+		cx = (bbox[0] + bbox[2]) / 2
+		cy = (bbox[1] + bbox[3]) / 2
+		cv.move("all", vw / 2 - cx * total, vh / 2 - cy * total)
+		cv.config(scrollregion=(0, 0, vw, vh))
+	else:
+		cv.scale("all", 0, 0, sc, sc)
+		cv.config(scrollregion=((bbox[0] * sc) - 10, (bbox[1] * sc) - 10, (bbox[2] * sc) + 10, (bbox[3] * sc) + 10))
+	e["size"] = (vw, vh)
 
 def redrawExplodedTabs(self, **kwargs):
 	"""onCanvasRedraw handler: re-draw every exploded tab when the main canvas redraws."""
