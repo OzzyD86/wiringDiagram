@@ -637,32 +637,61 @@ def _direct_subgroups(gid, _seen=None):
 			subs.append((subgid, name))
 	return subs
 
-def _draw_subgroup_boxes(cv, gid, level=1, _seen=None):
+_LEVEL_COLOURS = {0: "yellow", 1: "green", 2: "blue", 3: "red"}
+
+def _group_levels(gid, _levels=None, _seen=None):
+	"""Absolute nesting levels for `gid` and every subgroup below it: 0 for
+	a group with no subgroups, 1 + the deepest subgroup's level otherwise.
+	Same rule as redrawCanvas, so a group keeps its colour in every view
+	and the innermost group is always yellow. Loop-safe: a group already
+	being levelled counts as 0 for the group above it."""
+	if (_levels is None):
+		_levels = {}
+	if (_seen is None):
+		_seen = set()
+	if (gid in _levels or gid in _seen):
+		return _levels
+	_seen.add(gid)
+	subs = _direct_subgroups(gid)
+	if (not subs):
+		_levels[gid] = 0
+	else:
+		deepest = 0
+		for s, _name in subs:
+			_group_levels(s, _levels, _seen)
+			deepest = max(deepest, _levels.get(s, 0))
+		_levels[gid] = deepest + 1
+	_seen.discard(gid)
+	return _levels
+
+def _draw_subgroup_boxes(cv, gid, levels, _seen=None):
 	"""Draw a box + label for each subgroup of `gid`, recursively.
-	Level colours match redrawCanvas: 0 yellow, 1 green, 2 blue, 3 red.
-	Drawn in increasing level order, so inner boxes sit over outer ones,
-	and lowered, so devices and wires draw over them."""
+	Colours use each group's absolute level (0 yellow, 1 green, 2 blue,
+	3 red), the same rule as redrawCanvas, so a group keeps its colour in
+	every view and the innermost group is always yellow. Drawn in
+	increasing level order, so inner boxes sit over outer ones, and
+	lowered, so devices and wires draw over them."""
 	if (_seen is None):
 		_seen = set()
 	_seen.add(gid)
-	c = {0: "yellow", 1: "green", 2: "blue", 3: "red"}
 	for subgid, name in _direct_subgroups(gid, _seen):
 		try:
 			box = makeBBox(subgid)
 		except Exception:
-			continue
-		if (box is False or box[0] is None or box[1] is None or box[2] is None or box[3] is None):
-			continue
-		colour = c.get(level, "red")
-		op = cv.create_rectangle(box[0], box[1], box[2], box[3], width=5, outline=colour)
-		cv.addtag_withtag("_group", op)
-		cv.addtag_withtag("gid:" + str(subgid), op)
-		cv.lower(op)
-		r = cv.create_text(box[0], box[1], text=name, font=("Arial", 12), anchor="nw", fill=colour)
-		cv.addtag_withtag("_group", r)
-		cv.addtag_withtag("gid:" + str(subgid), r)
-		cv.lower(r)
-		_draw_subgroup_boxes(cv, subgid, level + 1, _seen)
+			box = False
+		if (box is not False and box[0] is not None and box[1] is not None and box[2] is not None and box[3] is not None):
+			colour = _LEVEL_COLOURS.get(levels.get(subgid, 0), "red")
+			op = cv.create_rectangle(box[0], box[1], box[2], box[3], width=5, outline=colour)
+			cv.addtag_withtag("_group", op)
+			cv.addtag_withtag("gid:" + str(subgid), op)
+			cv.lower(op)
+			r = cv.create_text(box[0], box[1], text=name, font=("Arial", 12), anchor="nw", fill=colour)
+			cv.addtag_withtag("_group", r)
+			cv.addtag_withtag("gid:" + str(subgid), r)
+			cv.lower(r)
+		# Recurse even when this subgroup has no box of its own, so
+		# deeper subgroups still get theirs.
+		_draw_subgroup_boxes(cv, subgid, levels, _seen)
 
 def _bbox_exit(p0, p1, bbox):
 	"""Point where the wire leaves bbox, snapped to the dominant axis,
@@ -975,15 +1004,19 @@ def _redraw_exploded_tab(gid):
 		cv.config(scrollregion=(0, 0, 800, 600))
 		e["size"] = (cv.winfo_width(), cv.winfo_height())
 		return
-	# Group box first, so devices and wires draw over it
-	op = cv.create_rectangle(bbox[0], bbox[1], bbox[2], bbox[3], width=5, outline="yellow")
+	# Group box first, so devices and wires draw over it. Colour is the
+	# group's absolute level, as on the main canvas, so the innermost
+	# group is yellow in every view.
+	levels = _group_levels(gid)
+	colour = _LEVEL_COLOURS.get(levels.get(gid, 0), "red")
+	op = cv.create_rectangle(bbox[0], bbox[1], bbox[2], bbox[3], width=5, outline=colour)
 	cv.addtag_withtag("_group", op)
 	cv.addtag_withtag("gid:" + str(gid), op)
-	r = cv.create_text(bbox[0], bbox[1], text=e["name"], font=("Arial", 12), anchor="nw", fill="yellow")
+	r = cv.create_text(bbox[0], bbox[1], text=e["name"], font=("Arial", 12), anchor="nw", fill=colour)
 	cv.addtag_withtag("_group", r)
 	cv.addtag_withtag("gid:" + str(gid), r)
-	# Subgroup boxes, level 1 and deeper, under the devices and wires
-	_draw_subgroup_boxes(cv, gid)
+	# Subgroup boxes, under the devices and wires
+	_draw_subgroup_boxes(cv, gid, levels)
 	# Members, skipping orphans (a deleted device leaves its group_residents row behind)
 	devs, wps = _group_members(gid)
 	devs = set([i for i in devs if i in d.dev and i in d.locs])
