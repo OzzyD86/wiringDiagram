@@ -310,10 +310,10 @@ def makeBBox(scope, old_scans = []):
 					ret[0] = e[0]-2
 			if (ret[1] is None or e[1] <= ret[1]):
 					ret[1] = e[1] -2
-			if (ret[2] is None or e[0] >= ret[2]):
-					ret[2] = e[0]+2
-			if (ret[3] is None or e[1] >= ret[3]):
-					ret[3] = e[1] +2
+			if (ret[2] is None or e[2] >= ret[2]):
+					ret[2] = e[2]+2
+			if (ret[3] is None or e[3] >= ret[3]):
+					ret[3] = e[3] +2
 			
 	return ret
 	
