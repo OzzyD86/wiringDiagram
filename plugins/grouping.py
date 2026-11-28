@@ -626,7 +626,7 @@ def _direct_subgroups(gid, _seen=None):
 		if (i[1] == "group"):
 			try:
 				subgid = int(i[0])
-				except (TypeError, ValueError):
+			except (TypeError, ValueError):
 				continue
 			if (subgid in _seen):
 				continue
